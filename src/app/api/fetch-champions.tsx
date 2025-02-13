@@ -33,7 +33,8 @@ try {
         champion_id: championId,
         name: name,
         role: role,
-        patch_version: latestPatch, // Always update the patch version
+        patch_version: latestPatch,
+        tags: tags // Always update the patch version
       },
     ], { 
       count: "exact" // Optional: specify count if needed
