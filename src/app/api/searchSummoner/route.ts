@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
@@ -25,17 +25,13 @@ export async function GET(req: Request) {
     );
 
     return NextResponse.json(response.data);
-  } catch (error: unknown) {
+  } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("❌ Riot API Error:", error.response?.data || error.message);
-
-      if (error.response?.status === 403) {
-        return NextResponse.json({ error: "Forbidden: API key may be invalid or expired." }, { status: 403 });
-      }
+      console.error("❌ Axios Error:", error.response?.data || error.message);
+      return NextResponse.json({ error: "An error occurred while fetching data." }, { status: 500 });
     } else {
       console.error("❌ Unexpected Error:", error);
+      return NextResponse.json({ error: "An unexpected error occurred." }, { status: 500 });
     }
-
-    return NextResponse.json({ error: "Summoner not found." }, { status: 404 });
   }
 }
