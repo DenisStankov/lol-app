@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { supabase } from "../../../lib/supabase";
 import axios from "axios";
 
@@ -47,9 +48,9 @@ try {
     }
   }
 
-  res.status(200).json({ message: `Champion update completed for Patch ${latestPatch}!` });
+  return NextResponse.json({ message: `Champion update completed for Patch ${latestPatch}!` }, { status: 200 });
 } catch (error) {
   console.error("Error fetching champions:", error);
-  res.status(500).json({ error: "Failed to fetch champions" });
+  return NextResponse.json({ error: "Failed to fetch champions" }, { status: 500 });
 }
 }
