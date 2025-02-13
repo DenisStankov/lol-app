@@ -10,7 +10,6 @@ import axios from "axios";
 
 export default function SummonerProfile() {
   const { region, name } = useParams(); // ✅ Get dynamic params from URL
-  const [summoner, setSummoner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -22,7 +21,13 @@ export default function SummonerProfile() {
     rank: string;
     division: string;
     leaguePoints: number;
+    winRate: number;
+    wins: number;
+    loses: number;
+    matchHistory: { matchId: string; champion: string; result: string; kills: number; deaths: number; assists: number }[];
   }
+  
+  const [summoner, setSummoner] = useState<Summoner | null>(null);
 
   // ✅ Extract gameName and tagLine from name (e.g., "KIRETOE-PEKAR")
   const gameName = name?.split("-")[0];
@@ -64,7 +69,7 @@ export default function SummonerProfile() {
               <div className="absolute -inset-1 bg-[#C89B3C]/20 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
               <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-[#C89B3C]/20">
                 <Image
-                  src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner.profileIconId}.png`}
+                  src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner?.profileIconId}.png`}
                   alt="Summoner Icon"
                   width={128}
                   height={128}
@@ -74,12 +79,12 @@ export default function SummonerProfile() {
             </div>
             <div className="space-y-3">
               <h1 className="text-4xl md:text-5xl font-bold text-[#C89B3C] tracking-tight">
-                {summoner.summonerName}
+                {summoner?.summonerName}
               </h1>
               <div className="flex items-center justify-center gap-3">
-                <span className="text-zinc-400">#{summoner.tagLine}</span>
+                <span className="text-zinc-400">#{summoner?.tagLine}</span>
                 <div className="px-3 py-1 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm font-medium">
-                  Level {summoner.summonerLevel}
+                  Level {summoner?.summonerLevel}
                 </div>
               </div>
               <Button className="bg-[#C89B3C]/10 text-[#C89B3C] hover:bg-[#C89B3C]/20 border-0">
@@ -94,8 +99,8 @@ export default function SummonerProfile() {
         {/* Stats Overview */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: Trophy, label: "Rank", value: `${summoner.rank} ${summoner.division}`, sub: `${summoner.leaguePoints} LP` },
-            { icon: Swords, label: "Win Rate", value: `${summoner.winRate}%`, sub: `Total Games: ${summoner.wins + summoner.losses}` },
+            { icon: Trophy, label: "Rank", value: `${summoner?.rank || "Unranked"} ${summoner?.division || ""}`, sub: `${summoner?.leaguePoints || 0} LP` },
+            { icon: Swords, label: "Win Rate", value: `${summoner?.winRate || 0}%`, sub: `Total Games: ${summoner?.wins ?? 0 + (summoner?.loses ?? 0)}` },
             { icon: Target, label: "KDA", value: "3.2:1", sub: "Kills/Deaths/Assists Avg." },
             { icon: Crown, label: "Top Role", value: "Mid", sub: "Most played role" },
           ].map((stat, i) => (
@@ -121,7 +126,7 @@ export default function SummonerProfile() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {summoner.matchHistory.map((match: { matchId: string; champion: string; result: string; kills: number; deaths: number; assists: number }, i: number) => (
+              {summoner?.matchHistory.map((match, i) => (
                 <div
                   key={i}
                   className={`flex items-center gap-4 p-4 rounded-lg ${

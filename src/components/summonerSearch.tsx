@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Search } from "lucide-react";
 import { Card, CardContent } from "@/components/card";
-import { Input } from "@/components/input";
+import Input from "@/components/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select";
 
 interface Summoner {
