@@ -1,41 +1,41 @@
 import { NextResponse } from "next/server";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 export async function GET(req: Request) {
+  if (!RIOT_API_KEY) {
+    return NextResponse.json({ error: "API key missing in environment variables" }, { status: 500 });
+  }
+
   const { searchParams } = new URL(req.url);
-  const query = searchParams.get("query");
+  const summonerName = searchParams.get("query");
   const region = searchParams.get("region");
 
-  if (!query || !region) {
-    return NextResponse.json({ error: "Summoner name and region are required." }, { status: 400 });
+  if (!summonerName || !region) {
+    return NextResponse.json({ error: "Summoner name and region required." }, { status: 400 });
   }
 
   try {
-    console.log(`🔍 Searching for summoner: ${query} in ${region}`);
+    console.log(`🔍 Searching for summoner: ${summonerName} in ${region}`);
 
-    // ✅ Fetch Summoner Data from Riot API
     const response = await axios.get(
-      `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(query)}`,
+      `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
 
-    if (!response.data.puuid) {
-      return NextResponse.json({ error: "Summoner not found." }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      summonerName: response.data.gameName,
-      tagLine: response.data.tagLine,
-      puuid: response.data.puuid,
-    });
+    return NextResponse.json(response.data);
   } catch (error: unknown) {
     if (axios.isAxiosError(error)) {
-      console.error("Riot API Error:", error.response?.data || error.message);
+      console.error("❌ Riot API Error:", error.response?.data || error.message);
+
+      if (error.response?.status === 403) {
+        return NextResponse.json({ error: "Forbidden: API key may be invalid or expired." }, { status: 403 });
+      }
     } else {
-      console.error("Unexpected Error:", error);
+      console.error("❌ Unexpected Error:", error);
     }
-    return NextResponse.json({ error: "Summoner not found or unauthorized." }, { status: 403 });
+
+    return NextResponse.json({ error: "Summoner not found." }, { status: 404 });
   }
 }
