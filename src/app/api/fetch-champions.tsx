@@ -25,7 +25,7 @@ export default async function handler(req: Request, res: Response) {
       console.log(`Processing: ${name} (${key})`);
 
       // Upsert (Insert or Update)
-      const { data, error } = await supabase.from("champions").upsert([
+      const { error } = await supabase.from("champions").upsert([
         {
           champion_id: parseInt(key, 10),
           name,

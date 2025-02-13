@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
     // ✅ Fetch Summoner Data from Riot API
     const response = await axios.get(
-      `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+      `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
 
