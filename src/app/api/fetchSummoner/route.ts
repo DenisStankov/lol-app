@@ -1,8 +1,37 @@
 import { NextResponse } from "next/server";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
-console.log(RIOT_API_KEY); // ✅ Backend Only API Key
+
+interface SummonerData {
+  gameName: string;
+  tagLine: string;
+  puuid: string;
+}
+
+interface SummonerStats {
+  id: string;
+  summonerLevel: number;
+  profileIconId: number;
+}
+
+interface RankedStats {
+  tier: string;
+  rank: string;
+  leaguePoints: number;
+  wins: number;
+  losses: number;
+  queueType: string;
+}
+
+interface Match {
+  matchId: string;
+  champion: string;
+  result: string;
+  kills: number;
+  deaths: number;
+  assists: number;
+}
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -28,73 +57,38 @@ export async function GET(req: Request) {
       jp1: "asia",
     }[platform] || "europe";
 
-    // 1️⃣ **Get Summoner Info (PUUID, Level, Profile Icon)**
-    const summonerResponse = await axios.get(
+    const summonerResponse: AxiosResponse<SummonerData> = await axios.get(
       `https://${riotRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
 
-    if (!summonerResponse.data.puuid) {
-      return NextResponse.json({ error: "Summoner not found in Riot API." }, { status: 404 });
-    }
-
     const { puuid } = summonerResponse.data;
 
-    // 2️⃣ **Get Summoner Stats (Profile Icon, Level, Summoner ID)**
-    const summonerDataResponse = await axios.get(
+    const summonerDataResponse: AxiosResponse<SummonerStats> = await axios.get(
       `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
 
     const summonerId = summonerDataResponse.data.id;
 
-    // 3️⃣ **Get Ranked Stats (Tier, LP, Win/Loss)**
-    const rankedStatsResponse = await axios.get(
+    const rankedStatsResponse: AxiosResponse<RankedStats[]> = await axios.get(
       `https://${platform}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
 
-    const rankedStats = rankedStatsResponse.data.find((entry: any) => entry.queueType === "RANKED_SOLO_5x5") || {};
+    const rankedStats = rankedStatsResponse.data.find((entry) => entry.queueType === "RANKED_SOLO_5x5") as RankedStats | undefined;
 
-    // 4️⃣ **Get Recent Matches**
-    const matchIdsResponse = await axios.get(
-      `https://${riotRegion}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=10`,
-      { headers: { "X-Riot-Token": RIOT_API_KEY } }
-    );
-
-    const recentMatches = await Promise.all(
-      matchIdsResponse.data.map(async (matchId: string) => {
-        const matchResponse = await axios.get(
-          `https://${riotRegion}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
-          { headers: { "X-Riot-Token": RIOT_API_KEY } }
-        );
-        return {
-          matchId,
-          champion: matchResponse.data.info.participants.find((p: any) => p.puuid === puuid)?.championName || "Unknown",
-          result: matchResponse.data.info.participants.find((p: any) => p.puuid === puuid)?.win ? "Victory" : "Defeat",
-          kills: matchResponse.data.info.participants.find((p: any) => p.puuid === puuid)?.kills,
-          deaths: matchResponse.data.info.participants.find((p: any) => p.puuid === puuid)?.deaths,
-          assists: matchResponse.data.info.participants.find((p: any) => p.puuid === puuid)?.assists,
-        };
-      })
-    );
-
-    // **Return Full Summoner Data**
     return NextResponse.json({
       summonerName: summonerResponse.data.gameName,
       tagLine: summonerResponse.data.tagLine,
       summonerLevel: summonerDataResponse.data.summonerLevel || 0,
       profileIconId: summonerDataResponse.data.profileIconId || 0,
-      rank: rankedStats.tier || "Unranked",
-      division: rankedStats.rank || "",
-      leaguePoints: rankedStats.leaguePoints || 0,
-      winRate: rankedStats.wins && rankedStats.losses
-        ? Math.round((rankedStats.wins / (rankedStats.wins + rankedStats.losses)) * 100)
-        : "N/A",
-      matchHistory: recentMatches,
+      rank: rankedStats?.tier || "Unranked",
+      division: rankedStats?.rank || "",
+      leaguePoints: rankedStats?.leaguePoints || 0,
     });
-  } catch (error: any) {
-    console.error("Riot API Error:", error.response?.data || error.message);
+  } catch (error) {
+    console.error("Riot API Error:", error);
     return NextResponse.json({ error: "Summoner not found." }, { status: 404 });
   }
 }
