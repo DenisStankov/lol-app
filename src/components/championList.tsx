@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ArrowUp, Swords, Users, Trophy } from 'lucide-react'
 import { Card } from "@/components/card"
+import Image from "next/image";
 
 // Sample data - in production, fetch from API
 const champions = [
@@ -97,7 +98,7 @@ export default function TopChampions() {
               {/* Champion image and info */}
               <div className="flex gap-4">
                 <div className="relative w-20 h-20 rounded-lg overflow-hidden">
-                  <img
+                  <Image
                     src={champion.image || "/placeholder.svg"}
                     alt={champion.name}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"

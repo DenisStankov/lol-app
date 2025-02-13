@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Search } from "lucide-react";
 import { Card, CardContent } from "@/components/card";
+import Image from "next/image";
 import Input from "@/components/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select";
 
@@ -120,7 +121,7 @@ export default function SummonerSearch() {
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#C89B3C]/10 cursor-pointer transition-all"
                 >
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800">
-                    <img
+                    <Image
                       src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${index + 1}.png`} // Placeholder
                       alt="Profile Icon"
                       width={40}

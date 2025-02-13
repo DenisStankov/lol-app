@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/card"
 import { Trophy, Clock, TrendingUp, TrendingDown, Loader2 } from 'lucide-react'
 import { cn } from "../../lib/utils"
+import Image from "next/image";
 
 // Sample data - in production, fetch from API
 const recentSummoners = [
@@ -126,12 +127,16 @@ export default function RecentMatches() {
               <div className="flex items-center gap-4">
                 {/* Profile Icon */}
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden border-2"
-                    style={{ borderColor: getRankColor(summoner.rank) }}>
-                    <img
+                  <div
+                    style={{ borderColor: getRankColor(summoner.rank) }}
+                    className="border-2 rounded-lg overflow-hidden"
+                  >
+                    <Image
                       src={summoner.profileIcon || "/placeholder.svg"}
                       alt={`${summoner.name}'s profile icon`}
-                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
+                      width={64}
+                      height={64}
+                      className="object-cover"
                     />
                   </div>
                   <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300">
