@@ -14,6 +14,16 @@ export default function SummonerProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  interface Summoner {
+    summonerName: string;
+    tagLine: string;
+    summonerLevel: number;
+    profileIconId: number;
+    rank: string;
+    division: string;
+    leaguePoints: number;
+  }
+
   // ✅ Extract gameName and tagLine from name (e.g., "KIRETOE-PEKAR")
   const gameName = name?.split("-")[0];
   const tagLine = name?.split("-")[1];
@@ -111,7 +121,7 @@ export default function SummonerProfile() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {summoner.matchHistory.map((match: any, i: number) => (
+              {summoner.matchHistory.map((match: { matchId: string; champion: string; result: string; kills: number; deaths: number; assists: number }, i: number) => (
                 <div
                   key={i}
                   className={`flex items-center gap-4 p-4 rounded-lg ${

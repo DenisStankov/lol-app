@@ -37,8 +37,12 @@ export async function GET(req: Request) {
       tagLine: response.data.tagLine,
       puuid: response.data.puuid,
     });
-  } catch (error: any) {
-    console.error("❌ Riot API Error:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.error("Riot API Error:", error.response?.data || error.message);
+    } else {
+      console.error("Unexpected Error:", error);
+    }
     return NextResponse.json({ error: "Summoner not found or unauthorized." }, { status: 403 });
   }
 }

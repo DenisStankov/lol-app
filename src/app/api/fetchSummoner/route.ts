@@ -24,15 +24,6 @@ interface RankedStats {
   queueType: string;
 }
 
-interface Match {
-  matchId: string;
-  champion: string;
-  result: string;
-  kills: number;
-  deaths: number;
-  assists: number;
-}
-
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const gameName = searchParams.get("gameName");
@@ -57,26 +48,33 @@ export async function GET(req: Request) {
       jp1: "asia",
     }[platform] || "europe";
 
+    // ✅ Get Summoner Info
     const summonerResponse: AxiosResponse<SummonerData> = await axios.get(
-      `https://${riotRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}`,
-      { headers: { "X-Riot-Token": RIOT_API_KEY } }
+      `https://${riotRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+      { headers: { "X-Riot-Token": RIOT_API_KEY! } }
     );
+
+    if (!summonerResponse.data.puuid) {
+      return NextResponse.json({ error: "Summoner not found." }, { status: 404 });
+    }
 
     const { puuid } = summonerResponse.data;
 
+    // ✅ Get Summoner Stats
     const summonerDataResponse: AxiosResponse<SummonerStats> = await axios.get(
       `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
-      { headers: { "X-Riot-Token": RIOT_API_KEY } }
+      { headers: { "X-Riot-Token": RIOT_API_KEY! } }
     );
 
     const summonerId = summonerDataResponse.data.id;
 
+    // ✅ Get Ranked Stats
     const rankedStatsResponse: AxiosResponse<RankedStats[]> = await axios.get(
       `https://${platform}.api.riotgames.com/lol/league/v4/entries/by-summoner/${summonerId}`,
-      { headers: { "X-Riot-Token": RIOT_API_KEY } }
+      { headers: { "X-Riot-Token": RIOT_API_KEY! } }
     );
 
-    const rankedStats = rankedStatsResponse.data.find((entry) => entry.queueType === "RANKED_SOLO_5x5") as RankedStats | undefined;
+    const rankedStats = rankedStatsResponse.data.find((entry) => entry.queueType === "RANKED_SOLO_5x5");
 
     return NextResponse.json({
       summonerName: summonerResponse.data.gameName,

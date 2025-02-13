@@ -18,5 +18,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, type,
 })
 Input.displayName = "Input"
 
-export { Input }
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  placeholder?: string;
+}
 
