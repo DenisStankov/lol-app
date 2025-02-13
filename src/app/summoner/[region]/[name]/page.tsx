@@ -26,7 +26,7 @@ export default function SummonerProfile() {
     loses: number;
     matchHistory: { matchId: string; champion: string; result: string; kills: number; deaths: number; assists: number }[];
   }
-  
+
   const [summoner, setSummoner] = useState<Summoner | null>(null);
 
   // ✅ Extract gameName and tagLine from name (e.g., "KIRETOE-PEKAR")
@@ -127,35 +127,38 @@ export default function SummonerProfile() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {summoner?.matchHistory.map((match, i) => (
-                <div
-                  key={i}
-                  className={`flex items-center gap-4 p-4 rounded-lg ${
-                    match.result === "Victory" ? "bg-emerald-500/10" : "bg-red-500/10"
-                  }`}
-                >
-                  <div className="w-16 h-16 rounded-lg bg-zinc-800/50 overflow-hidden">
-                    <Image
-                      src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/champion/${match.champion}.png`}
-                      alt="Champion"
-                      width={64}
-                      height={64}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className={match.result === "Victory" ? "text-emerald-400" : "text-red-400"}>
-                        {match.result}
-                      </span>
-                      <span className="text-sm text-zinc-400">KDA: {match.kills}/{match.deaths}/{match.assists}</span>
+              {summoner?.matchHistory?.length ? (
+                summoner.matchHistory.map((match, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-center gap-4 p-4 rounded-lg ${match.result === "Victory" ? "bg-emerald-500/10" : "bg-red-500/10"
+                      }`}
+                  >
+                    <div className="w-16 h-16 rounded-lg bg-zinc-800/50 overflow-hidden">
+                      <Image
+                        src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/champion/${match.champion}.png`}
+                        alt="Champion"
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={match.result === "Victory" ? "text-emerald-400" : "text-red-400"}>
+                          {match.result}
+                        </span>
+                        <span className="text-sm text-zinc-400">KDA: {match.kills}/{match.deaths}/{match.assists}</span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-white">Ranked Solo/Duo</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-white">Ranked Solo/Duo</div>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center text-zinc-400">No match history available.</p>
+              )}
             </div>
           </CardContent>
         </Card>

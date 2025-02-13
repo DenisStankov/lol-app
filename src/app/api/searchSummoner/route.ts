@@ -9,22 +9,15 @@ export async function GET(req: Request) {
   const region = searchParams.get("region");
 
   if (!query || !region) {
-    return NextResponse.json({ error: "Query and region are required." }, { status: 400 });
+    return NextResponse.json({ error: "Summoner name and region are required." }, { status: 400 });
   }
 
   try {
-    // ✅ Extract Summoner Name and TagLine
-    const [gameName, tagLine] = query.split("#");
-
-    if (!gameName || !tagLine) {
-      return NextResponse.json({ error: "Summoner name and tagline are required." }, { status: 400 });
-    }
-
-    console.log(`🔍 Searching for summoner: ${gameName}#${tagLine} in ${region}`);
+    console.log(`🔍 Searching for summoner: ${query} in ${region}`);
 
     // ✅ Fetch Summoner Data from Riot API
     const response = await axios.get(
-      `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+      `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(query)}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
 

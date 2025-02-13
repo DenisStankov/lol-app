@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Search } from "lucide-react";
 import { Card, CardContent } from "@/components/card";
-import Image from "next/image";
 import { Input } from "@/components/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select";
 
@@ -17,13 +16,13 @@ interface Summoner {
 
 export default function SummonerSearch() {
   const [query, setQuery] = useState("");
-  const [region, setRegion] = useState(""); // Default region
+  const [region, setRegion] = useState("euw1"); // Default region
   const [results, setResults] = useState<Summoner[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
 
-  // ✅ Validate input to ensure "#TagLine" is included
+  // ✅ Validate input to ensure at least 3 characters
   const fetchSummoners = useCallback(async () => {
     if (query.length < 3) {
       setError("Enter at least 3 characters");
@@ -34,21 +33,8 @@ export default function SummonerSearch() {
     setLoading(true);
     setError("");
 
-    
-
     try {
-      const riotRegion = {
-        euw1: "europe",
-        eun1: "europe",
-        na1: "americas",
-        br1: "americas",
-        la1: "americas",
-        la2: "americas",
-        kr: "asia",
-        jp1: "asia",
-      }[region] || "europe"; // Default to Europe
-      
-      const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${riotRegion}`);
+      const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${region}`);
       setResults([res.data]);
     } catch (err) {
       console.error("❌ Search Error:", err);
@@ -115,24 +101,8 @@ export default function SummonerSearch() {
             {!loading &&
               !error &&
               results.map((summoner, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleSelect(summoner)}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#C89B3C]/10 cursor-pointer transition-all"
-                >
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800">
-                    <Image
-                      src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${index + 1}.png`} // Placeholder
-                      alt="Profile Icon"
-                      width={40}
-                      height={40}
-                      className="object-cover"
-                    />
-                  </div>
-                  <div>
-                    <div className="font-medium text-white">{summoner.summonerName}</div>
-                    <div className="text-sm text-zinc-400">#{summoner.tagLine}</div>
-                  </div>
+                <div key={index} onClick={() => handleSelect(summoner)} className="p-3 cursor-pointer hover:bg-[#C89B3C]/20">
+                  {summoner.summonerName}#{summoner.tagLine}
                 </div>
               ))}
           </div>
