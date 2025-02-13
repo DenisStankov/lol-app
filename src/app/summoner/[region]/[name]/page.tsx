@@ -101,7 +101,7 @@ export default function SummonerProfile() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: Trophy, label: "Rank", value: `${summoner?.rank || "Unranked"} ${summoner?.division || ""}`, sub: `${summoner?.leaguePoints || 0} LP` },
-            { icon: Swords, label: "Win Rate", value: `${summoner?.winRate || 0}%`, sub: `Total Games: ${summoner?.wins + summoner?.loses || 0}` },
+            { icon: Swords, label: "Win Rate", value: `${summoner?.winRate || 0}%`, sub: `Total Games: ${summoner?.wins ?? 0 + (summoner?.loses ?? 0)}` },
             { icon: Target, label: "KDA", value: "3.2:1", sub: "Kills/Deaths/Assists Avg." },
             { icon: Crown, label: "Top Role", value: "Mid", sub: "Most played role" },
           ].map((stat, i) => (
