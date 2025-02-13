@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
 import { Crown, Swords, Target, Trophy } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import axios from "axios";
 
 export default function SummonerProfile() {
