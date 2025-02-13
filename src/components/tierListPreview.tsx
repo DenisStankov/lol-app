@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { ChevronDown, ChevronUp, Trophy, Swords, Users } from "lucide-react"
 import { Card } from "@/components/card"
+import Image from 'next/image'
 
 // Sample data - in production, fetch from API
 const tiers = {
@@ -177,10 +178,12 @@ export default function TierList() {
                       <div className="flex gap-4">
                         {/* Champion Image */}
                         <div className="relative w-16 h-16 rounded-lg overflow-hidden">
-                          <img
+                          <Image
                             src={champion.image || "/placeholder.svg"}
                             alt={champion.name}
-                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
+                            width={64}
+                            height={64}
+                            className="object-cover"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         </div>

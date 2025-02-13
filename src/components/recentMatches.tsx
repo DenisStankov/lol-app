@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/card"
 import { Trophy, Clock, TrendingUp, TrendingDown, Loader2 } from 'lucide-react'
 import { cn } from "../../lib/utils"
@@ -67,6 +67,21 @@ const recentSummoners = [
 export default function RecentMatches() {
   const [hoveredSummoner, setHoveredSummoner] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const fetchData = async () => {
+    setIsLoading(true)
+    try {
+      // Your data fetching logic here
+    } catch (error) {
+      console.error("Error fetching data:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   const getRankColor = (rank: string) => {
     switch (rank) {

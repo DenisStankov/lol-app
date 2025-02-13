@@ -47,7 +47,7 @@ export default function SummonerSearch() {
         jp1: "asia",
       }[region] || "europe"; // Default to Europe
       
-      const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${region}`);
+      const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${riotRegion}`);
       setResults([res.data]);
     } catch (err) {
       console.error("❌ Search Error:", err);
