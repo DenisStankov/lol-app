@@ -8,7 +8,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "API key missing in environment variables" }, { status: 500 });
   }
 
-  // ✅ Extract query parameters correctly
   const { searchParams } = new URL(req.url);
   const summonerName = searchParams.get("query")?.trim() || "";
   const region = searchParams.get("region")?.trim() || "";
@@ -22,7 +21,7 @@ export async function GET(req: Request) {
   try {
     console.log(`🔍 Searching Summoner: ${summonerName} in ${region}`);
 
-    // ✅ Get Summoner Info (First Step)
+    // ✅ Step 1: Get Summoner PUUID using Summoner V4 API
     const summonerResponse = await axios.get(
       `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
@@ -34,7 +33,7 @@ export async function GET(req: Request) {
 
     const puuid = summonerResponse.data.puuid;
 
-    // ✅ Get the Actual `TagLine` Using Riot Account API (Second Step)
+    // ✅ Step 2: Use PUUID to fetch Account Information (GameName + TagLine)
     const accountResponse = await axios.get(
       `https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }

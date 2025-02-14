@@ -23,7 +23,7 @@ export default function SummonerSearch() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  // ✅ Auto-suggest feature
+  // ✅ Fetch Summoner Suggestions
   const fetchSummoners = useCallback(async () => {
     if (query.length < 3) {
       setError("");
@@ -36,7 +36,7 @@ export default function SummonerSearch() {
 
     try {
       const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${region}`);
-      setResults([res.data]); // Get array of summoners
+      setResults([res.data]); // Store results
     } catch (err) {
       console.error("❌ Search Error:", err);
       setError("Summoner not found.");
