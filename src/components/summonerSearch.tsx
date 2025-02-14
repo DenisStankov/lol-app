@@ -11,7 +11,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 interface Summoner {
   summonerName: string;
   tagLine: string;
-  profileIconId: number;
+  puuid: string;
 }
 
 export default function SummonerSearch() {
@@ -22,10 +22,10 @@ export default function SummonerSearch() {
   const [error, setError] = useState("");
   const router = useRouter();
 
-  // ✅ Validate input to ensure at least 3 characters
+  // ✅ Auto-suggest feature
   const fetchSummoners = useCallback(async () => {
     if (query.length < 3) {
-      setError("Enter at least 3 characters");
+      setError("");
       setResults([]);
       return;
     }
@@ -35,7 +35,7 @@ export default function SummonerSearch() {
 
     try {
       const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${region}`);
-      setResults([res.data]);
+      setResults(res.data); // Get array of summoners
     } catch (err) {
       console.error("❌ Search Error:", err);
       setError("Summoner not found.");
