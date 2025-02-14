@@ -17,7 +17,7 @@ interface Summoner {
 
 export default function SummonerSearch() {
   const [query, setQuery] = useState("");
-  const [region, setRegion] = useState("euw1"); // Default region
+  const [region, setRegion] = useState("euw1"); // Default to EUW
   const [results, setResults] = useState<Summoner[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -84,6 +84,9 @@ export default function SummonerSearch() {
               <SelectItem value="na1">NA</SelectItem>
               <SelectItem value="kr">KR</SelectItem>
               <SelectItem value="eun1">EUNE</SelectItem>
+              <SelectItem value="br1">BR</SelectItem>
+              <SelectItem value="tr1">TR</SelectItem>
+              <SelectItem value="ru">RU</SelectItem>
             </SelectContent>
           </Select>
         </div>

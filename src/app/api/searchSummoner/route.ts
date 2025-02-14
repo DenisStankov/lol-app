@@ -3,6 +3,20 @@ import axios from "axios";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
+// ✅ Correct Riot API Region Mapping
+const RIOT_ACCOUNT_REGIONS: Record<string, string> = {
+  euw1: "europe",
+  eun1: "europe",
+  tr1: "europe",
+  ru: "europe",
+  na1: "americas",
+  br1: "americas",
+  la1: "americas",
+  la2: "americas",
+  kr: "asia",
+  jp1: "asia",
+};
+
 export async function GET(req: Request) {
   if (!RIOT_API_KEY) {
     return NextResponse.json({ error: "API key missing in environment variables" }, { status: 500 });
@@ -21,7 +35,7 @@ export async function GET(req: Request) {
   try {
     console.log(`🔍 Searching Summoner: ${summonerName} in ${region}`);
 
-    // ✅ Step 1: Get Summoner PUUID
+    // ✅ Step 1: Get Summoner PUUID from Summoner V4 API
     const summonerResponse = await axios.get(
       `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
@@ -34,7 +48,7 @@ export async function GET(req: Request) {
     }
 
     // ✅ Step 2: Use PUUID to fetch Riot ID (GameName + TagLine)
-    const riotRegion = "europe"; // Riot's Account API only works in specific regions
+    const riotRegion = RIOT_ACCOUNT_REGIONS[region] || "europe"; // Default to Europe if missing
     const accountResponse = await axios.get(
       `https://${riotRegion}.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
