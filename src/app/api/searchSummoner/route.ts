@@ -40,6 +40,8 @@ export async function GET(req: Request) {
       `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
+    console.log(summonerResponse);
+    console.log(RIOT_API_KEY);
 
     const { puuid, profileIconId, summonerLevel } = summonerResponse.data;
 
