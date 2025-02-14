@@ -12,7 +12,6 @@ interface Summoner {
   summonerName: string;
   tagLine: string;
   puuid: string;
-  profileIconId: number;
 }
 
 export default function SummonerSearch() {
@@ -48,7 +47,7 @@ export default function SummonerSearch() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (query.length > 3) fetchSummoners();
+      if (query.length > 2) fetchSummoners();
     }, 500);
     return () => clearTimeout(timer);
   }, [query, fetchSummoners]);
