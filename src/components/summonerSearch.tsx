@@ -17,7 +17,7 @@ interface Summoner {
 export default function SummonerSearch() {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState("euw1"); // Default to EUW
-  const [results, setResults] = useState<Summoner[]>([]);
+  const [results, setResults] = useState<Summoner | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function SummonerSearch() {
   const fetchSummoners = useCallback(async () => {
     if (query.length < 3) {
       setError("");
-      setResults([]);
+      setResults(null);
       return;
     }
 
@@ -35,11 +35,11 @@ export default function SummonerSearch() {
 
     try {
       const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${region}`);
-      setResults([res.data]); // Store results
+      setResults(res.data); // Store results
     } catch (err) {
       console.error("❌ Search Error:", err);
       setError("Summoner not found.");
-      setResults([]);
+      setResults(null);
     } finally {
       setLoading(false);
     }
@@ -53,8 +53,9 @@ export default function SummonerSearch() {
   }, [query, fetchSummoners]);
 
   // ✅ Handle Summoner Selection
-  const handleSelect = (summoner: Summoner) => {
-    const formattedName = `${summoner.summonerName}-${summoner.tagLine}`;
+  const handleSelect = () => {
+    if (!results) return;
+    const formattedName = `${results.summonerName}-${results.tagLine}`;
     router.push(`/summoner/${region}/${formattedName}`);
   };
 
@@ -66,7 +67,7 @@ export default function SummonerSearch() {
           <div className="relative w-full md:w-2/3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#C89B3C]" />
             <Input
-              placeholder="Search summoner..."
+              placeholder="Search summoner (e.g., Player#EUW)"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-10 h-12 w-full bg-zinc-800 border-[#C89B3C]/20 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C]/50 focus:border-[#C89B3C]/50"
@@ -95,13 +96,11 @@ export default function SummonerSearch() {
           <div className="mt-3 bg-zinc-900/90 rounded-lg shadow-md border border-[#C89B3C]/20">
             {loading && <div className="p-3 text-[#C89B3C] text-center">Searching...</div>}
             {error && !loading && <div className="p-3 text-red-500 text-center">{error}</div>}
-            {!loading &&
-              !error &&
-              results.map((summoner, index) => (
-                <div key={index} onClick={() => handleSelect(summoner)} className="p-3 cursor-pointer hover:bg-[#C89B3C]/20">
-                  {summoner.summonerName}#{summoner.tagLine}
-                </div>
-              ))}
+            {!loading && !error && results && (
+              <div onClick={handleSelect} className="p-3 cursor-pointer hover:bg-[#C89B3C]/20">
+                {results.summonerName}#{results.tagLine}
+              </div>
+            )}
           </div>
         )}
       </CardContent>

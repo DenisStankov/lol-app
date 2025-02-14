@@ -3,7 +3,6 @@ import axios from "axios";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-// ✅ Riot Account API requires specific regions for account lookup
 const RIOT_ACCOUNT_REGIONS: Record<string, string> = {
   euw1: "europe",
   eun1: "europe",
@@ -19,6 +18,7 @@ const RIOT_ACCOUNT_REGIONS: Record<string, string> = {
 
 export async function GET(req: Request) {
   if (!RIOT_API_KEY) {
+    console.error("❌ API key is missing.");
     return NextResponse.json({ error: "API key missing in environment variables" }, { status: 500 });
   }
 
@@ -41,27 +41,36 @@ export async function GET(req: Request) {
   try {
     console.log(`🔍 Searching for: ${query} in ${region} (Riot API Region: ${riotRegion})`);
 
-    // ✅ Step 1: Get Account Info from Riot Account-V1 API
+    // ✅ Split Game Name and Tagline
+    const [gameName, tagLine] = query.includes("#") ? query.split("#") : [query, ""];
+
+    if (!gameName || !tagLine) {
+      return NextResponse.json({ error: "Summoner name must include tagline (e.g., ExampleUser#EUW)." }, { status: 400 });
+    }
+
+    // ✅ Step 1: Get Account Info from Riot API
     const accountResponse = await axios.get(
-      `https://${riotRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(query)}`,
+      `https://${riotRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
 
-    const { puuid, gameName, tagLine } = accountResponse.data;
+    console.log("✅ Riot API Response:", accountResponse.data);
 
-    if (!puuid || !gameName || !tagLine) {
+    const { puuid, gameName: returnedGameName, tagLine: returnedTagLine } = accountResponse.data;
+
+    if (!puuid || !returnedGameName || !returnedTagLine) {
       return NextResponse.json({ error: "Summoner not found." }, { status: 404 });
     }
 
     return NextResponse.json({
-      summonerName: gameName,
-      tagLine: tagLine,
+      summonerName: returnedGameName,
+      tagLine: returnedTagLine,
       puuid,
     });
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error("❌ Riot API Error:", error.response?.data || error.message);
-      return NextResponse.json({ error: "Summoner not found or unauthorized." }, { status: 403 });
+      return NextResponse.json({ error: error.response?.data?.status?.message || "Summoner not found or unauthorized." }, { status: error.response?.status || 403 });
     } else {
       console.error("❌ Unexpected Error:", error);
       return NextResponse.json({ error: "An unexpected error occurred." }, { status: 500 });
