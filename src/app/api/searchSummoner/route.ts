@@ -10,52 +10,54 @@ export async function GET(req: Request) {
 
   // ✅ Extract query parameters correctly
   const { searchParams } = new URL(req.url);
-  const query = searchParams.get("query")?.trim() || "";
+  const summonerName = searchParams.get("query")?.trim() || "";
   const region = searchParams.get("region")?.trim() || "";
 
-  console.log("🛠 DEBUG: Received Query:", query, "Region:", region);
+  console.log("🛠 DEBUG: Received Query:", summonerName, "Region:", region);
 
-  if (!query || !region) {
-    return NextResponse.json({ error: "Summoner name is required." }, { status: 400 });
+  if (!summonerName || !region) {
+    return NextResponse.json({ error: "Summoner name and region are required." }, { status: 400 });
   }
 
   try {
-    console.log(`🔍 Searching Summoner: ${query} in ${region}`);
+    console.log(`🔍 Searching Summoner: ${summonerName} in ${region}`);
 
-    // ✅ Riot does NOT have an endpoint for partial name search, so we use a workaround:
-    // We assume a generic list of possible taglines and search each.
-    const possibleTags = ["EUW", "EUNE", "NA", "KR", "JP", "BR", "TR", "RU", "LAN", "LAS"];
-    const results = [];
+    // ✅ Get Summoner Info (First Step)
+    const summonerResponse = await axios.get(
+      `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
+      { headers: { "X-Riot-Token": RIOT_API_KEY } }
+    );
 
-    for (const tag of possibleTags) {
-      try {
-        const response = await axios.get(
-          `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(query)}/${encodeURIComponent(tag)}`,
-          { headers: { "X-Riot-Token": RIOT_API_KEY } }
-        );
-
-        if (response.data.puuid) {
-          results.push({
-            summonerName: response.data.gameName,
-            tagLine: response.data.tagLine,
-            puuid: response.data.puuid,
-          });
-        }
-      } catch (error) {
-        // Ignore errors for missing users
-        if (axios.isAxiosError(error) && error.response?.status === 404) {
-          continue;
-        }
-      }
+    if (!summonerResponse.data.puuid) {
+      return NextResponse.json({ error: "Summoner not found." }, { status: 404 });
     }
 
-    if (results.length === 0) {
-      return NextResponse.json({ error: "No matching summoners found." }, { status: 404 });
+    const puuid = summonerResponse.data.puuid;
+
+    // ✅ Get the Actual `TagLine` Using Riot Account API (Second Step)
+    const accountResponse = await axios.get(
+      `https://europe.api.riotgames.com/riot/account/v1/accounts/by-puuid/${puuid}`,
+      { headers: { "X-Riot-Token": RIOT_API_KEY } }
+    );
+
+    if (!accountResponse.data.gameName || !accountResponse.data.tagLine) {
+      return NextResponse.json({ error: "Could not retrieve full summoner details." }, { status: 500 });
     }
 
-    return NextResponse.json(results);
+    return NextResponse.json({
+      summonerName: accountResponse.data.gameName,
+      tagLine: accountResponse.data.tagLine,
+      puuid,
+      profileIconId: summonerResponse.data.profileIconId,
+      summonerLevel: summonerResponse.data.summonerLevel,
+    });
   } catch (error) {
-    console.error("❌ Riot API Error:", error);
-    return NextResponse.json({ error: "Summoner not found or unauthorized." }, { status: 403 });
+    if (axios.isAxiosError(error)) {
+      console.error("❌ Riot API Error:", error.response?.data || error.message);
+      return NextResponse.json({ error: "Summoner not found or unauthorized." }, { status: 403 });
+    } else {
+      console.error("❌ Unexpected Error:", error);
+      return NextResponse.json({ error: "An unexpected error occurred." }, { status: 500 });
+    }
   }
 }
