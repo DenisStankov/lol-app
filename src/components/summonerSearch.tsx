@@ -84,12 +84,6 @@ export default function SummonerSearch() {
               <SelectItem value="na1">NA</SelectItem>
               <SelectItem value="kr">KR</SelectItem>
               <SelectItem value="eun1">EUNE</SelectItem>
-              <SelectItem value="jp1">JP</SelectItem>
-              <SelectItem value="br1">BR</SelectItem>
-              <SelectItem value="tr1">TR</SelectItem>
-              <SelectItem value="ru">RU</SelectItem>
-              <SelectItem value="la1">LAN</SelectItem>
-              <SelectItem value="la2">LAS</SelectItem>
             </SelectContent>
           </Select>
         </div>
