@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import axios from "axios";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
+console.log("✅ Using Riot API Key:", RIOT_API_KEY ? "Loaded" : "Not Loaded");
+
 
 export async function GET(req: Request) {
   if (!RIOT_API_KEY) {
