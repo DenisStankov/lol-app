@@ -34,6 +34,7 @@ export async function GET(req: Request) {
 
   try {
     console.log(`🔍 Searching Summoner: ${summonerName} in ${region}`);
+    console.log(RIOT_API_KEY);
 
     // ✅ Step 1: Get Summoner PUUID from Summoner V4 API
     const summonerResponse = await axios.get(
@@ -41,7 +42,7 @@ export async function GET(req: Request) {
       { headers: { "X-Riot-Token": RIOT_API_KEY } }
     );
     console.log(summonerResponse);
-    console.log(RIOT_API_KEY);
+    
 
     const { puuid, profileIconId, summonerLevel } = summonerResponse.data;
 
