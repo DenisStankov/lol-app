@@ -21,26 +21,22 @@ export default function SummonerSearch() {
   const [region, setRegion] = useState("euw1"); // Default region
   const [results, setResults] = useState<Summoner[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
 
   // ✅ Fetch Summoner Suggestions
   const fetchSummoners = useCallback(async () => {
     if (query.length < 3) {
-      setError("");
       setResults([]);
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${region}`);
       setResults([res.data]); // Store results
     } catch (err) {
       console.error("❌ Search Error:", err);
-      setError("Summoner not found.");
       setResults([]);
     } finally {
       setLoading(false);
@@ -90,7 +86,9 @@ export default function SummonerSearch() {
         </div>
 
         {/* 🔥 Search Results */}
-        {results.length > 0 && (
+        {loading ? (
+          <p>Loading...</p>
+        ) : results.length > 0 ? (
           <div className="mt-3">
             {results.map((summoner) => (
               <div key={summoner.puuid} className="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#C89B3C]/20" onClick={() => handleSelect(summoner)}>
@@ -99,6 +97,8 @@ export default function SummonerSearch() {
               </div>
             ))}
           </div>
+        ) : (
+          <p>No results found.</p>
         )}
       </CardContent>
     </Card>
