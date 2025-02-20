@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Search } from "lucide-react";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/card";
 import { Input } from "@/components/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select";
@@ -12,12 +13,13 @@ interface Summoner {
   summonerName: string;
   tagLine: string;
   puuid: string;
+  profileIconId: number;
 }
 
 export default function SummonerSearch() {
   const [query, setQuery] = useState("");
-  const [region, setRegion] = useState("euw1"); // Default to EUW
-  const [results, setResults] = useState<Summoner | null>(null);
+  const [region, setRegion] = useState("euw1"); // Default region
+  const [results, setResults] = useState<Summoner[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -26,7 +28,7 @@ export default function SummonerSearch() {
   const fetchSummoners = useCallback(async () => {
     if (query.length < 3) {
       setError("");
-      setResults(null);
+      setResults([]);
       return;
     }
 
@@ -35,11 +37,11 @@ export default function SummonerSearch() {
 
     try {
       const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${region}`);
-      setResults(res.data); // Store results
+      setResults([res.data]); // Store results
     } catch (err) {
       console.error("❌ Search Error:", err);
       setError("Summoner not found.");
-      setResults(null);
+      setResults([]);
     } finally {
       setLoading(false);
     }
@@ -47,15 +49,14 @@ export default function SummonerSearch() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (query.length > 2) fetchSummoners();
+      if (query.length > 3) fetchSummoners();
     }, 500);
     return () => clearTimeout(timer);
   }, [query, fetchSummoners]);
 
   // ✅ Handle Summoner Selection
-  const handleSelect = () => {
-    if (!results) return;
-    const formattedName = `${results.summonerName}-${results.tagLine}`;
+  const handleSelect = (summoner: Summoner) => {
+    const formattedName = `${summoner.summonerName}-${summoner.tagLine}`;
     router.push(`/summoner/${region}/${formattedName}`);
   };
 
@@ -67,7 +68,7 @@ export default function SummonerSearch() {
           <div className="relative w-full md:w-2/3">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#C89B3C]" />
             <Input
-              placeholder="Search summoner (e.g., Player#EUW)"
+              placeholder="Search summoner..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-10 h-12 w-full bg-zinc-800 border-[#C89B3C]/20 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C]/50 focus:border-[#C89B3C]/50"
@@ -84,23 +85,19 @@ export default function SummonerSearch() {
               <SelectItem value="na1">NA</SelectItem>
               <SelectItem value="kr">KR</SelectItem>
               <SelectItem value="eun1">EUNE</SelectItem>
-              <SelectItem value="br1">BR</SelectItem>
-              <SelectItem value="tr1">TR</SelectItem>
-              <SelectItem value="ru">RU</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* 🔥 Search Results */}
-        {query && (
-          <div className="mt-3 bg-zinc-900/90 rounded-lg shadow-md border border-[#C89B3C]/20">
-            {loading && <div className="p-3 text-[#C89B3C] text-center">Searching...</div>}
-            {error && !loading && <div className="p-3 text-red-500 text-center">{error}</div>}
-            {!loading && !error && results && (
-              <div onClick={handleSelect} className="p-3 cursor-pointer hover:bg-[#C89B3C]/20">
-                {results.summonerName}#{results.tagLine}
+        {results.length > 0 && (
+          <div className="mt-3">
+            {results.map((summoner) => (
+              <div key={summoner.puuid} className="flex items-center gap-3 p-3 cursor-pointer hover:bg-[#C89B3C]/20" onClick={() => handleSelect(summoner)}>
+                <Image src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner.profileIconId}.png`} alt="Profile Icon" width={40} height={40} className="rounded-full" />
+                <span>{summoner.summonerName}#{summoner.tagLine}</span>
               </div>
-            )}
+            ))}
           </div>
         )}
       </CardContent>
