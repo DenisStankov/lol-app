@@ -1,71 +1,112 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowUp, Swords, Users, Trophy } from 'lucide-react'
+import { useState, useEffect } from "react"
+import { ArrowUp, Swords, Users, Trophy, Loader2 } from 'lucide-react'
 import { Card } from "@/components/card"
-import Image from "next/image";
+import Image from "next/image"
+import axios from "axios"
 
-// Sample data - in production, fetch from API
-const champions = [
-  {
-    id: "ahri",
-    name: "Ahri",
-    role: "Mid",
-    winRate: 53.2,
-    pickRate: 12.5,
-    banRate: 8.7,
-    trend: "up",
-    difficulty: "Moderate",
-    image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg"
-  },
-  {
-    id: "kaisa",
-    name: "Kai'Sa",
-    role: "ADC",
-    winRate: 51.8,
-    pickRate: 15.3,
-    banRate: 5.2,
-    trend: "up",
-    difficulty: "Moderate",
-    image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Kaisa_0.jpg"
-  },
-  {
-    id: "yasuo",
-    name: "Yasuo",
-    role: "Mid",
-    winRate: 49.5,
-    pickRate: 18.7,
-    banRate: 14.3,
-    trend: "up",
-    difficulty: "High",
-    image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yasuo_0.jpg"
-  },
-  {
-    id: "lux",
-    name: "Lux",
-    role: "Support",
-    winRate: 52.4,
-    pickRate: 11.2,
-    banRate: 3.8,
-    trend: "up",
-    difficulty: "Easy",
-    image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Lux_0.jpg"
-  },
-  {
-    id: "leona",
-    name: "Leona",
-    role: "Support",
-    winRate: 51.9,
-    pickRate: 9.8,
-    banRate: 4.1,
-    trend: "up",
-    difficulty: "Moderate",
-    image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Leona_0.jpg"
-  }
-]
+interface Champion {
+  id: string
+  name: string
+  role: string
+  winRate: number
+  pickRate: number
+  banRate: number
+  trend: string
+  difficulty: string
+  image: string
+}
 
 export default function TopChampions() {
   const [hoveredChamp, setHoveredChamp] = useState<string | null>(null)
+  const [champions, setChampions] = useState<Champion[]>([])
+  const [patchVersion, setPatchVersion] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch current patch version
+        const patchResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
+        const currentPatch = patchResponse.data[0]
+        setPatchVersion(currentPatch)
+        
+        // Fetch champion data
+        const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`)
+        const champData = response.data.data
+        
+        // Get champion win rates from your backend API
+        // This is a placeholder - you'll need to implement this API
+        const statsResponse = await axios.get('/api/champion-stats')
+        const champStats = statsResponse.data || {}
+        
+        // Transform the data into the format we need
+        const transformedChampions = Object.values(champData).map((champ: any) => {
+          const stats = champStats[champ.key] || {
+            winRate: 49 + Math.random() * 6, // Fallback random win rate between 49-55%
+            pickRate: 5 + Math.random() * 15, // Fallback random pick rate between 5-20%
+            banRate: 2 + Math.random() * 12, // Fallback random ban rate between 2-14%
+          }
+          
+          return {
+            id: champ.id,
+            name: champ.name,
+            role: champ.tags[0] || "Unknown",
+            winRate: parseFloat(stats.winRate.toFixed(1)),
+            pickRate: parseFloat(stats.pickRate.toFixed(1)),
+            banRate: parseFloat(stats.banRate.toFixed(1)),
+            trend: stats.winRate > 50 ? "up" : "down",
+            difficulty: getDifficulty(champ.info?.difficulty || 0),
+            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`
+          }
+        })
+        
+        // Sort by win rate and take top 5
+        const topChampions = transformedChampions
+          .sort((a: Champion, b: Champion) => b.winRate - a.winRate)
+          .slice(0, 5)
+        
+        setChampions(topChampions)
+      } catch (err) {
+        console.error("Error fetching champion data:", err)
+        setError("Failed to load champion data")
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [])
+  
+  // Helper function to determine difficulty
+  const getDifficulty = (difficultyValue: number): string => {
+    if (difficultyValue <= 3) return "Easy"
+    if (difficultyValue <= 7) return "Moderate"
+    return "High"
+  }
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-zinc-950 rounded-xl min-h-[400px] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <Loader2 className="w-8 h-8 text-[#C89B3C] animate-spin" />
+          <p className="mt-4 text-zinc-400">Loading champion data...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  if (error) {
+    return (
+      <div className="p-6 bg-zinc-950 rounded-xl">
+        <div className="text-red-400">{error}</div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 bg-zinc-950 rounded-xl">
@@ -76,7 +117,7 @@ export default function TopChampions() {
         </div>
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm">
           <Trophy className="w-4 h-4" />
-          <span>Patch 14.3</span>
+          <span>Patch {patchVersion}</span>
         </div>
       </div>
 
@@ -101,6 +142,8 @@ export default function TopChampions() {
                   <Image
                     src={champion.image || "/placeholder.svg"}
                     alt={champion.name}
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -130,7 +173,7 @@ export default function TopChampions() {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-4 mt-4 p-3 rounded-lg bg-black/20">
                 <div className="flex items-center gap-2">
-                  <ArrowUp className="w-4 h-4 text-green-400" />
+                  <ArrowUp className={`w-4 h-4 ${champion.trend === "up" ? "text-green-400" : "text-red-400"}`} />
                   <div>
                     <div className="text-sm font-medium text-zinc-100">{champion.winRate}%</div>
                     <div className="text-xs text-zinc-500">Win Rate</div>

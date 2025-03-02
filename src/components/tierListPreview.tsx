@@ -1,103 +1,174 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronDown, ChevronUp, Trophy, Swords, Users } from "lucide-react"
+import { useState, useEffect } from "react"
+import { ChevronDown, ChevronUp, Trophy, Swords, Users, Loader2 } from "lucide-react"
 import { Card } from "@/components/card"
 import Image from 'next/image'
+import axios from "axios"
 
-// Sample data - in production, fetch from API
-const tiers = {
+interface ChampionTier {
+  id: string
+  name: string
+  winRate: number
+  pickRate: number
+  banRate: number
+  image: string
+}
+
+interface TierData {
+  [key: string]: {
+    color: string
+    description: string
+    champions: ChampionTier[]
+  }
+}
+
+// Tier colors and descriptions
+const tierDefinitions = {
   S: {
     color: "#C89B3C",
-    description: "Overpowered - First pick or ban material",
-    champions: [
-      {
-        id: "kaisa",
-        name: "Kai'Sa",
-        winRate: 53.2,
-        pickRate: 15.3,
-        banRate: 8.7,
-        image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Kaisa_0.jpg",
-      },
-      {
-        id: "ahri",
-        name: "Ahri",
-        winRate: 52.8,
-        pickRate: 12.5,
-        banRate: 7.2,
-        image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg",
-      },
-    ],
+    description: "Overpowered - First pick or ban material"
   },
   A: {
     color: "#45D1B0",
-    description: "Strong - Consistently powerful picks",
-    champions: [
-      {
-        id: "lux",
-        name: "Lux",
-        winRate: 51.5,
-        pickRate: 11.2,
-        banRate: 4.8,
-        image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Lux_0.jpg",
-      },
-      {
-        id: "yasuo",
-        name: "Yasuo",
-        winRate: 50.8,
-        pickRate: 18.7,
-        banRate: 14.3,
-        image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Yasuo_0.jpg",
-      },
-    ],
+    description: "Strong - Consistently powerful picks"
   },
   B: {
     color: "#3B82F6",
-    description: "Balanced - Solid picks in most situations",
-    champions: [
-      {
-        id: "leona",
-        name: "Leona",
-        winRate: 50.2,
-        pickRate: 9.8,
-        banRate: 4.1,
-        image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Leona_0.jpg",
-      },
-    ],
+    description: "Balanced - Solid picks in most situations"
   },
   C: {
     color: "#A855F7",
-    description: "Situational - Requires specific team comps",
-    champions: [
-      {
-        id: "aatrox",
-        name: "Aatrox",
-        winRate: 48.5,
-        pickRate: 7.2,
-        banRate: 3.2,
-        image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Aatrox_0.jpg",
-      },
-    ],
+    description: "Situational - Requires specific team comps"
   },
   D: {
     color: "#EF4444",
-    description: "Weak - Currently underperforming",
-    champions: [
-      {
-        id: "ryze",
-        name: "Ryze",
-        winRate: 46.8,
-        pickRate: 4.5,
-        banRate: 1.8,
-        image: "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ryze_0.jpg",
-      },
-    ],
-  },
+    description: "Weak - Currently underperforming"
+  }
 }
 
 export default function TierList() {
   const [expandedTier, setExpandedTier] = useState<string>("S")
   const [hoveredChamp, setHoveredChamp] = useState<string | null>(null)
+  const [tiers, setTiers] = useState<TierData>({})
+  const [patchVersion, setPatchVersion] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch current patch version
+        const patchResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
+        const currentPatch = patchResponse.data[0]
+        setPatchVersion(currentPatch)
+        
+        // Fetch champion data
+        const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`)
+        const champData = response.data.data
+        
+        // Get champion win rates from your backend API (or mock it for now)
+        // This is a placeholder - you'll need to implement this API
+        const statsResponse = await axios.get('/api/champion-stats')
+        const champStats = statsResponse.data || {}
+        
+        // Transform the data into the format we need
+        const allChampions = Object.values(champData).map((champ: any) => {
+          const stats = champStats[champ.key] || {
+            winRate: 42 + Math.random() * 12, // Random win rate between 42-54%
+            pickRate: 4 + Math.random() * 16, // Random pick rate between 4-20%
+            banRate: 1 + Math.random() * 15  // Random ban rate between 1-16%
+          }
+          
+          return {
+            id: champ.id,
+            name: champ.name,
+            winRate: parseFloat(stats.winRate.toFixed(1)),
+            pickRate: parseFloat(stats.pickRate.toFixed(1)),
+            banRate: parseFloat(stats.banRate.toFixed(1)),
+            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`
+          }
+        })
+
+        // Create tiers based on win rates
+        const tierData: TierData = {
+          S: {
+            ...tierDefinitions.S,
+            champions: []
+          },
+          A: {
+            ...tierDefinitions.A,
+            champions: []
+          },
+          B: {
+            ...tierDefinitions.B,
+            champions: []
+          },
+          C: {
+            ...tierDefinitions.C,
+            champions: []
+          },
+          D: {
+            ...tierDefinitions.D,
+            champions: []
+          }
+        }
+        
+        // Assign champions to tiers based on win rate
+        allChampions.forEach((champion: ChampionTier) => {
+          if (champion.winRate >= 53) {
+            tierData.S.champions.push(champion)
+          } else if (champion.winRate >= 51) {
+            tierData.A.champions.push(champion)
+          } else if (champion.winRate >= 49) {
+            tierData.B.champions.push(champion)
+          } else if (champion.winRate >= 47) {
+            tierData.C.champions.push(champion)
+          } else {
+            tierData.D.champions.push(champion)
+          }
+        })
+        
+        // Sort champions within each tier by win rate
+        Object.keys(tierData).forEach(tier => {
+          tierData[tier].champions.sort((a, b) => b.winRate - a.winRate)
+          
+          // Limit to 3 champions per tier for display purposes
+          tierData[tier].champions = tierData[tier].champions.slice(0, 3)
+        })
+        
+        setTiers(tierData)
+      } catch (err) {
+        console.error("Error fetching tier list data:", err)
+        setError("Failed to load tier list")
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="p-6 bg-zinc-950 rounded-xl min-h-[400px] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <Loader2 className="w-8 h-8 text-[#C89B3C] animate-spin" />
+          <p className="mt-4 text-zinc-400">Loading tier list...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  if (error) {
+    return (
+      <div className="p-6 bg-zinc-950 rounded-xl">
+        <div className="text-red-400">{error}</div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-6 bg-zinc-950 rounded-xl space-y-4">
@@ -108,7 +179,7 @@ export default function TierList() {
         </div>
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm">
           <Trophy className="w-4 h-4" />
-          <span>Patch 14.3</span>
+          <span>Patch {patchVersion}</span>
         </div>
       </div>
 

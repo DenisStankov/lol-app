@@ -1,6 +1,7 @@
 "use client"
 
 import { Sparkles } from "lucide-react"
+import { useEffect, useState } from "react"
 import SummonerSearch from "@/components/summonerSearch"
 import TopChampions from "@/components/championList"
 import TierList from "@/components/tierListPreview"
@@ -8,6 +9,8 @@ import PatchInfo from "@/components/patchInfo"
 import RecentMatches from "@/components/recentMatches"
 
 export default function Home() {
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Header - Made more compact while maintaining visual impact */}
@@ -60,7 +63,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-sm text-zinc-400">
-              © {new Date().getFullYear()} League Stats Tracker. Not affiliated with Riot Games.
+              © {currentYear} League Stats Tracker. Not affiliated with Riot Games.
             </p>
             <nav className="flex items-center gap-6">
               <a href="#" className="text-sm text-zinc-400 hover:text-[#C89B3C] transition-colors">

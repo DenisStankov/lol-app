@@ -10,23 +10,33 @@ interface PatchNote {
   title: string
 }
 
-const recentChanges: PatchNote[] = [
-  { type: "Champion", title: "Champion balance updates" },
-  { type: "Item", title: "Item system changes" },
-  { type: "System", title: "Ranked adjustments" },
-]
-
 export default function PatchInfo() {
   const [patchVersion, setPatchVersion] = useState<string>("")
+  const [recentChanges, setRecentChanges] = useState<PatchNote[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string>("")
 
   useEffect(() => {
-    const fetchPatchVersion = async () => {
+    const fetchPatchInfo = async () => {
       try {
         setIsLoading(true)
+        // Fetch current patch version
         const response = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
-        setPatchVersion(response.data[0])
+        const currentPatch = response.data[0]
+        setPatchVersion(currentPatch)
+        
+        // Try to fetch patch notes from your API
+        try {
+          const patchNotesResponse = await axios.get(`/api/patch-notes?version=${currentPatch}`)
+          setRecentChanges(patchNotesResponse.data)
+        } catch (notesError) {
+          // Fallback patch notes if API fails
+          setRecentChanges([
+            { type: "Champion", title: "Champion balance updates" },
+            { type: "Item", title: "Item system changes" },
+            { type: "System", title: "Ranked adjustments" },
+          ])
+        }
       } catch (err) {
         setError("Failed to fetch patch version")
         console.error("Error fetching patch version:", err)
@@ -35,7 +45,7 @@ export default function PatchInfo() {
       }
     }
 
-    fetchPatchVersion()
+    fetchPatchInfo()
   }, [])
 
   return (
