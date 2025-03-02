@@ -18,6 +18,19 @@ interface Champion {
   image: string
 }
 
+// Define interface for champion data from Riot's API
+interface RiotChampionData {
+  id: string;
+  name: string;
+  key: string;
+  tags: string[];
+  info: {
+    difficulty: number;
+    [key: string]: number;
+  };
+  [key: string]: unknown;
+}
+
 export default function TopChampions() {
   const [hoveredChamp, setHoveredChamp] = useState<string | null>(null)
   const [champions, setChampions] = useState<Champion[]>([])
@@ -45,7 +58,7 @@ export default function TopChampions() {
         const champStats = statsResponse.data || {}
         
         // Transform the data into the format we need
-        const transformedChampions = (Object.values(champData) as Record<string, any>[]).map((champ: Record<string, any>) => {
+        const transformedChampions = (Object.values(champData) as RiotChampionData[]).map((champ: RiotChampionData) => {
           const stats = champStats[champ.key] || {
             winRate: 49 + Math.random() * 6, // Fallback random win rate between 49-55%
             pickRate: 5 + Math.random() * 15, // Fallback random pick rate between 5-20%

@@ -47,6 +47,14 @@ const tierDefinitions = {
   }
 }
 
+// Define interface for champion data from Riot's API
+interface RiotChampionData {
+  id: string;
+  name: string;
+  key: string;
+  [key: string]: unknown;
+}
+
 export default function TierList() {
   const [expandedTier, setExpandedTier] = useState<string>("S")
   const [hoveredChamp, setHoveredChamp] = useState<string | null>(null)
@@ -75,7 +83,7 @@ export default function TierList() {
         const champStats = statsResponse.data || {}
         
         // Transform the data into the format we need
-        const allChampions = (Object.values(champData) as Record<string, any>[]).map((champ: Record<string, any>) => {
+        const allChampions = (Object.values(champData) as RiotChampionData[]).map((champ: RiotChampionData) => {
           const stats = champStats[champ.key] || {
             winRate: 42 + Math.random() * 12, // Random win rate between 42-54%
             pickRate: 4 + Math.random() * 16, // Random pick rate between 4-20%
