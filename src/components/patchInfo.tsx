@@ -29,7 +29,7 @@ export default function PatchInfo() {
         try {
           const patchNotesResponse = await axios.get(`/api/patch-notes?version=${currentPatch}`)
           setRecentChanges(patchNotesResponse.data)
-        } catch (notesError) {
+        } catch (_) {
           // Fallback patch notes if API fails
           setRecentChanges([
             { type: "Champion", title: "Champion balance updates" },

@@ -45,7 +45,7 @@ export default function TopChampions() {
         const champStats = statsResponse.data || {}
         
         // Transform the data into the format we need
-        const transformedChampions = Object.values(champData).map((champ: any) => {
+        const transformedChampions = Object.values(champData).map((champ: Record<string, any>) => {
           const stats = champStats[champ.key] || {
             winRate: 49 + Math.random() * 6, // Fallback random win rate between 49-55%
             pickRate: 5 + Math.random() * 15, // Fallback random pick rate between 5-20%

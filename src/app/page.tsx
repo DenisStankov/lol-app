@@ -1,7 +1,6 @@
 "use client"
 
 import { Sparkles } from "lucide-react"
-import { useEffect, useState } from "react"
 import SummonerSearch from "@/components/summonerSearch"
 import TopChampions from "@/components/championList"
 import TierList from "@/components/tierListPreview"
@@ -9,7 +8,7 @@ import PatchInfo from "@/components/patchInfo"
 import RecentMatches from "@/components/recentMatches"
 
 export default function Home() {
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
+  const currentYear = new Date().getFullYear()
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">

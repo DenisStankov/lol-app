@@ -75,7 +75,7 @@ export default function TierList() {
         const champStats = statsResponse.data || {}
         
         // Transform the data into the format we need
-        const allChampions = Object.values(champData).map((champ: any) => {
+        const allChampions = Object.values(champData).map((champ: Record<string, any>) => {
           const stats = champStats[champ.key] || {
             winRate: 42 + Math.random() * 12, // Random win rate between 42-54%
             pickRate: 4 + Math.random() * 16, // Random pick rate between 4-20%
