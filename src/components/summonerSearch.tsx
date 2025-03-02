@@ -98,7 +98,7 @@ export default function SummonerSearch() {
             ))}
           </div>
         ) : (
-          <p>No results found.</p>
+          <p></p>
         )}
       </CardContent>
     </Card>
