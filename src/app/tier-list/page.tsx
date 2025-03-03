@@ -6,7 +6,6 @@ import { Trophy, Swords, Users, ArrowUpDown, ChevronDown, ChevronUp, Loader2 } f
 import { Card } from "@/components/card"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/select"
 import { Button } from "@/components/button"
 
 interface Champion {
@@ -19,6 +18,9 @@ interface Champion {
   role: string
   tier: string
   image: string
+  difficulty: string
+  damageType: string
+  range: string
 }
 
 interface RoleData {
@@ -154,7 +156,6 @@ export default function TierListPage() {
         // Transform the data
         const champValues = Object.values(champData);
         const champList = champValues.map((champ) => {
-          // Cast the individual champion object to the correct type
           const championData = champ as RiotChampionData;
           
           const stats = champStats[championData.key] || {
@@ -170,7 +171,7 @@ export default function TierListPage() {
             }
           }
           
-          // Determine primary role (most games played)
+          // Determine primary role
           let primaryRole = 'mid'
           let maxGames = 0
           
@@ -188,6 +189,13 @@ export default function TierListPage() {
           else if (stats.winRate >= 49) tier = 'B'
           else if (stats.winRate >= 47) tier = 'C'
           else tier = 'D'
+
+          // Mock data for new properties (you should replace this with actual data)
+          const mockData = {
+            difficulty: ['easy', 'medium', 'hard'][Math.floor(Math.random() * 3)],
+            damageType: ['ap', 'ad', 'hybrid'][Math.floor(Math.random() * 3)],
+            range: ['melee', 'ranged'][Math.floor(Math.random() * 2)]
+          }
           
           return {
             id: championData.id,
@@ -198,7 +206,8 @@ export default function TierListPage() {
             totalGames: Object.values(stats.roles || {}).reduce((sum: number, role: RoleData) => sum + role.games, 0),
             role: primaryRole,
             tier,
-            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${championData.id}_0.jpg`
+            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${championData.id}_0.jpg`,
+            ...mockData
           }
         })
         
@@ -217,7 +226,7 @@ export default function TierListPage() {
     }
     
     fetchChampions()
-  }, [])
+  }, [patchVersion])
   
   // Apply filters and sorting
   useEffect(() => {
@@ -228,12 +237,26 @@ export default function TierListPage() {
       filtered = filtered.filter(champ => champ.role === selectedRole)
     }
     
+    // Filter by difficulty
+    if (difficulty !== 'all') {
+      filtered = filtered.filter(champ => champ.difficulty === difficulty)
+    }
+    
+    // Filter by damage type
+    if (damageType !== 'all') {
+      filtered = filtered.filter(champ => champ.damageType === damageType)
+    }
+    
+    // Filter by range
+    if (range !== 'all') {
+      filtered = filtered.filter(champ => champ.range === range)
+    }
+    
     // Sort champions
     filtered.sort((a, b) => {
       const tierOrder = { S: 0, A: 1, B: 2, C: 3, D: 4 }
       
       if (sortBy === 'tier') {
-        // For tier, we need special handling
         return sortOrder === 'asc' 
           ? tierOrder[a.tier as keyof typeof tierOrder] - tierOrder[b.tier as keyof typeof tierOrder]
           : tierOrder[b.tier as keyof typeof tierOrder] - tierOrder[a.tier as keyof typeof tierOrder]
