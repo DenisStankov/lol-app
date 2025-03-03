@@ -78,16 +78,15 @@ export default function TierList() {
         const champData = response.data.data
         
         // Get champion win rates from your backend API (or mock it for now)
-        // This is a placeholder - you'll need to implement this API
         const statsResponse = await axios.get('/api/champion-stats')
         const champStats = statsResponse.data || {}
         
         // Transform the data into the format we need
         const allChampions = (Object.values(champData) as RiotChampionData[]).map((champ: RiotChampionData) => {
           const stats = champStats[champ.key] || {
-            winRate: 42 + Math.random() * 12, // Random win rate between 42-54%
-            pickRate: 4 + Math.random() * 16, // Random pick rate between 4-20%
-            banRate: 1 + Math.random() * 15  // Random ban rate between 1-16%
+            winRate: 50, // Use a consistent win rate
+            pickRate: 10, // Use a consistent pick rate
+            banRate: 5  // Use a consistent ban rate
           }
           
           return {
