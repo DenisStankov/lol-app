@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { Trophy, Swords, Users, ArrowUpDown, Loader2 } from "lucide-react"
+import { Trophy, Swords, Users, ArrowUpDown, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
 import { Card } from "@/components/card"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
@@ -55,6 +55,13 @@ export default function TierListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [patchVersion, setPatchVersion] = useState("")
+  const [expandedTiers, setExpandedTiers] = useState<Record<string, boolean>>({
+    S: true,
+    A: true,
+    B: true,
+    C: true,
+    D: true
+  })
   
   // Filters
   const [selectedRole, setSelectedRole] = useState("all")
@@ -76,6 +83,13 @@ export default function TierListPage() {
     { value: "pickRate", label: "Pick Rate" },
     { value: "banRate", label: "Ban Rate" },
   ]
+
+  const toggleTier = (tier: string) => {
+    setExpandedTiers(prev => ({
+      ...prev,
+      [tier]: !prev[tier]
+    }))
+  }
 
   useEffect(() => {
     const fetchChampions = async () => {
@@ -294,28 +308,36 @@ export default function TierListPage() {
             </div>
           </div>
           
-          {/* Tier Groups */}
-          <div className="space-y-8">
+          {/* Tier Groups - New design matching dpm.lol */}
+          <div className="space-y-4">
             {['S', 'A', 'B', 'C', 'D'].map(tier => {
               const tierChampions = filteredChampions.filter(champ => champ.tier === tier)
               
               if (tierChampions.length === 0) return null
               
+              const tierColor = tierColors[tier as keyof typeof tierColors]
+              
               return (
-                <div key={tier} className="space-y-4">
-                  {/* Tier Header */}
-                  <div className="flex items-center gap-3">
+                <Card key={tier} className="overflow-hidden border-0 bg-zinc-900/50">
+                  {/* Tier Header - Clickable to expand/collapse */}
+                  <button 
+                    className="w-full flex items-center p-4 text-left transition-colors hover:bg-zinc-800/30"
+                    onClick={() => toggleTier(tier)}
+                  >
                     <div 
-                      className="w-12 h-12 flex items-center justify-center rounded-lg font-bold text-2xl"
+                      className="w-12 h-12 flex items-center justify-center rounded-lg font-bold text-2xl mr-4"
                       style={{ 
-                        backgroundColor: `${tierColors[tier as keyof typeof tierColors]}20`,
-                        color: tierColors[tier as keyof typeof tierColors]
+                        backgroundColor: `${tierColor}20`,
+                        color: tierColor
                       }}
                     >
                       {tier}
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-zinc-100">Tier {tier}</h2>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-xl font-bold text-zinc-100">Tier {tier}</h2>
+                        <span className="text-sm text-zinc-400">({tierChampions.length} champions)</span>
+                      </div>
                       <p className="text-sm text-zinc-400">
                         {tier === 'S' && 'Overpowered - First pick or ban material'}
                         {tier === 'A' && 'Strong - Consistently powerful picks'}
@@ -324,69 +346,65 @@ export default function TierListPage() {
                         {tier === 'D' && 'Weak - Currently underperforming'}
                       </p>
                     </div>
-                    <div className="ml-auto text-sm text-zinc-400">
-                      {tierChampions.length} champion{tierChampions.length !== 1 && 's'}
-                    </div>
-                  </div>
+                    {expandedTiers[tier] ? (
+                      <ChevronUp className="w-5 h-5 text-zinc-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-zinc-400" />
+                    )}
+                  </button>
                   
-                  {/* Champions Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {tierChampions.map(champion => (
-                      <Card key={champion.id} className="overflow-hidden bg-zinc-900/50 hover:bg-zinc-900 transition-colors">
-                        <div className="p-4">
-                          {/* Champion Info */}
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 relative rounded-md overflow-hidden">
+                  {/* Champions List - Horizontal scrollable row like dpm.lol */}
+                  {expandedTiers[tier] && (
+                    <div className="border-t border-zinc-800">
+                      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {tierChampions.map(champion => (
+                          <div 
+                            key={champion.id} 
+                            className="flex items-center bg-zinc-800/50 rounded-lg p-3 hover:bg-zinc-800 transition-colors"
+                            style={{ "--tier-color": tierColor } as React.CSSProperties}
+                          >
+                            {/* Champion Image */}
+                            <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0 mr-3">
                               <Image
                                 src={champion.image}
                                 alt={champion.name}
-                                width={64}
-                                height={64}
+                                width={40}
+                                height={40}
                                 className="object-cover"
                               />
                             </div>
                             
-                            <div>
-                              <h3 className="font-bold text-zinc-100">{champion.name}</h3>
-                              <div className="flex items-center gap-2 text-xs">
+                            {/* Champion Info */}
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-zinc-100 truncate">{champion.name}</h4>
+                              <div className="flex items-center gap-3 text-xs">
                                 <span className="uppercase text-zinc-500">{champion.role}</span>
-                                <span className="text-zinc-700">•</span>
-                                <span className="text-zinc-500">{(champion.totalGames).toLocaleString()} games</span>
+                                
+                                {/* Win Rate */}
+                                <div className="flex items-center gap-1">
+                                  <Trophy className="w-3 h-3" style={{ color: tierColor }} />
+                                  <span className="text-zinc-200">{champion.winRate}%</span>
+                                </div>
+                                
+                                {/* Pick Rate */}
+                                <div className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" style={{ color: tierColor }} />
+                                  <span className="text-zinc-200">{champion.pickRate}%</span>
+                                </div>
+                                
+                                {/* Ban Rate (only show on larger screens) */}
+                                <div className="hidden sm:flex items-center gap-1">
+                                  <Swords className="w-3 h-3" style={{ color: tierColor }} />
+                                  <span className="text-zinc-200">{champion.banRate}%</span>
+                                </div>
                               </div>
                             </div>
                           </div>
-                          
-                          {/* Stats */}
-                          <div className="grid grid-cols-3 gap-2 mt-4">
-                            <div className="bg-zinc-800/50 p-2 rounded flex flex-col items-center">
-                              <div className="flex items-center gap-1 mb-1">
-                                <Trophy className="w-3 h-3 text-[#C89B3C]" />
-                                <span className="text-xs text-zinc-400">Win Rate</span>
-                              </div>
-                              <span className="font-bold text-sm">{champion.winRate}%</span>
-                            </div>
-                            
-                            <div className="bg-zinc-800/50 p-2 rounded flex flex-col items-center">
-                              <div className="flex items-center gap-1 mb-1">
-                                <Users className="w-3 h-3 text-blue-400" />
-                                <span className="text-xs text-zinc-400">Pick Rate</span>
-                              </div>
-                              <span className="font-bold text-sm">{champion.pickRate}%</span>
-                            </div>
-                            
-                            <div className="bg-zinc-800/50 p-2 rounded flex flex-col items-center">
-                              <div className="flex items-center gap-1 mb-1">
-                                <Swords className="w-3 h-3 text-red-400" />
-                                <span className="text-xs text-zinc-400">Ban Rate</span>
-                              </div>
-                              <span className="font-bold text-sm">{champion.banRate}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </Card>
               )
             })}
           </div>
