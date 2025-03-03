@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const RIOT_API_KEY = process.env.RIOT_API_KEY;
-
 interface ChampionImage {
   full: string;
   sprite: string;
@@ -43,15 +41,31 @@ interface ChampionStats {
 
 // Since we can't directly get role-specific stats from the Data Dragon API,
 // we'll need to get this data from a different source (like u.gg or op.gg)
-// For now, we'll return mock stats
+// For now, we'll generate deterministic mock data based on championId and role
 async function getRoleStats(championId: string, role: string): Promise<RoleStats | null> {
-  // TODO: Replace with actual API call to get real statistics
-  // This is a mock implementation
+  // Use championId and role to create deterministic but mock data
+  // This ensures the same champion+role always gets the same stats
+  const championNumber = parseInt(championId) || championId.charCodeAt(0);
+  
+  // Different base stats for different roles
+  const roleMultipliers: Record<string, { win: number, pick: number, ban: number }> = {
+    'top': { win: 1.0, pick: 0.8, ban: 1.2 },
+    'jungle': { win: 0.9, pick: 1.2, ban: 0.9 },
+    'mid': { win: 1.1, pick: 1.0, ban: 1.3 },
+    'bot': { win: 1.2, pick: 0.9, ban: 0.7 },
+    'support': { win: 0.95, pick: 0.7, ban: 0.8 }
+  };
+
+  const multiplier = roleMultipliers[role] || { win: 1.0, pick: 1.0, ban: 1.0 };
+  
+  // Seed for deterministic randomness
+  const seed = (championNumber % 100) / 100;
+  
   return {
-    winRate: Math.random() * 10 + 45, // Random win rate between 45-55%
-    pickRate: Math.random() * 15 + 5, // Random pick rate between 5-20%
-    banRate: Math.random() * 10 + 1, // Random ban rate between 1-11%
-    totalGames: Math.floor(Math.random() * 10000 + 1000) // Random games between 1000-11000
+    winRate: 45 + (seed * 10 * multiplier.win), // Win rate between 45-55%
+    pickRate: 5 + (seed * 15 * multiplier.pick), // Pick rate between 5-20%
+    banRate: 1 + (seed * 10 * multiplier.ban), // Ban rate between 1-11%
+    totalGames: 1000 + Math.floor(seed * 10000) // Games between 1000-11000
   };
 }
 
