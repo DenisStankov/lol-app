@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ChevronDown, ChevronUp, Trophy, Swords, Users, Loader2 } from "lucide-react"
+import { Trophy, Loader2 } from "lucide-react"
 import { Card } from "@/components/card"
 import Image from 'next/image'
 import axios from "axios"
@@ -14,38 +14,6 @@ interface ChampionTier {
   banRate: number
   image: string
   role: string
-}
-
-interface TierData {
-  [key: string]: {
-    color: string
-    description: string
-    champions: ChampionTier[]
-  }
-}
-
-// Tier colors and descriptions
-const tierDefinitions = {
-  S: {
-    color: "#C89B3C",
-    description: "Overpowered - First pick or ban material"
-  },
-  A: {
-    color: "#45D1B0",
-    description: "Strong - Consistently powerful picks"
-  },
-  B: {
-    color: "#3B82F6",
-    description: "Balanced - Solid picks in most situations"
-  },
-  C: {
-    color: "#A855F7",
-    description: "Situational - Requires specific team comps"
-  },
-  D: {
-    color: "#EF4444",
-    description: "Weak - Currently underperforming"
-  }
 }
 
 // Define interface for champion data from Riot's API
