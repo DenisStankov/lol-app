@@ -19,6 +19,14 @@ interface Champion {
   difficulty: string
   damageType: string
   range: string
+  roles: {
+    [key: string]: {
+      winRate: number
+      pickRate: number
+      banRate: number
+      totalGames: number
+    }
+  }
 }
 
 interface RoleData {
@@ -38,6 +46,14 @@ interface RiotChampionData {
   name: string
   key: string
   [key: string]: unknown
+}
+
+// Add interface for role data
+interface RoleStats {
+  pickRate: number
+  winRate: number
+  banRate: number
+  totalGames: number
 }
 
 // Tier colors
@@ -121,100 +137,131 @@ export default function TierListPage() {
       try {
         setLoading(true)
         
-        // Check local storage for cached data
-        const cachedData = localStorage.getItem('championData');
-        const cachedPatch = localStorage.getItem('patchVersion');
-        if (cachedData && cachedPatch === patchVersion) {
-          const parsedData = JSON.parse(cachedData);
-          setChampions(parsedData);
-          setFilteredChampions(parsedData);
-          setLoading(false);
-          return;
-        }
+        // Check local storage for cached data and verify it's not too old (1 hour max)
+        const cachedData = localStorage.getItem('championData')
+        const cachedTime = localStorage.getItem('championDataTimestamp')
+        const cachedPatch = localStorage.getItem('patchVersion')
+        const now = Date.now()
         
+        if (
+          cachedData && 
+          cachedPatch === patchVersion && 
+          cachedTime && 
+          now - parseInt(cachedTime) < 3600000 // 1 hour
+        ) {
+          const parsedData = JSON.parse(cachedData)
+          setChampions(parsedData)
+          setFilteredChampions(parsedData)
+          setLoading(false)
+          return
+        }
+
         // Fetch current patch version
         const patchResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
         const currentPatch = patchResponse.data[0]
         setPatchVersion(currentPatch)
-        
-        // Fetch champion data
-        const champResponse = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`)
-        const champData = champResponse.data.data
-        
-        // Get champion stats from your backend API
-        let champStats: Record<string, ChampionStats> = {}
-        
-        try {
-          const statsResponse = await axios.get('/api/champion-stats')
-          champStats = statsResponse.data || {}
-        } catch {
-          console.warn('Could not fetch champion stats, using mock data')
-        }
-        
-        // Transform the data
-        const champValues = Object.values(champData);
-        const champList = champValues.map((champ) => {
-          const championData = champ as RiotChampionData;
-          
-          const stats = champStats[championData.key] || {
-            winRate: 45 + Math.random() * 10,
-            pickRate: 2 + Math.random() * 18,
-            banRate: 1 + Math.random() * 15,
-            roles: {
-              top: { games: Math.floor(Math.random() * 10000), winRate: 45 + Math.random() * 10 },
-              jungle: { games: Math.floor(Math.random() * 10000), winRate: 45 + Math.random() * 10 },
-              mid: { games: Math.floor(Math.random() * 10000), winRate: 45 + Math.random() * 10 },
-              bot: { games: Math.floor(Math.random() * 10000), winRate: 45 + Math.random() * 10 },
-              support: { games: Math.floor(Math.random() * 10000), winRate: 45 + Math.random() * 10 },
-            }
-          }
-          
-          // Determine primary role
-          let primaryRole = 'mid'
-          let maxGames = 0
-          
-          Object.entries(stats.roles || {}).forEach(([role, data]) => {
-            if (data.games > maxGames) {
-              maxGames = data.games
-              primaryRole = role
-            }
-          })
-          
-          // Determine tier based on win rate
-          let tier = 'C'
-          if (stats.winRate >= 53) tier = 'S'
-          else if (stats.winRate >= 51) tier = 'A'
-          else if (stats.winRate >= 49) tier = 'B'
-          else if (stats.winRate >= 47) tier = 'C'
-          else tier = 'D'
 
-          // Mock data for new properties (you should replace this with actual data)
-          const mockData = {
-            difficulty: ['easy', 'medium', 'hard'][Math.floor(Math.random() * 3)],
-            damageType: ['ap', 'ad', 'hybrid'][Math.floor(Math.random() * 3)],
-            range: ['melee', 'ranged'][Math.floor(Math.random() * 2)]
-          }
-          
-          return {
-            id: championData.id,
-            name: championData.name,
-            winRate: parseFloat(stats.winRate.toFixed(1)),
-            pickRate: parseFloat(stats.pickRate.toFixed(1)),
-            banRate: parseFloat(stats.banRate.toFixed(1)),
-            totalGames: Object.values(stats.roles || {}).reduce((sum: number, role: RoleData) => sum + role.games, 0),
-            role: primaryRole,
-            tier,
-            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${championData.id}_0.jpg`,
-            ...mockData
+        // Fetch champion data from Riot's Data Dragon
+        const champResponse = await axios.get(
+          `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`
+        )
+        const champData = champResponse.data.data
+
+        // Fetch champion statistics from u.gg API
+        // Note: You'll need to set up a proxy API route to handle this request
+        // and manage the API key securely on your backend
+        const statsResponse = await axios.get('/api/champion-stats', {
+          params: {
+            patch: currentPatch.split('.').slice(0, 2).join('.') // Format: '13.10'
           }
         })
         
-        // Save to local storage
-        localStorage.setItem('championData', JSON.stringify(champList));
-        localStorage.setItem('patchVersion', currentPatch);
-        
-        setChampions(champList)
-        setFilteredChampions(champList)
+        const champStats = statsResponse.data || {}
+
+        // Transform the data
+        const champValues = Object.values(champData)
+        const champList = await Promise.all(champValues.map(async (champ) => {
+          const championData = champ as RiotChampionData
+
+          // Get detailed champion data for additional info
+          const detailedChampResponse = await axios.get(
+            `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion/${championData.id}.json`
+          )
+          const detailedChampData = detailedChampResponse.data.data[championData.id]
+
+          // Get champion stats from the API response
+          const stats = champStats[championData.key] || {}
+          
+          // Determine primary role based on highest pick rate
+          const roles = (stats.roles || {}) as Record<string, RoleStats>
+          let primaryRole = 'mid'
+          let maxPickRate = 0
+
+          Object.entries(roles).forEach(([role, data]) => {
+            if (data.pickRate > maxPickRate) {
+              maxPickRate = data.pickRate
+              primaryRole = role
+            }
+          })
+
+          // Get role-specific stats
+          const roleStats = roles[primaryRole] || {
+            winRate: 0,
+            pickRate: 0,
+            banRate: 0,
+            totalGames: 0
+          }
+
+          // Determine tier based on role stats
+          let tier = 'C'
+          const winRate = roleStats.winRate
+          const pickRate = roleStats.pickRate
+
+          // Tier calculation based on win rate and pick rate
+          if (winRate >= 52 && pickRate >= 5) tier = 'S'
+          else if (winRate >= 51 && pickRate >= 3) tier = 'A'
+          else if (winRate >= 49.5) tier = 'B'
+          else if (winRate >= 47) tier = 'C'
+          else tier = 'D'
+
+          // Determine champion attributes from detailed data
+          const difficulty = detailedChampData.info.difficulty <= 3 ? 'easy' 
+            : detailedChampData.info.difficulty <= 7 ? 'medium' 
+            : 'hard'
+
+          const damageType = detailedChampData.tags.includes('Mage') || detailedChampData.tags.includes('AP') ? 'ap'
+            : detailedChampData.tags.includes('Marksman') || detailedChampData.tags.includes('AD') ? 'ad'
+            : 'hybrid'
+
+          const range = detailedChampData.stats.attackrange > 300 ? 'ranged' : 'melee'
+
+          return {
+            id: championData.id,
+            name: championData.name,
+            winRate: Number(roleStats.winRate.toFixed(1)),
+            pickRate: Number(roleStats.pickRate.toFixed(1)),
+            banRate: Number(roleStats.banRate.toFixed(1)),
+            totalGames: roleStats.totalGames,
+            role: primaryRole,
+            tier,
+            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${championData.id}_0.jpg`,
+            difficulty,
+            damageType,
+            range,
+            roles
+          }
+        }))
+
+        // Filter out champions with no valid stats
+        const validChamps = champList.filter(champ => champ.winRate > 0)
+
+        // Save to local storage with timestamp
+        localStorage.setItem('championData', JSON.stringify(validChamps))
+        localStorage.setItem('championDataTimestamp', now.toString())
+        localStorage.setItem('patchVersion', currentPatch)
+
+        setChampions(validChamps)
+        setFilteredChampions(validChamps)
       } catch (err) {
         console.error("Error fetching champion data:", err)
         setError("Failed to load champion data")
@@ -222,7 +269,7 @@ export default function TierListPage() {
         setLoading(false)
       }
     }
-    
+
     fetchChampions()
   }, [patchVersion])
   
@@ -232,7 +279,20 @@ export default function TierListPage() {
     
     // Filter by role
     if (selectedRole !== 'all') {
-      filtered = filtered.filter(champ => champ.role === selectedRole)
+      filtered = filtered.filter(champ => 
+        champ.roles[selectedRole] && 
+        champ.roles[selectedRole].pickRate >= 1 // Only show champions with at least 1% pick rate in the role
+      )
+      
+      // Update stats based on selected role
+      filtered = filtered.map(champ => ({
+        ...champ,
+        winRate: Number(champ.roles[selectedRole].winRate.toFixed(1)),
+        pickRate: Number(champ.roles[selectedRole].pickRate.toFixed(1)),
+        banRate: Number(champ.roles[selectedRole].banRate.toFixed(1)),
+        totalGames: champ.roles[selectedRole].totalGames,
+        role: selectedRole
+      }))
     }
     
     // Filter by difficulty
@@ -268,7 +328,7 @@ export default function TierListPage() {
     })
     
     setFilteredChampions(filtered)
-  }, [champions, selectedRole, sortBy, sortOrder])
+  }, [champions, selectedRole, difficulty, damageType, range, sortBy, sortOrder])
   
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
