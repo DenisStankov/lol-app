@@ -235,7 +235,7 @@ export default function TierList() {
 
             {/* Champions Grid */}
             {expandedTier === tier && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border-t border-zinc-800/50">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border-t border-zinc-800/50">
                 {champions.map((champion) => (
                   <Card
                     key={champion.id}
@@ -254,51 +254,43 @@ export default function TierList() {
                     />
 
                     <div className="relative p-4">
-                      <div className="flex gap-4">
-                        {/* Champion Image */}
-                        <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                      {/* Champion Name with Icon */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
                           <Image
-                            src={champion.image || "/placeholder.svg"}
+                            src={champion.image.replace('splash', 'champion').replace('_0.jpg', '.png') || "/placeholder.svg"}
                             alt={champion.name}
-                            width={64}
-                            height={64}
+                            width={40}
+                            height={40}
                             className="object-cover"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                         </div>
+                        <h4 className="text-lg font-bold text-zinc-100 group-hover:text-[var(--tier-color)] transition-colors">
+                          {champion.name}
+                        </h4>
+                      </div>
 
-                        {/* Champion Info */}
-                        <div className="flex-1">
-                          <h4 className="text-lg font-bold text-zinc-100 group-hover:text-[var(--tier-color)] transition-colors">
-                            {champion.name}
-                          </h4>
-
-                          {/* Stats - Fixed layout with proper spacing */}
-                          <div className="grid grid-cols-3 gap-2 mt-2">
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-1">
-                                <Trophy className="w-3 h-3 text-[var(--tier-color)]" />
-                                <span className="text-xs font-medium text-zinc-100">{champion.winRate}%</span>
-                              </div>
-                              <span className="text-xs text-zinc-500">Win Rate</span>
-                            </div>
-                            
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-1">
-                                <Users className="w-3 h-3 text-[var(--tier-color)]" />
-                                <span className="text-xs font-medium text-zinc-100">{champion.pickRate}%</span>
-                              </div>
-                              <span className="text-xs text-zinc-500">Pick Rate</span>
-                            </div>
-                            
-                            <div className="flex flex-col">
-                              <div className="flex items-center gap-1">
-                                <Swords className="w-3 h-3 text-[var(--tier-color)]" />
-                                <span className="text-xs font-medium text-zinc-100">{champion.banRate}%</span>
-                              </div>
-                              <span className="text-xs text-zinc-500">Ban Rate</span>
-                            </div>
-                          </div>
+                      {/* Stats - Clear layout */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {/* Win Rate */}
+                        <div className="flex flex-col items-center bg-black/20 p-2 rounded">
+                          <Trophy className="w-4 h-4 text-[var(--tier-color)] mb-1" />
+                          <span className="text-sm font-bold text-zinc-100">{champion.winRate}%</span>
+                          <span className="text-xs text-zinc-500">Win Rate</span>
+                        </div>
+                        
+                        {/* Pick Rate */}
+                        <div className="flex flex-col items-center bg-black/20 p-2 rounded">
+                          <Users className="w-4 h-4 text-[var(--tier-color)] mb-1" />
+                          <span className="text-sm font-bold text-zinc-100">{champion.pickRate}%</span>
+                          <span className="text-xs text-zinc-500">Pick Rate</span>
+                        </div>
+                        
+                        {/* Ban Rate */}
+                        <div className="flex flex-col items-center bg-black/20 p-2 rounded">
+                          <Swords className="w-4 h-4 text-[var(--tier-color)] mb-1" />
+                          <span className="text-sm font-bold text-zinc-100">{champion.banRate}%</span>
+                          <span className="text-xs text-zinc-500">Ban Rate</span>
                         </div>
                       </div>
                     </div>
