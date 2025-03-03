@@ -3,10 +3,32 @@ import axios from 'axios';
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
+interface MatchData {
+  win: boolean;
+  banned: boolean;
+}
+
+interface ChampionData {
+  key: string;
+  name: string;
+  // Add other champion properties as needed
+}
+
+interface RoleStats {
+  winRate: number;
+  pickRate: number;
+  banRate: number;
+  totalGames: number;
+}
+
+interface ChampionStats {
+  roles: Record<string, RoleStats>;
+}
+
 // Helper function to get role-specific stats
-async function getRoleStats(championId: string, role: string, patch: string) {
+async function getRoleStats(championId: string, role: string, patch: string): Promise<RoleStats | null> {
   try {
-    const response = await axios.get(
+    const response = await axios.get<MatchData[]>(
       `https://americas.api.riotgames.com/lol/match/v5/matches/by-champion/${championId}/role/${role}`,
       {
         params: {
@@ -28,8 +50,8 @@ async function getRoleStats(championId: string, role: string, patch: string) {
     }
 
     // Calculate stats from matches
-    const wins = matches.filter((match: any) => match.win).length;
-    const bans = matches.filter((match: any) => match.banned).length;
+    const wins = matches.filter((match: MatchData) => match.win).length;
+    const bans = matches.filter((match: MatchData) => match.banned).length;
 
     return {
       winRate: (wins / totalGames) * 100,
@@ -49,7 +71,7 @@ export async function GET(request: Request) {
     const patch = searchParams.get('patch') || '';
 
     // First, get the list of all champions
-    const championsResponse = await axios.get(
+    const championsResponse = await axios.get<{ data: Record<string, ChampionData> }>(
       `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`
     );
     const champions = championsResponse.data.data;
@@ -58,11 +80,11 @@ export async function GET(request: Request) {
     const roles = ['top', 'jungle', 'mid', 'bot', 'support'];
 
     // Process each champion
-    const champStats: Record<string, any> = {};
+    const champStats: Record<string, ChampionStats> = {};
     
     for (const champKey in champions) {
       const champion = champions[champKey];
-      const roleStats: Record<string, any> = {};
+      const roleStats: Record<string, RoleStats> = {};
 
       // Get stats for each role
       for (const role of roles) {
