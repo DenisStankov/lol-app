@@ -273,19 +273,30 @@ export default function TierList() {
                             {champion.name}
                           </h4>
 
-                          {/* Stats */}
+                          {/* Stats - Fixed layout with proper spacing */}
                           <div className="grid grid-cols-3 gap-2 mt-2">
-                            <div className="flex items-center gap-1">
-                              <Trophy className="w-3 h-3 text-[var(--tier-color)]" />
-                              <span className="text-xs text-zinc-400">{champion.winRate}%</span>
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1">
+                                <Trophy className="w-3 h-3 text-[var(--tier-color)]" />
+                                <span className="text-xs font-medium text-zinc-100">{champion.winRate}%</span>
+                              </div>
+                              <span className="text-xs text-zinc-500">Win Rate</span>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Users className="w-3 h-3 text-[var(--tier-color)]" />
-                              <span className="text-xs text-zinc-400">{champion.pickRate}%</span>
+                            
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1">
+                                <Users className="w-3 h-3 text-[var(--tier-color)]" />
+                                <span className="text-xs font-medium text-zinc-100">{champion.pickRate}%</span>
+                              </div>
+                              <span className="text-xs text-zinc-500">Pick Rate</span>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Swords className="w-3 h-3 text-[var(--tier-color)]" />
-                              <span className="text-xs text-zinc-400">{champion.banRate}%</span>
+                            
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1">
+                                <Swords className="w-3 h-3 text-[var(--tier-color)]" />
+                                <span className="text-xs font-medium text-zinc-100">{champion.banRate}%</span>
+                              </div>
+                              <span className="text-xs text-zinc-500">Ban Rate</span>
                             </div>
                           </div>
                         </div>
