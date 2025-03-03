@@ -102,8 +102,12 @@ export default function TierListPage() {
         }
         
         // Transform the data
-        const champList = Object.values(champData).map((champ: RiotChampionData) => {
-          const stats = champStats[champ.key] || {
+        const champValues = Object.values(champData);
+        const champList = champValues.map((champ) => {
+          // Cast the individual champion object to the correct type
+          const championData = champ as RiotChampionData;
+          
+          const stats = champStats[championData.key] || {
             winRate: 45 + Math.random() * 10,
             pickRate: 2 + Math.random() * 18,
             banRate: 1 + Math.random() * 15,
@@ -136,15 +140,15 @@ export default function TierListPage() {
           else tier = 'D'
           
           return {
-            id: champ.id,
-            name: champ.name,
+            id: championData.id,
+            name: championData.name,
             winRate: parseFloat(stats.winRate.toFixed(1)),
             pickRate: parseFloat(stats.pickRate.toFixed(1)),
             banRate: parseFloat(stats.banRate.toFixed(1)),
             totalGames: Object.values(stats.roles || {}).reduce((sum: number, role: RoleData) => sum + role.games, 0),
             role: primaryRole,
             tier,
-            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${champ.id}_0.jpg`
+            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${championData.id}_0.jpg`
           }
         })
         
