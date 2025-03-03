@@ -106,6 +106,16 @@ export default function TierList() {
     { value: "bot", label: "BOT" },
     { value: "support", label: "SUPPORT" },
   ]
+  
+  const tiers = [
+    { value: "", label: "ALL" },
+    { value: "S+", label: "S+" },
+    { value: "S", label: "S" },
+    { value: "A", label: "A" },
+    { value: "B", label: "B" },
+    { value: "C", label: "C" },
+    { value: "D", label: "D" },
+  ]
 
   // Use useCallback to memoize the fetchChampions function
   const fetchChampions = useCallback(async () => {
@@ -303,6 +313,20 @@ export default function TierList() {
               >
                 {roles.map(role => (
                   <option key={role.value} value={role.value}>{role.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-zinc-400 mr-2 pointer-events-none" />
+            </div>
+            
+            {/* Tier Filter */}
+            <div className="flex items-center bg-zinc-900 rounded border border-zinc-800 min-w-[120px]">
+              <select 
+                value={selectedTier}
+                onChange={(e) => setSelectedTier(e.target.value)}
+                className="bg-transparent py-2 px-3 text-sm text-white appearance-none w-full focus:outline-none"
+              >
+                {tiers.map(tier => (
+                  <option key={tier.value} value={tier.value}>{tier.label}</option>
                 ))}
               </select>
               <ChevronDown className="w-4 h-4 text-zinc-400 mr-2 pointer-events-none" />
