@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { Trophy, Swords, Users, Filter, ArrowUpDown, Loader2 } from "lucide-react"
+import { Trophy, Swords, Users, ArrowUpDown, Loader2 } from "lucide-react"
 import { Card } from "@/components/card"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
@@ -19,6 +19,25 @@ interface Champion {
   role: string
   tier: string
   image: string
+}
+
+interface RoleData {
+  games: number
+  winRate: number
+}
+
+interface ChampionStats {
+  winRate: number
+  pickRate: number
+  banRate: number
+  roles: Record<string, RoleData>
+}
+
+interface RiotChampionData {
+  id: string
+  name: string
+  key: string
+  [key: string]: unknown
 }
 
 // Tier colors
@@ -73,17 +92,17 @@ export default function TierListPage() {
         const champData = champResponse.data.data
         
         // Get champion stats from your backend API
-        let champStats: Record<string, { winRate: number, pickRate: number, banRate: number, roles: Record<string, { games: number, winRate: number }> }> = {}
+        let champStats: Record<string, ChampionStats> = {}
         
         try {
           const statsResponse = await axios.get('/api/champion-stats')
           champStats = statsResponse.data || {}
-        } catch (statsError) {
+        } catch {
           console.warn('Could not fetch champion stats, using mock data')
         }
         
         // Transform the data
-        const champList = Object.values(champData).map((champ: any) => {
+        const champList = Object.values(champData).map((champ: RiotChampionData) => {
           const stats = champStats[champ.key] || {
             winRate: 45 + Math.random() * 10,
             pickRate: 2 + Math.random() * 18,
@@ -122,7 +141,7 @@ export default function TierListPage() {
             winRate: parseFloat(stats.winRate.toFixed(1)),
             pickRate: parseFloat(stats.pickRate.toFixed(1)),
             banRate: parseFloat(stats.banRate.toFixed(1)),
-            totalGames: Object.values(stats.roles || {}).reduce((sum: number, role: any) => sum + role.games, 0),
+            totalGames: Object.values(stats.roles || {}).reduce((sum: number, role: RoleData) => sum + role.games, 0),
             role: primaryRole,
             tier,
             image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${champ.id}_0.jpg`
