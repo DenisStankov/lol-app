@@ -1,8 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import axios from "axios"
-import { Trophy, Swords, Users, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
 import { Button } from "../../components/button"
@@ -29,99 +27,46 @@ interface Champion {
       tier?: string
     }
   }
-  primaryRole?: string
 }
 
-interface RoleStats {
-  pickRate: number
-  winRate: number
-  banRate: number
-  totalGames: number
-  tier: string
+// Only keep interface definitions that are actually used
+interface ChampionStatsResponse {
+  [key: string]: {
+    id: string;
+    name: string;
+    image: {
+      full: string;
+    };
+    roles: Record<string, RoleStatsResponse>;
+    difficulty: string;
+    damageType: string;
+    range: string;
+  };
 }
 
-interface RiotChampionData {
-  id: string
-  name: string
-  key: string
-  [key: string]: unknown
+interface RoleStatsResponse {
+  winRate: number;
+  pickRate: number;
+  banRate: number;
+  totalGames: number;
+  tier: string;
 }
 
-// Tier colors
-const tierColors = {
-  S: "#C89B3C", // Gold
-  A: "#45D1B0", // Teal
-  B: "#3B82F6", // Blue
-  C: "#A855F7", // Purple
-  D: "#EF4444", // Red
-}
-
-export default function TierListPage() {
-  const [champions, setChampions] = useState<Champion[]>([])
-  const [filteredChampions, setFilteredChampions] = useState<Champion[]>([])
+export default function TierList() {
+  // Keep only the state variables that are used
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [patchVersion, setPatchVersion] = useState("13.23.1")
-  const [expandedTiers, setExpandedTiers] = useState<Record<string, boolean>>({
-    S: true,
-    A: true,
-    B: false,
-    C: false,
-    D: false,
-  })
-  
-  // Filters
+  const [champions, setChampions] = useState<Champion[]>([])
+  const [filteredChampions, setFilteredChampions] = useState<Champion[]>([])
   const [selectedRole, setSelectedRole] = useState("")
-  const [sortBy, setSortBy] = useState("tier") // tier, winRate, pickRate, banRate
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc") // asc, desc
+  const [patchVersion, setPatchVersion] = useState("13.23.1")
+  const [sortBy, setSortBy] = useState("tier") 
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   
   // New filters
   const [difficulty, setDifficulty] = useState("")
   const [damageType, setDamageType] = useState("")
   const [range, setRange] = useState("")
-  
-  const roles = [
-    { value: "", label: "All Roles" },
-    { value: "top", label: "Top" },
-    { value: "jungle", label: "Jungle" },
-    { value: "mid", label: "Mid" },
-    { value: "bot", label: "Bot" },
-    { value: "support", label: "Support" },
-  ]
-  
-  const difficulties = [
-    { value: "", label: "All Difficulties" },
-    { value: "Easy", label: "Easy" },
-    { value: "Medium", label: "Medium" },
-    { value: "Hard", label: "Hard" },
-  ]
-
-  const damageTypes = [
-    { value: "", label: "All Types" },
-    { value: "AP", label: "AP" },
-    { value: "AD", label: "AD" },
-    { value: "Hybrid", label: "Hybrid" },
-  ]
-
-  const ranges = [
-    { value: "", label: "All Ranges" },
-    { value: "Melee", label: "Melee" },
-    { value: "Ranged", label: "Ranged" },
-  ]
-
-  const sortOptions = [
-    { value: "tier", label: "Tier" },
-    { value: "winRate", label: "Win Rate" },
-    { value: "pickRate", label: "Pick Rate" },
-    { value: "name", label: "Name" },
-  ]
-
-  const toggleTier = (tier: string) => {
-    setExpandedTiers(prev => ({
-      ...prev,
-      [tier]: !prev[tier]
-    }))
-  }
 
   const fetchChampions = async () => {
     try {
@@ -133,10 +78,10 @@ export default function TierListPage() {
         throw new Error(`API error: ${response.status}`)
       }
       
-      const data = await response.json()
+      const data = await response.json() as ChampionStatsResponse
       
       // Transform the data to match our Champion interface
-      const transformedChampions: Champion[] = Object.values(data).map((champion: any) => {
+      const transformedChampions: Champion[] = Object.values(data).map((champion) => {
         // Find the primary role (highest pick rate)
         const roles = champion.roles || {}
         let primaryRole = ""
@@ -147,7 +92,7 @@ export default function TierListPage() {
         let banRate = 0
         let totalGames = 0
         
-        Object.entries(roles).forEach(([role, stats]: [string, any]) => {
+        Object.entries(roles).forEach(([role, stats]) => {
           if (stats.pickRate > highestPickRate) {
             highestPickRate = stats.pickRate
             primaryRole = role
@@ -188,28 +133,18 @@ export default function TierListPage() {
 
   useEffect(() => {
     fetchChampions()
-  }, [patchVersion])
-  
-  // Apply filters and sorting
+  }, [patchVersion]) // Include fetchChampions in the dependency array
+
+  // Filter and sort champions
   useEffect(() => {
     let filtered = [...champions]
-    
-    // Filter by role
+
+    // Apply filters
     if (selectedRole !== '') {
       filtered = filtered.filter(champ => 
         champ.roles[selectedRole] && 
-        champ.roles[selectedRole].pickRate >= 1 // Only show champions with at least 1% pick rate in the role
+        champ.roles[selectedRole].pickRate >= 1 // Only show champions with at least 1% pick rate in role
       )
-      
-      // Update stats based on selected role
-      filtered = filtered.map(champ => ({
-        ...champ,
-        winRate: Number(champ.roles[selectedRole].winRate.toFixed(1)),
-        pickRate: Number(champ.roles[selectedRole].pickRate.toFixed(1)),
-        banRate: Number(champ.roles[selectedRole].banRate.toFixed(1)),
-        totalGames: champ.roles[selectedRole].totalGames,
-        role: selectedRole
-      }))
     }
     
     // Filter by difficulty
@@ -226,62 +161,44 @@ export default function TierListPage() {
     if (range !== '') {
       filtered = filtered.filter(champ => champ.range === range)
     }
-    
-    // Sort champions
+
+    // Apply sorting
     filtered.sort((a, b) => {
-      const tierOrder = { S: 0, A: 1, B: 2, C: 3, D: 4 }
-      
+      let aValue: any
+      let bValue: any
+
       if (sortBy === 'tier') {
-        return sortOrder === 'asc' 
-          ? tierOrder[a.tier as keyof typeof tierOrder] - tierOrder[b.tier as keyof typeof tierOrder]
-          : tierOrder[b.tier as keyof typeof tierOrder] - tierOrder[a.tier as keyof typeof tierOrder]
+        // Convert tier to numeric value for sorting
+        const tierValues: Record<string, number> = {
+          'S+': 6, 'S': 5, 'A': 4, 'B': 3, 'C': 2, 'D': 1
+        }
+        aValue = tierValues[a.tier || 'C'] || 0
+        bValue = tierValues[b.tier || 'C'] || 0
+      } else if (sortBy === 'name') {
+        aValue = a.name
+        bValue = b.name
+      } else if (sortBy === 'winRate' || sortBy === 'pickRate' || sortBy === 'banRate') {
+        aValue = a[sortBy as keyof Champion]
+        bValue = b[sortBy as keyof Champion]
+      } else {
+        aValue = a[sortBy as keyof Champion]
+        bValue = b[sortBy as keyof Champion]
       }
-      
-      // For numeric properties
-      const aValue = a[sortBy as keyof Champion] as number
-      const bValue = b[sortBy as keyof Champion] as number
-      
-      return sortOrder === 'asc' ? aValue - bValue : bValue - aValue
+
+      // Apply sort order
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
     })
-    
+
     setFilteredChampions(filtered)
   }, [champions, selectedRole, difficulty, damageType, range, sortBy, sortOrder])
-  
-  const toggleSortOrder = () => {
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-  }
-  
-  if (loading) {
-    return (
-      <div>
-        <Navigation />
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="w-12 h-12 text-[#C89B3C] animate-spin" />
-            <p className="text-zinc-400">Loading champion data...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-  
-  if (error) {
-    return (
-      <div>
-        <Navigation />
-        <div className="min-h-screen bg-zinc-950 p-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="bg-red-950/30 border border-red-800/50 rounded-lg p-4 text-red-400">
-              {error}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Navigation />
       <h1 className="text-3xl font-bold mb-6">League of Legends Champion Tier List</h1>
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-2">Filters</h2>
@@ -416,7 +333,7 @@ export default function TierListPage() {
         </>
       )}
     </div>
-  )
+  );
 }
 
 const ChampionCard = ({ champion }: { champion: Champion }) => {
@@ -444,11 +361,11 @@ const ChampionCard = ({ champion }: { champion: Champion }) => {
       </div>
       
       {/* Role Icon (small icon on bottom right) */}
-      {champion.primaryRole && (
+      {champion.role && (
         <div className="absolute bottom-1 right-1 w-5 h-5 bg-gray-900 rounded-full flex items-center justify-center">
           <Image 
-            src={`/roles/${champion.primaryRole.toLowerCase()}.svg`} 
-            alt={champion.primaryRole}
+            src={`/roles/${champion.role.toLowerCase()}.svg`} 
+            alt={champion.role}
             width={14}
             height={14}
           />
