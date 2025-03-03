@@ -68,6 +68,11 @@ export default function TierListPage() {
   const [sortBy, setSortBy] = useState("tier") // tier, winRate, pickRate, banRate
   const [sortOrder, setSortOrder] = useState("desc") // asc, desc
   
+  // New filters
+  const [difficulty, setDifficulty] = useState("all")
+  const [damageType, setDamageType] = useState("all")
+  const [range, setRange] = useState("all")
+  
   const roles = [
     { value: "all", label: "All Roles" },
     { value: "top", label: "Top" },
@@ -77,6 +82,26 @@ export default function TierListPage() {
     { value: "support", label: "Support" },
   ]
   
+  const difficulties = [
+    { value: "all", label: "All" },
+    { value: "easy", label: "Easy" },
+    { value: "medium", label: "Medium" },
+    { value: "hard", label: "Hard" },
+  ]
+
+  const damageTypes = [
+    { value: "all", label: "All" },
+    { value: "ap", label: "AP" },
+    { value: "ad", label: "AD" },
+    { value: "hybrid", label: "Hybrid" },
+  ]
+
+  const ranges = [
+    { value: "all", label: "All" },
+    { value: "melee", label: "Melee" },
+    { value: "ranged", label: "Ranged" },
+  ]
+
   const sortOptions = [
     { value: "tier", label: "Tier" },
     { value: "winRate", label: "Win Rate" },
@@ -276,50 +301,134 @@ export default function TierListPage() {
             </div>
           </div>
           
-          {/* Filters */}
-          <div className="mb-6 flex flex-col sm:flex-row gap-4 p-4 bg-zinc-900 rounded-lg border border-zinc-800/50">
-            <div className="flex-1 space-y-1">
-              <label className="text-xs text-zinc-500">Role</label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map(role => (
-                    <SelectItem key={role.value} value={role.value}>
-                      {role.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* New Filters UI */}
+          <div className="mb-8 space-y-6">
+            {/* Role Selection */}
+            <div className="flex flex-wrap gap-2">
+              {roles.map(role => (
+                <Button
+                  key={role.value}
+                  onClick={() => setSelectedRole(role.value)}
+                  variant={selectedRole === role.value ? "default" : "outline"}
+                  className={`
+                    px-6 py-2 rounded-full font-medium
+                    ${selectedRole === role.value 
+                      ? 'bg-[#C89B3C] text-black hover:bg-[#C89B3C]/90' 
+                      : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500'
+                    }
+                  `}
+                >
+                  {role.label}
+                </Button>
+              ))}
             </div>
-            
-            <div className="flex-1 space-y-1">
-              <label className="text-xs text-zinc-500">Sort By</label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
+
+            {/* Additional Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Difficulty Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-400">Difficulty</label>
+                <div className="flex gap-2">
+                  {difficulties.map(diff => (
+                    <Button
+                      key={diff.value}
+                      onClick={() => setDifficulty(diff.value)}
+                      variant={difficulty === diff.value ? "default" : "outline"}
+                      size="sm"
+                      className={`
+                        flex-1
+                        ${difficulty === diff.value 
+                          ? 'bg-[#C89B3C] text-black hover:bg-[#C89B3C]/90' 
+                          : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500'
+                        }
+                      `}
+                    >
+                      {diff.label}
+                    </Button>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              </div>
+
+              {/* Damage Type Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-400">Damage Type</label>
+                <div className="flex gap-2">
+                  {damageTypes.map(type => (
+                    <Button
+                      key={type.value}
+                      onClick={() => setDamageType(type.value)}
+                      variant={damageType === type.value ? "default" : "outline"}
+                      size="sm"
+                      className={`
+                        flex-1
+                        ${damageType === type.value 
+                          ? 'bg-[#C89B3C] text-black hover:bg-[#C89B3C]/90' 
+                          : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500'
+                        }
+                      `}
+                    >
+                      {type.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Range Filter */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-400">Range</label>
+                <div className="flex gap-2">
+                  {ranges.map(r => (
+                    <Button
+                      key={r.value}
+                      onClick={() => setRange(r.value)}
+                      variant={range === r.value ? "default" : "outline"}
+                      size="sm"
+                      className={`
+                        flex-1
+                        ${range === r.value 
+                          ? 'bg-[#C89B3C] text-black hover:bg-[#C89B3C]/90' 
+                          : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500'
+                        }
+                      `}
+                    >
+                      {r.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </div>
-            
-            <div className="flex items-end">
-              <Button 
-                variant="outline" 
-                size="default" 
-                onClick={toggleSortOrder}
-                className="border-zinc-700 text-zinc-300 hover:text-white"
-              >
-                <ArrowUpDown className="mr-2 h-4 w-4" />
-                {sortOrder === 'desc' ? 'Descending' : 'Ascending'}
-              </Button>
+
+            {/* Sort Options */}
+            <div className="flex items-center gap-4 pt-2">
+              <span className="text-sm font-medium text-zinc-400">Sort by:</span>
+              <div className="flex gap-2">
+                {sortOptions.map(option => (
+                  <Button
+                    key={option.value}
+                    onClick={() => {
+                      if (sortBy === option.value) {
+                        toggleSortOrder()
+                      } else {
+                        setSortBy(option.value)
+                        setSortOrder('desc')
+                      }
+                    }}
+                    variant={sortBy === option.value ? "default" : "outline"}
+                    size="sm"
+                    className={`
+                      ${sortBy === option.value 
+                        ? 'bg-[#C89B3C] text-black hover:bg-[#C89B3C]/90' 
+                        : 'border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-500'
+                      }
+                    `}
+                  >
+                    {option.label}
+                    {sortBy === option.value && (
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    )}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
           
