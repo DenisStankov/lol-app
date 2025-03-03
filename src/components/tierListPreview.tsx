@@ -13,6 +13,7 @@ interface ChampionTier {
   pickRate: number
   banRate: number
   image: string
+  role: string
 }
 
 interface TierData {
@@ -56,12 +57,29 @@ interface RiotChampionData {
 }
 
 export default function TierList() {
-  const [expandedTier, setExpandedTier] = useState<string>("S")
-  const [hoveredChamp, setHoveredChamp] = useState<string | null>(null)
-  const [tiers, setTiers] = useState<TierData>({})
+  const [champions, setChampions] = useState<ChampionTier[]>([])
+  const [filteredChampions, setFilteredChampions] = useState<ChampionTier[]>([])
+  const [selectedRole, setSelectedRole] = useState("all")
+  const [sortBy, setSortBy] = useState("winRate")
+  const [sortOrder, setSortOrder] = useState("desc")
   const [patchVersion, setPatchVersion] = useState("")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+
+  const roles = [
+    { value: "all", label: "All Roles" },
+    { value: "top", label: "Top" },
+    { value: "jungle", label: "Jungle" },
+    { value: "mid", label: "Mid" },
+    { value: "bot", label: "Bot" },
+    { value: "support", label: "Support" },
+  ]
+
+  const sortOptions = [
+    { value: "winRate", label: "Win Rate" },
+    { value: "pickRate", label: "Pick Rate" },
+    { value: "banRate", label: "Ban Rate" },
+  ]
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,64 +107,21 @@ export default function TierList() {
             banRate: 5  // Use a consistent ban rate
           }
           
+          const primaryRole = Object.keys(stats.roles || {}).reduce((a, b) => stats.roles[a].games > stats.roles[b].games ? a : b, 'mid');
+          
           return {
             id: champ.id,
             name: champ.name,
             winRate: parseFloat(stats.winRate.toFixed(1)),
             pickRate: parseFloat(stats.pickRate.toFixed(1)),
             banRate: parseFloat(stats.banRate.toFixed(1)),
-            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`
+            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`,
+            role: primaryRole
           }
         })
 
-        // Create tiers based on win rates
-        const tierData: TierData = {
-          S: {
-            ...tierDefinitions.S,
-            champions: []
-          },
-          A: {
-            ...tierDefinitions.A,
-            champions: []
-          },
-          B: {
-            ...tierDefinitions.B,
-            champions: []
-          },
-          C: {
-            ...tierDefinitions.C,
-            champions: []
-          },
-          D: {
-            ...tierDefinitions.D,
-            champions: []
-          }
-        }
-        
-        // Assign champions to tiers based on win rate
-        allChampions.forEach((champion: ChampionTier) => {
-          if (champion.winRate >= 53) {
-            tierData.S.champions.push(champion)
-          } else if (champion.winRate >= 51) {
-            tierData.A.champions.push(champion)
-          } else if (champion.winRate >= 49) {
-            tierData.B.champions.push(champion)
-          } else if (champion.winRate >= 47) {
-            tierData.C.champions.push(champion)
-          } else {
-            tierData.D.champions.push(champion)
-          }
-        })
-        
-        // Sort champions within each tier by win rate
-        Object.keys(tierData).forEach(tier => {
-          tierData[tier].champions.sort((a, b) => b.winRate - a.winRate)
-          
-          // Limit to 3 champions per tier for display purposes
-          tierData[tier].champions = tierData[tier].champions.slice(0, 3)
-        })
-        
-        setTiers(tierData)
+        setChampions(allChampions)
+        setFilteredChampions(allChampions)
       } catch (err) {
         console.error("Error fetching tier list data:", err)
         setError("Failed to load tier list")
@@ -157,6 +132,26 @@ export default function TierList() {
     
     fetchData()
   }, [])
+
+  // Apply filters and sorting
+  useEffect(() => {
+    let filtered = [...champions]
+    
+    // Filter by role
+    if (selectedRole !== 'all') {
+      filtered = filtered.filter(champ => champ.role === selectedRole)
+    }
+    
+    // Sort champions
+    filtered.sort((a, b) => {
+      const aValue = a[sortBy as keyof ChampionTier] as number
+      const bValue = b[sortBy as keyof ChampionTier] as number
+      
+      return sortOrder === 'asc' ? aValue - bValue : bValue - aValue
+    })
+    
+    setFilteredChampions(filtered)
+  }, [champions, selectedRole, sortBy, sortOrder])
 
   if (loading) {
     return (
@@ -190,114 +185,55 @@ export default function TierList() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        {Object.entries(tiers).map(([tier, { color, description, champions }]) => (
-          <div
-            key={tier}
-            className={`rounded-lg bg-zinc-900/50 backdrop-blur-sm border border-zinc-800/50 overflow-hidden
-              transition-all duration-300 ease-out
-              ${expandedTier === tier ? "ring-1" : "hover:ring-1"}`}
-            style={
-              {
-                ringColor: color,
-                "--tier-color": color,
-              } as React.CSSProperties
-            }
-          >
-            {/* Tier Header */}
-            <button
-              onClick={() => setExpandedTier(expandedTier === tier ? "" : tier)}
-              className="w-full flex items-center gap-4 p-4 text-left transition-colors hover:bg-zinc-800/50"
-            >
-              <div
-                className="flex items-center justify-center w-12 h-12 rounded-lg text-2xl font-bold"
-                style={{
-                  backgroundColor: `${color}15`,
-                  color: color,
-                }}
-              >
-                {tier}
+      {/* Filters */}
+      <div className="flex gap-4 mb-4">
+        <div className="flex-1">
+          <label className="text-xs text-zinc-500">Role</label>
+          <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} className="w-full p-2 bg-zinc-900 text-zinc-100 rounded">
+            {roles.map(role => (
+              <option key={role.value} value={role.value}>{role.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <label className="text-xs text-zinc-500">Sort By</label>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="w-full p-2 bg-zinc-900 text-zinc-100 rounded">
+            {sortOptions.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-end">
+          <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="p-2 bg-zinc-900 text-zinc-100 rounded">
+            {sortOrder === 'desc' ? 'Descending' : 'Ascending'}
+          </button>
+        </div>
+      </div>
+
+      {/* Champions List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredChampions.map(champion => (
+          <Card key={champion.id} className="bg-zinc-800/50 p-4 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="relative w-16 h-16 rounded-md overflow-hidden">
+                <Image
+                  src={champion.image.replace('splash', 'champion').replace('_0.jpg', '.png') || "/placeholder.svg"}
+                  alt={champion.name}
+                  width={64}
+                  height={64}
+                  className="object-cover"
+                />
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-zinc-100">Tier {tier}</h3>
-                  <span className="text-sm text-zinc-400">({champions.length} champions)</span>
+              <div>
+                <h4 className="text-lg font-bold text-zinc-100">{champion.name}</h4>
+                <div className="flex gap-2 text-sm text-zinc-400">
+                  <span>Win Rate: {champion.winRate}%</span>
+                  <span>Pick Rate: {champion.pickRate}%</span>
+                  <span>Ban Rate: {champion.banRate}%</span>
                 </div>
-                <p className="text-sm text-zinc-400">{description}</p>
               </div>
-              {expandedTier === tier ? (
-                <ChevronUp className="w-5 h-5 text-zinc-400" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-zinc-400" />
-              )}
-            </button>
-
-            {/* Champions Grid */}
-            {expandedTier === tier && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border-t border-zinc-800/50">
-                {champions.map((champion) => (
-                  <Card
-                    key={champion.id}
-                    className={`group relative overflow-hidden bg-zinc-800/50 border-0
-                      ${hoveredChamp === champion.id ? "scale-[1.02]" : "scale-100"}
-                      transition-all duration-300 ease-out`}
-                    onMouseEnter={() => setHoveredChamp(champion.id)}
-                    onMouseLeave={() => setHoveredChamp(null)}
-                  >
-                    {/* Glowing border effect */}
-                    <div
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      style={{
-                        background: `linear-gradient(45deg, ${color}00, ${color}40, ${color}00)`,
-                      }}
-                    />
-
-                    <div className="relative p-4">
-                      {/* Champion Name with Icon */}
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
-                          <Image
-                            src={champion.image.replace('splash', 'champion').replace('_0.jpg', '.png') || "/placeholder.svg"}
-                            alt={champion.name}
-                            width={40}
-                            height={40}
-                            className="object-cover"
-                          />
-                        </div>
-                        <h4 className="text-lg font-bold text-zinc-100 group-hover:text-[var(--tier-color)] transition-colors">
-                          {champion.name}
-                        </h4>
-                      </div>
-
-                      {/* Stats - Clear layout */}
-                      <div className="grid grid-cols-3 gap-2">
-                        {/* Win Rate */}
-                        <div className="flex flex-col items-center bg-black/20 p-2 rounded">
-                          <Trophy className="w-4 h-4 text-[var(--tier-color)] mb-1" />
-                          <span className="text-sm font-bold text-zinc-100">{champion.winRate}%</span>
-                          <span className="text-xs text-zinc-500">Win Rate</span>
-                        </div>
-                        
-                        {/* Pick Rate */}
-                        <div className="flex flex-col items-center bg-black/20 p-2 rounded">
-                          <Users className="w-4 h-4 text-[var(--tier-color)] mb-1" />
-                          <span className="text-sm font-bold text-zinc-100">{champion.pickRate}%</span>
-                          <span className="text-xs text-zinc-500">Pick Rate</span>
-                        </div>
-                        
-                        {/* Ban Rate */}
-                        <div className="flex flex-col items-center bg-black/20 p-2 rounded">
-                          <Swords className="w-4 h-4 text-[var(--tier-color)] mb-1" />
-                          <span className="text-sm font-bold text-zinc-100">{champion.banRate}%</span>
-                          <span className="text-xs text-zinc-500">Ban Rate</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+            </div>
+          </Card>
         ))}
       </div>
     </div>
