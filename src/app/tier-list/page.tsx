@@ -96,6 +96,17 @@ export default function TierListPage() {
       try {
         setLoading(true)
         
+        // Check local storage for cached data
+        const cachedData = localStorage.getItem('championData');
+        const cachedPatch = localStorage.getItem('patchVersion');
+        if (cachedData && cachedPatch === patchVersion) {
+          const parsedData = JSON.parse(cachedData);
+          setChampions(parsedData);
+          setFilteredChampions(parsedData);
+          setLoading(false);
+          return;
+        }
+        
         // Fetch current patch version
         const patchResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
         const currentPatch = patchResponse.data[0]
@@ -165,6 +176,10 @@ export default function TierListPage() {
             image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${championData.id}_0.jpg`
           }
         })
+        
+        // Save to local storage
+        localStorage.setItem('championData', JSON.stringify(champList));
+        localStorage.setItem('patchVersion', currentPatch);
         
         setChampions(champList)
         setFilteredChampions(champList)
