@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 import axios from "axios"
 import { Trophy, Swords, Users, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
-import { Button } from "@/components/ui/button"
+import { Button } from "../../components/button"
 
 interface Champion {
   id: string
@@ -26,6 +26,7 @@ interface Champion {
       pickRate: number
       banRate: number
       totalGames: number
+      tier?: string
     }
   }
   primaryRole?: string
@@ -60,27 +61,27 @@ export default function TierListPage() {
   const [filteredChampions, setFilteredChampions] = useState<Champion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [patchVersion, setPatchVersion] = useState("")
+  const [patchVersion, setPatchVersion] = useState("13.23.1")
   const [expandedTiers, setExpandedTiers] = useState<Record<string, boolean>>({
     S: true,
     A: true,
-    B: true,
-    C: true,
-    D: true
+    B: false,
+    C: false,
+    D: false,
   })
   
   // Filters
-  const [selectedRole, setSelectedRole] = useState("all")
+  const [selectedRole, setSelectedRole] = useState("")
   const [sortBy, setSortBy] = useState("tier") // tier, winRate, pickRate, banRate
-  const [sortOrder, setSortOrder] = useState("desc") // asc, desc
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc") // asc, desc
   
   // New filters
-  const [difficulty, setDifficulty] = useState("all")
-  const [damageType, setDamageType] = useState("all")
-  const [range, setRange] = useState("all")
+  const [difficulty, setDifficulty] = useState("")
+  const [damageType, setDamageType] = useState("")
+  const [range, setRange] = useState("")
   
   const roles = [
-    { value: "all", label: "All Roles" },
+    { value: "", label: "All Roles" },
     { value: "top", label: "Top" },
     { value: "jungle", label: "Jungle" },
     { value: "mid", label: "Mid" },
@@ -89,30 +90,30 @@ export default function TierListPage() {
   ]
   
   const difficulties = [
-    { value: "all", label: "All" },
-    { value: "easy", label: "Easy" },
-    { value: "medium", label: "Medium" },
-    { value: "hard", label: "Hard" },
+    { value: "", label: "All Difficulties" },
+    { value: "Easy", label: "Easy" },
+    { value: "Medium", label: "Medium" },
+    { value: "Hard", label: "Hard" },
   ]
 
   const damageTypes = [
-    { value: "all", label: "All" },
-    { value: "ap", label: "AP" },
-    { value: "ad", label: "AD" },
-    { value: "hybrid", label: "Hybrid" },
+    { value: "", label: "All Types" },
+    { value: "AP", label: "AP" },
+    { value: "AD", label: "AD" },
+    { value: "Hybrid", label: "Hybrid" },
   ]
 
   const ranges = [
-    { value: "all", label: "All" },
-    { value: "melee", label: "Melee" },
-    { value: "ranged", label: "Ranged" },
+    { value: "", label: "All Ranges" },
+    { value: "Melee", label: "Melee" },
+    { value: "Ranged", label: "Ranged" },
   ]
 
   const sortOptions = [
     { value: "tier", label: "Tier" },
     { value: "winRate", label: "Win Rate" },
     { value: "pickRate", label: "Pick Rate" },
-    { value: "banRate", label: "Ban Rate" },
+    { value: "name", label: "Name" },
   ]
 
   const toggleTier = (tier: string) => {
@@ -122,144 +123,70 @@ export default function TierListPage() {
     }))
   }
 
-  useEffect(() => {
-    const fetchChampions = async () => {
-      try {
-        setLoading(true)
+  const fetchChampions = async () => {
+    try {
+      setLoading(true)
+      setError("")
+      
+      const response = await fetch(`/api/champion-stats?patch=${patchVersion}`)
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      // Transform the data to match our Champion interface
+      const transformedChampions: Champion[] = Object.values(data).map((champion: any) => {
+        // Find the primary role (highest pick rate)
+        const roles = champion.roles || {}
+        let primaryRole = ""
+        let highestPickRate = 0
+        let tier = "C" // Default tier
+        let winRate = 0
+        let pickRate = 0
+        let banRate = 0
+        let totalGames = 0
         
-        // Check local storage for cached data and verify it's not too old (1 hour max)
-        const cachedData = localStorage.getItem('championData')
-        const cachedTime = localStorage.getItem('championDataTimestamp')
-        const cachedPatch = localStorage.getItem('patchVersion')
-        const now = Date.now()
-        
-        if (
-          cachedData && 
-          cachedPatch === patchVersion && 
-          cachedTime && 
-          now - parseInt(cachedTime) < 3600000 // 1 hour
-        ) {
-          const parsedData = JSON.parse(cachedData)
-          setChampions(parsedData)
-          setFilteredChampions(parsedData)
-          setLoading(false)
-          return
-        }
-
-        // Fetch current patch version
-        const patchResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
-        const currentPatch = patchResponse.data[0]
-        setPatchVersion(currentPatch)
-
-        // Fetch champion data from Riot's Data Dragon
-        const champResponse = await axios.get(
-          `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`
-        )
-        const champData = champResponse.data.data
-
-        // Fetch champion statistics from u.gg API
-        // Note: You'll need to set up a proxy API route to handle this request
-        // and manage the API key securely on your backend
-        const statsResponse = await axios.get('/api/champion-stats', {
-          params: {
-            patch: currentPatch.split('.').slice(0, 2).join('.') // Format: '13.10'
+        Object.entries(roles).forEach(([role, stats]: [string, any]) => {
+          if (stats.pickRate > highestPickRate) {
+            highestPickRate = stats.pickRate
+            primaryRole = role
+            tier = stats.tier || "C"
+            winRate = stats.winRate || 0
+            pickRate = stats.pickRate || 0
+            banRate = stats.banRate || 0
+            totalGames = stats.totalGames || 0
           }
         })
         
-        const champStats = statsResponse.data || {}
-
-        // Transform the data
-        const champValues = Object.values(champData)
-        const champList = await Promise.all(champValues.map(async (champ) => {
-          const championData = champ as RiotChampionData
-
-          // Get detailed champion data for additional info
-          const detailedChampResponse = await axios.get(
-            `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion/${championData.id}.json`
-          )
-          const detailedChampData = detailedChampResponse.data.data[championData.id]
-
-          // Get champion stats from the API response
-          const stats = champStats[championData.key] || {}
-          
-          // Determine primary role based on highest pick rate
-          const roles = (stats.roles || {}) as Record<string, RoleStats>
-          let primaryRole = 'mid'
-          let maxPickRate = 0
-
-          Object.entries(roles).forEach(([role, data]) => {
-            if (data.pickRate > maxPickRate) {
-              maxPickRate = data.pickRate
-              primaryRole = role
-            }
-          })
-
-          // Get role-specific stats
-          const roleStats = roles[primaryRole] || {
-            winRate: 0,
-            pickRate: 0,
-            banRate: 0,
-            totalGames: 0
-          }
-
-          // Determine tier based on role stats
-          let tier = 'C'
-          const winRate = roleStats.winRate
-          const pickRate = roleStats.pickRate
-
-          // Tier calculation based on win rate and pick rate
-          if (winRate >= 52 && pickRate >= 5) tier = 'S'
-          else if (winRate >= 51 && pickRate >= 3) tier = 'A'
-          else if (winRate >= 49.5) tier = 'B'
-          else if (winRate >= 47) tier = 'C'
-          else tier = 'D'
-
-          // Determine champion attributes from detailed data
-          const difficulty = detailedChampData.info.difficulty <= 3 ? 'easy' 
-            : detailedChampData.info.difficulty <= 7 ? 'medium' 
-            : 'hard'
-
-          const damageType = detailedChampData.tags.includes('Mage') || detailedChampData.tags.includes('AP') ? 'ap'
-            : detailedChampData.tags.includes('Marksman') || detailedChampData.tags.includes('AD') ? 'ad'
-            : 'hybrid'
-
-          const range = detailedChampData.stats.attackrange > 300 ? 'ranged' : 'melee'
-
-          return {
-            id: championData.id,
-            name: championData.name,
-            winRate: Number(roleStats.winRate.toFixed(1)),
-            pickRate: Number(roleStats.pickRate.toFixed(1)),
-            banRate: Number(roleStats.banRate.toFixed(1)),
-            totalGames: roleStats.totalGames,
-            role: primaryRole,
-            tier,
-            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/tiles/${championData.id}_0.jpg`,
-            difficulty,
-            damageType,
-            range,
-            roles
-          }
-        }))
-
-        // Filter out champions with no valid stats
-        const validChamps = champList.filter(champ => champ.winRate > 0)
-
-        // Save to local storage with timestamp
-        localStorage.setItem('championData', JSON.stringify(validChamps))
-        localStorage.setItem('championDataTimestamp', now.toString())
-        localStorage.setItem('patchVersion', currentPatch)
-
-        setChampions(validChamps)
-        setFilteredChampions(validChamps)
-      } catch (err) {
-        console.error("Error fetching champion data:", err)
-        setError("Failed to load champion data")
-      } finally {
-        setLoading(false)
-      }
+        return {
+          id: champion.id,
+          name: champion.name,
+          image: `http://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`,
+          winRate,
+          pickRate,
+          banRate,
+          totalGames,
+          role: primaryRole,
+          tier,
+          roles,
+          difficulty: champion.difficulty || "Medium",
+          damageType: champion.damageType || "AD",
+          range: champion.range || "Melee",
+        }
+      })
+      
+      setChampions(transformedChampions)
+      setFilteredChampions(transformedChampions) // Initially show all champions
+      setLoading(false)
+    } catch (error) {
+      console.error("Error fetching champions:", error)
+      setError(`Failed to fetch champion data: ${(error as Error).message}`)
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchChampions()
   }, [patchVersion])
   
@@ -268,7 +195,7 @@ export default function TierListPage() {
     let filtered = [...champions]
     
     // Filter by role
-    if (selectedRole !== 'all') {
+    if (selectedRole !== '') {
       filtered = filtered.filter(champ => 
         champ.roles[selectedRole] && 
         champ.roles[selectedRole].pickRate >= 1 // Only show champions with at least 1% pick rate in the role
@@ -286,17 +213,17 @@ export default function TierListPage() {
     }
     
     // Filter by difficulty
-    if (difficulty !== 'all') {
+    if (difficulty !== '') {
       filtered = filtered.filter(champ => champ.difficulty === difficulty)
     }
     
     // Filter by damage type
-    if (damageType !== 'all') {
+    if (damageType !== '') {
       filtered = filtered.filter(champ => champ.damageType === damageType)
     }
     
     // Filter by range
-    if (range !== 'all') {
+    if (range !== '') {
       filtered = filtered.filter(champ => champ.range === range)
     }
     
@@ -380,14 +307,14 @@ export default function TierListPage() {
           <div>
             <h3 className="text-sm font-medium mb-2">Difficulty</h3>
             <div className="flex flex-wrap gap-2">
-              {['All', 'Easy', 'Medium', 'Hard'].map((difficulty) => (
+              {['All', 'Easy', 'Medium', 'Hard'].map((difficultyOption) => (
                 <Button
-                  key={difficulty}
-                  variant={selectedDifficulty === difficulty ? "default" : "outline"}
+                  key={difficultyOption}
+                  variant={difficulty === (difficultyOption === 'All' ? '' : difficultyOption) ? "default" : "outline"}
                   className="py-1 px-3 h-8"
-                  onClick={() => setSelectedDifficulty(difficulty === 'All' ? '' : difficulty)}
+                  onClick={() => setDifficulty(difficultyOption === 'All' ? '' : difficultyOption)}
                 >
-                  {difficulty === 'All' ? 'All Difficulties' : difficulty}
+                  {difficultyOption === 'All' ? 'All Difficulties' : difficultyOption}
                 </Button>
               ))}
             </div>
@@ -397,14 +324,14 @@ export default function TierListPage() {
           <div>
             <h3 className="text-sm font-medium mb-2">Damage Type</h3>
             <div className="flex flex-wrap gap-2">
-              {['All', 'AP', 'AD', 'Hybrid'].map((type) => (
+              {['All', 'AP', 'AD', 'Hybrid'].map((typeOption) => (
                 <Button
-                  key={type}
-                  variant={selectedDamageType === type ? "default" : "outline"}
+                  key={typeOption}
+                  variant={damageType === (typeOption === 'All' ? '' : typeOption) ? "default" : "outline"}
                   className="py-1 px-3 h-8"
-                  onClick={() => setSelectedDamageType(type === 'All' ? '' : type)}
+                  onClick={() => setDamageType(typeOption === 'All' ? '' : typeOption)}
                 >
-                  {type === 'All' ? 'All Types' : type}
+                  {typeOption === 'All' ? 'All Types' : typeOption}
                 </Button>
               ))}
             </div>
@@ -414,14 +341,14 @@ export default function TierListPage() {
           <div>
             <h3 className="text-sm font-medium mb-2">Range</h3>
             <div className="flex flex-wrap gap-2">
-              {['All', 'Melee', 'Ranged'].map((range) => (
+              {['All', 'Melee', 'Ranged'].map((rangeOption) => (
                 <Button
-                  key={range}
-                  variant={selectedRange === range ? "default" : "outline"}
+                  key={rangeOption}
+                  variant={range === (rangeOption === 'All' ? '' : rangeOption) ? "default" : "outline"}
                   className="py-1 px-3 h-8"
-                  onClick={() => setSelectedRange(range === 'All' ? '' : range)}
+                  onClick={() => setRange(rangeOption === 'All' ? '' : rangeOption)}
                 >
-                  {range === 'All' ? 'All Ranges' : range}
+                  {rangeOption === 'All' ? 'All Ranges' : rangeOption}
                 </Button>
               ))}
             </div>
