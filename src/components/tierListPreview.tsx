@@ -77,7 +77,7 @@ export default function TierList() {
         const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`)
         const champData = response.data.data
         
-        // Get champion win rates from your backend API (or mock it for now)
+        // Get champion win rates from your backend API
         const statsResponse = await axios.get('/api/champion-stats')
         const champStats = statsResponse.data || {}
         
