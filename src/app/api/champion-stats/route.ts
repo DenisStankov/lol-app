@@ -3,15 +3,28 @@ import axios from 'axios';
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-interface MatchData {
-  win: boolean;
-  banned: boolean;
+interface ChampionImage {
+  full: string;
+  sprite: string;
+  group: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 interface ChampionData {
+  id: string;
   key: string;
   name: string;
-  // Add other champion properties as needed
+  image: ChampionImage;
+  // We'll add more properties as needed from the Data Dragon API
+}
+
+interface ChampionDataResponse {
+  type: string;
+  version: string;
+  data: Record<string, ChampionData>;
 }
 
 interface RoleStats {
@@ -22,64 +35,38 @@ interface RoleStats {
 }
 
 interface ChampionStats {
+  id: string;
+  name: string;
+  image: ChampionImage;
   roles: Record<string, RoleStats>;
 }
 
-// Helper function to get role-specific stats
-async function getRoleStats(championId: string, role: string, patch: string): Promise<RoleStats | null> {
-  try {
-    const response = await axios.get<MatchData[]>(
-      `https://americas.api.riotgames.com/lol/match/v5/matches/by-champion/${championId}/role/${role}`,
-      {
-        params: {
-          patch,
-          queue: 420, // Ranked Solo/Duo queue
-          tier: 'PLATINUM_PLUS' // Plat+ games for better data quality
-        },
-        headers: {
-          'X-Riot-Token': RIOT_API_KEY
-        }
-      }
-    );
-
-    const matches = response.data;
-    const totalGames = matches.length;
-
-    if (totalGames === 0) {
-      return null;
-    }
-
-    // Calculate stats from matches
-    const wins = matches.filter((match: MatchData) => match.win).length;
-    const bans = matches.filter((match: MatchData) => match.banned).length;
-
-    return {
-      winRate: (wins / totalGames) * 100,
-      pickRate: (totalGames / (totalGames + bans)) * 100,
-      banRate: (bans / (totalGames + bans)) * 100,
-      totalGames
-    };
-  } catch (error) {
-    console.error(`Error fetching stats for champion ${championId} in ${role}:`, error);
-    return null;
-  }
+// Since we can't directly get role-specific stats from the Data Dragon API,
+// we'll need to get this data from a different source (like u.gg or op.gg)
+// For now, we'll return mock stats
+async function getRoleStats(championId: string, role: string): Promise<RoleStats | null> {
+  // TODO: Replace with actual API call to get real statistics
+  // This is a mock implementation
+  return {
+    winRate: Math.random() * 10 + 45, // Random win rate between 45-55%
+    pickRate: Math.random() * 15 + 5, // Random pick rate between 5-20%
+    banRate: Math.random() * 10 + 1, // Random ban rate between 1-11%
+    totalGames: Math.floor(Math.random() * 10000 + 1000) // Random games between 1000-11000
+  };
 }
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const patch = searchParams.get('patch') || '';
+    const patch = searchParams.get('patch') || '13.23.1'; // Use latest patch if not specified
 
-    // First, get the list of all champions
-    const championsResponse = await axios.get<{ data: Record<string, ChampionData> }>(
+    // Get the list of all champions from Data Dragon
+    const championsResponse = await axios.get<ChampionDataResponse>(
       `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`
     );
+    
     const champions = championsResponse.data.data;
-
-    // Roles we want to check
     const roles = ['top', 'jungle', 'mid', 'bot', 'support'];
-
-    // Process each champion
     const champStats: Record<string, ChampionStats> = {};
     
     for (const champKey in champions) {
@@ -88,7 +75,7 @@ export async function GET(request: Request) {
 
       // Get stats for each role
       for (const role of roles) {
-        const stats = await getRoleStats(champion.key, role, patch);
+        const stats = await getRoleStats(champion.id, role);
         if (stats) {
           roleStats[role] = stats;
         }
@@ -96,7 +83,10 @@ export async function GET(request: Request) {
 
       // Only include champion if they have stats in at least one role
       if (Object.keys(roleStats).length > 0) {
-        champStats[champion.key] = {
+        champStats[champion.id] = {
+          id: champion.id,
+          name: champion.name,
+          image: champion.image,
           roles: roleStats
         };
       }
