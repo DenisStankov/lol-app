@@ -52,10 +52,15 @@ export default function TopChampions() {
         const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`)
         const champData = response.data.data
         
-        // Get champion win rates from your backend API
-        // This is a placeholder - you'll need to implement this API
-        const statsResponse = await axios.get('/api/champion-stats')
-        const champStats = statsResponse.data || {}
+        // Get champion stats from your backend API
+        let champStats: Record<string, { winRate: number, pickRate: number, banRate: number }> = {};
+        try {
+          const statsResponse = await axios.get('/api/champion-stats')
+          champStats = statsResponse.data || {}
+        } catch (statsError) {
+          console.warn('Could not fetch champion stats, using fallback data', statsError)
+          // Continue with empty stats - the component will use fallback values
+        }
         
         // Transform the data into the format we need
         const transformedChampions = (Object.values(champData) as RiotChampionData[]).map((champ: RiotChampionData) => {
