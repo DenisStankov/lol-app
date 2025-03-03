@@ -5,6 +5,7 @@ import axios from "axios"
 import { Trophy, Swords, Users, ChevronDown, ChevronUp, Loader2 } from "lucide-react"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
+import { Button } from "@/components/ui/button"
 
 interface Champion {
   id: string
@@ -27,6 +28,7 @@ interface Champion {
       totalGames: number
     }
   }
+  primaryRole?: string
 }
 
 interface RoleStats {
@@ -34,6 +36,7 @@ interface RoleStats {
   winRate: number
   banRate: number
   totalGames: number
+  tier: string
 }
 
 interface RiotChampionData {
@@ -351,244 +354,184 @@ export default function TierListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      <Navigation />
-      
-      <main className="py-8 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-[#C89B3C]">Champion Tier List</h1>
-                <p className="text-zinc-400">Patch {patchVersion} • Updated rankings based on performance data</p>
-              </div>
-              <div className="px-4 py-2 bg-[#C89B3C]/10 rounded-lg border border-[#C89B3C]/20 text-[#C89B3C]">
-                <div className="text-sm font-medium">Patch {patchVersion}</div>
-              </div>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">League of Legends Champion Tier List</h1>
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-2">Filters</h2>
+        <div className="space-y-4">
+          {/* Role filter */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Role</h3>
+            <div className="flex flex-wrap gap-2">
+              {['All', 'Top', 'Jungle', 'Mid', 'Bot', 'Support'].map((role) => (
+                <Button
+                  key={role}
+                  variant={selectedRole === role.toLowerCase() ? "default" : "outline"}
+                  className="py-1 px-3 h-8"
+                  onClick={() => setSelectedRole(role === 'All' ? '' : role.toLowerCase())}
+                >
+                  {role === 'All' ? 'All Roles' : role}
+                </Button>
+              ))}
             </div>
           </div>
           
-          {/* Filters UI */}
-          <div className="mb-8">
-            <div className="bg-zinc-900/70 rounded-lg border border-zinc-800 p-4">
-              <div className="flex flex-wrap gap-4">
-                {/* Role Filter */}
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Role</label>
-                  <div className="relative">
-                    <select
-                      value={selectedRole}
-                      onChange={(e) => setSelectedRole(e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-md py-2 pl-3 pr-10 text-white appearance-none focus:outline-none focus:ring-1 focus:ring-[#C89B3C] focus:border-[#C89B3C]"
-                    >
-                      {roles.map((role) => (
-                        <option key={role.value} value={role.value}>
-                          {role.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Difficulty Filter */}
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Difficulty</label>
-                  <div className="relative">
-                    <select
-                      value={difficulty}
-                      onChange={(e) => setDifficulty(e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-md py-2 pl-3 pr-10 text-white appearance-none focus:outline-none focus:ring-1 focus:ring-[#C89B3C] focus:border-[#C89B3C]"
-                    >
-                      {difficulties.map((diff) => (
-                        <option key={diff.value} value={diff.value}>
-                          {diff.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Damage Type Filter */}
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Damage Type</label>
-                  <div className="relative">
-                    <select
-                      value={damageType}
-                      onChange={(e) => setDamageType(e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-md py-2 pl-3 pr-10 text-white appearance-none focus:outline-none focus:ring-1 focus:ring-[#C89B3C] focus:border-[#C89B3C]"
-                    >
-                      {damageTypes.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Range Filter */}
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Range</label>
-                  <div className="relative">
-                    <select
-                      value={range}
-                      onChange={(e) => setRange(e.target.value)}
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-md py-2 pl-3 pr-10 text-white appearance-none focus:outline-none focus:ring-1 focus:ring-[#C89B3C] focus:border-[#C89B3C]"
-                    >
-                      {ranges.map((r) => (
-                        <option key={r.value} value={r.value}>
-                          {r.label}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Sort Options */}
-                <div className="flex-1 min-w-[200px]">
-                  <label className="block text-sm font-medium text-zinc-400 mb-2">Sort By</label>
-                  <div className="flex">
-                    <div className="relative flex-1">
-                      <select
-                        value={sortBy}
-                        onChange={(e) => {
-                          setSortBy(e.target.value)
-                          setSortOrder("desc")
-                        }}
-                        className="w-full bg-zinc-800 border border-zinc-700 rounded-l-md py-2 pl-3 pr-10 text-white appearance-none focus:outline-none focus:ring-1 focus:ring-[#C89B3C] focus:border-[#C89B3C]"
-                      >
-                        {sortOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 pointer-events-none" />
-                    </div>
-                    <button
-                      onClick={toggleSortOrder}
-                      className="bg-zinc-800 border border-l-0 border-zinc-700 rounded-r-md px-3 text-zinc-400 hover:text-white focus:outline-none focus:ring-1 focus:ring-[#C89B3C] focus:border-[#C89B3C]"
-                    >
-                      {sortOrder === "asc" ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
+          {/* Difficulty filter */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Difficulty</h3>
+            <div className="flex flex-wrap gap-2">
+              {['All', 'Easy', 'Medium', 'Hard'].map((difficulty) => (
+                <Button
+                  key={difficulty}
+                  variant={selectedDifficulty === difficulty ? "default" : "outline"}
+                  className="py-1 px-3 h-8"
+                  onClick={() => setSelectedDifficulty(difficulty === 'All' ? '' : difficulty)}
+                >
+                  {difficulty === 'All' ? 'All Difficulties' : difficulty}
+                </Button>
+              ))}
             </div>
           </div>
           
-          {/* Tier Groups */}
-          <div className="space-y-6">
-            {["S", "A", "B", "C", "D"].map((tier) => {
-              const tierChampions = filteredChampions.filter((champ) => champ.tier === tier)
-
-              if (tierChampions.length === 0) return null
-
-              const tierColor = tierColors[tier as keyof typeof tierColors]
-
-              return (
-                <div key={tier} className="bg-zinc-900/70 rounded-lg border border-zinc-800 overflow-hidden">
-                  {/* Tier Header */}
-                  <div className="flex items-center p-4 cursor-pointer" onClick={() => toggleTier(tier)}>
-                    <div
-                      className="w-14 h-14 flex items-center justify-center rounded-lg font-bold text-2xl mr-4"
-                      style={{
-                        backgroundColor: `${tierColor}20`,
-                        color: tierColor,
-                      }}
-                    >
-                      {tier}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-xl font-bold text-zinc-100">Tier {tier}</h2>
-                        <span className="text-sm text-zinc-400">({tierChampions.length} champions)</span>
-                      </div>
-                      <p className="text-sm text-zinc-400">
-                        {tier === "S" && "Overpowered - First pick or ban material"}
-                        {tier === "A" && "Strong - Consistently powerful picks"}
-                        {tier === "B" && "Balanced - Solid picks in most situations"}
-                        {tier === "C" && "Situational - Requires specific team comps"}
-                        {tier === "D" && "Weak - Currently underperforming"}
-                      </p>
-                    </div>
-                    {expandedTiers[tier] ? (
-                      <ChevronUp className="w-5 h-5 text-zinc-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-zinc-400" />
-                    )}
-                  </div>
-
-                  {/* Champions List */}
-                  {expandedTiers[tier] && (
-                    <div className="border-t border-zinc-800 p-4">
-                      <div className="overflow-x-auto pb-2">
-                        <div className="flex gap-3" style={{ minWidth: "max-content" }}>
-                          {tierChampions.map((champion) => (
-                            <div
-                              key={champion.id}
-                              className="flex flex-col bg-zinc-800/50 rounded-lg p-3 hover:bg-zinc-800 transition-colors w-[180px]"
-                            >
-                              {/* Champion Image */}
-                              <div className="relative w-full aspect-square rounded-md overflow-hidden mb-3">
-                                <Image
-                                  src={champion.image || "/placeholder.svg"}
-                                  alt={champion.name}
-                                  fill
-                                  className="object-cover"
-                                />
-                                <div
-                                  className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                                  style={{
-                                    backgroundColor: tierColor,
-                                    color: "#000",
-                                  }}
-                                >
-                                  {tier}
-                                </div>
-                              </div>
-
-                              {/* Champion Info */}
-                              <h4 className="font-bold text-zinc-100 truncate">{champion.name}</h4>
-                              <div className="text-xs uppercase text-zinc-500 mb-2">{champion.role}</div>
-
-                              {/* Stats */}
-                              <div className="grid grid-cols-3 gap-2 mt-auto">
-                                {/* Win Rate */}
-                                <div className="flex flex-col items-center">
-                                  <Trophy className="w-4 h-4 mb-1" style={{ color: tierColor }} />
-                                  <span className="text-xs text-zinc-200">{champion.winRate}%</span>
-                                </div>
-
-                                {/* Pick Rate */}
-                                <div className="flex flex-col items-center">
-                                  <Users className="w-4 h-4 mb-1" style={{ color: tierColor }} />
-                                  <span className="text-xs text-zinc-200">{champion.pickRate}%</span>
-                                </div>
-
-                                {/* Ban Rate */}
-                                <div className="flex flex-col items-center">
-                                  <Swords className="w-4 h-4 mb-1" style={{ color: tierColor }} />
-                                  <span className="text-xs text-zinc-200">{champion.banRate}%</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
+          {/* Damage Type filter */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Damage Type</h3>
+            <div className="flex flex-wrap gap-2">
+              {['All', 'AP', 'AD', 'Hybrid'].map((type) => (
+                <Button
+                  key={type}
+                  variant={selectedDamageType === type ? "default" : "outline"}
+                  className="py-1 px-3 h-8"
+                  onClick={() => setSelectedDamageType(type === 'All' ? '' : type)}
+                >
+                  {type === 'All' ? 'All Types' : type}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Range filter */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Range</h3>
+            <div className="flex flex-wrap gap-2">
+              {['All', 'Melee', 'Ranged'].map((range) => (
+                <Button
+                  key={range}
+                  variant={selectedRange === range ? "default" : "outline"}
+                  className="py-1 px-3 h-8"
+                  onClick={() => setSelectedRange(range === 'All' ? '' : range)}
+                >
+                  {range === 'All' ? 'All Ranges' : range}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Sort options */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Sort By</h3>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: 'tier', label: 'Tier' },
+                { value: 'name', label: 'Name' },
+                { value: 'winRate', label: 'Win Rate' },
+                { value: 'pickRate', label: 'Pick Rate' }
+              ].map((sort) => (
+                <Button
+                  key={sort.value}
+                  variant={sortBy === sort.value ? "default" : "outline"}
+                  className="py-1 px-3 h-8"
+                  onClick={() => setSortBy(sort.value)}
+                >
+                  {sort.label}
+                  {sortBy === sort.value && (
+                    <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                   )}
-                </div>
-              )
-            })}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                className="py-1 px-3 h-8"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+              </Button>
+            </div>
           </div>
         </div>
-      </main>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <p className="text-lg">Loading champions...</p>
+        </div>
+      ) : (
+        <>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">
+              Champions {selectedRole && `- ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}`}
+              {filteredChampions.length > 0 && <span className="text-gray-400 ml-2">({filteredChampions.length})</span>}
+            </h2>
+          </div>
+          
+          {/* All Champions Grid - Now we display all champions in a single grid with their tier badges */}
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 sm:gap-3">
+            {filteredChampions.map((champion) => (
+              <ChampionCard key={champion.id} champion={champion} />
+            ))}
+          </div>
+          
+          {filteredChampions.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-lg text-gray-400">No champions found matching your filters.</p>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
-} 
+}
+
+const ChampionCard = ({ champion }: { champion: Champion }) => {
+  return (
+    <div className="relative flex flex-col items-center p-1 bg-gray-800 rounded-md overflow-hidden">
+      {/* Tier Badge */}
+      <div className={`absolute top-0 left-0 w-6 h-6 flex items-center justify-center rounded-br-md text-xs font-bold ${
+        champion.tier === 'S+' ? 'bg-purple-600' :
+        champion.tier === 'S' ? 'bg-red-600' :
+        champion.tier === 'A' ? 'bg-orange-500' :
+        champion.tier === 'B' ? 'bg-yellow-500' :
+        champion.tier === 'C' ? 'bg-green-500' : 'bg-blue-500'
+      }`}>
+        {champion.tier}
+      </div>
+      
+      {/* Champion Image */}
+      <div className="relative w-16 h-16 sm:w-20 sm:h-20">
+        <Image 
+          src={champion.image} 
+          alt={champion.name}
+          fill
+          className="object-cover rounded-md"
+        />
+      </div>
+      
+      {/* Role Icon (small icon on bottom right) */}
+      {champion.primaryRole && (
+        <div className="absolute bottom-1 right-1 w-5 h-5 bg-gray-900 rounded-full flex items-center justify-center">
+          <Image 
+            src={`/roles/${champion.primaryRole.toLowerCase()}.svg`} 
+            alt={champion.primaryRole}
+            width={14}
+            height={14}
+          />
+        </div>
+      )}
+      
+      {/* Champion Name */}
+      <div className="mt-1 text-xs font-medium text-center w-full truncate px-1">
+        {champion.name}
+      </div>
+    </div>
+  );
+}; 

@@ -25,11 +25,15 @@ interface ChampionDataResponse {
   data: Record<string, ChampionData>;
 }
 
+// Tier type follows dpm.lol format
+type TierType = 'S+' | 'S' | 'A' | 'B' | 'C' | 'D';
+
 interface RoleStats {
   winRate: number;
   pickRate: number;
   banRate: number;
   totalGames: number;
+  tier: TierType; // Added tier information
 }
 
 interface ChampionStats {
@@ -37,11 +41,26 @@ interface ChampionStats {
   name: string;
   image: ChampionImage;
   roles: Record<string, RoleStats>;
+  // Additional dpm.lol-like data
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  damageType: 'AP' | 'AD' | 'Hybrid';
+  range: 'Melee' | 'Ranged';
+}
+
+// Calculate tier based on win rate and pick rate, mimicking dpm.lol's approach
+function calculateTier(winRate: number, pickRate: number): TierType {
+  const score = (winRate - 48) * 2 + pickRate * 0.5;
+  
+  if (score > 15) return 'S+';
+  if (score > 10) return 'S';
+  if (score > 5) return 'A';
+  if (score > 0) return 'B';
+  if (score > -5) return 'C';
+  return 'D';
 }
 
 // Since we can't directly get role-specific stats from the Data Dragon API,
-// we'll need to get this data from a different source (like u.gg or op.gg)
-// For now, we'll generate deterministic mock data based on championId and role
+// we'll generate deterministic mock data based on championId and role
 async function getRoleStats(championId: string, role: string): Promise<RoleStats | null> {
   // Use championId and role to create deterministic but mock data
   // This ensures the same champion+role always gets the same stats
@@ -61,12 +80,50 @@ async function getRoleStats(championId: string, role: string): Promise<RoleStats
   // Seed for deterministic randomness
   const seed = (championNumber % 100) / 100;
   
+  // Calculate statistics
+  const winRate = 45 + (seed * 15 * multiplier.win); // Win rate between 45-60%
+  const pickRate = 3 + (seed * 22 * multiplier.pick); // Pick rate between 3-25%
+  const banRate = 1 + (seed * 15 * multiplier.ban); // Ban rate between 1-16%
+  const totalGames = 1000 + Math.floor(seed * 10000); // Games between 1000-11000
+  
+  // Calculate tier based on win and pick rates
+  const tier = calculateTier(winRate, pickRate);
+  
   return {
-    winRate: 45 + (seed * 10 * multiplier.win), // Win rate between 45-55%
-    pickRate: 5 + (seed * 15 * multiplier.pick), // Pick rate between 5-20%
-    banRate: 1 + (seed * 10 * multiplier.ban), // Ban rate between 1-11%
-    totalGames: 1000 + Math.floor(seed * 10000) // Games between 1000-11000
+    winRate,
+    pickRate,
+    banRate,
+    totalGames,
+    tier
   };
+}
+
+// Generate deterministic champion attributes based on champion ID
+function getChampionAttributes(championId: string): {
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  damageType: 'AP' | 'AD' | 'Hybrid';
+  range: 'Melee' | 'Ranged';
+} {
+  const championNumber = parseInt(championId) || championId.charCodeAt(0);
+  
+  // Deterministic difficulty based on champion number
+  let difficulty: 'Easy' | 'Medium' | 'Hard';
+  const difficultyValue = championNumber % 3;
+  if (difficultyValue === 0) difficulty = 'Easy';
+  else if (difficultyValue === 1) difficulty = 'Medium';
+  else difficulty = 'Hard';
+  
+  // Deterministic damage type based on champion number
+  let damageType: 'AP' | 'AD' | 'Hybrid';
+  const damageValue = Math.floor(championNumber / 3) % 3;
+  if (damageValue === 0) damageType = 'AP';
+  else if (damageValue === 1) damageType = 'AD';
+  else damageType = 'Hybrid';
+  
+  // Deterministic range based on champion number
+  const range = championNumber % 2 === 0 ? 'Melee' : 'Ranged';
+  
+  return { difficulty, damageType, range };
 }
 
 export async function GET(request: Request) {
@@ -86,12 +143,19 @@ export async function GET(request: Request) {
     for (const champKey in champions) {
       const champion = champions[champKey];
       const roleStats: Record<string, RoleStats> = {};
+      
+      // Get attributes that are consistent across roles
+      const attributes = getChampionAttributes(champion.id);
 
       // Get stats for each role
       for (const role of roles) {
         const stats = await getRoleStats(champion.id, role);
         if (stats) {
-          roleStats[role] = stats;
+          // Only include role if pick rate is above threshold (simulating real data where champions
+          // aren't played equally in all roles)
+          if (stats.pickRate > 5) {
+            roleStats[role] = stats;
+          }
         }
       }
 
@@ -101,7 +165,8 @@ export async function GET(request: Request) {
           id: champion.id,
           name: champion.name,
           image: champion.image,
-          roles: roleStats
+          roles: roleStats,
+          ...attributes
         };
       }
     }
