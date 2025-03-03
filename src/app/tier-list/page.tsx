@@ -29,16 +29,11 @@ interface Champion {
   }
 }
 
-interface RoleData {
-  games: number
-  winRate: number
-}
-
-interface ChampionStats {
-  winRate: number
+interface RoleStats {
   pickRate: number
+  winRate: number
   banRate: number
-  roles: Record<string, RoleData>
+  totalGames: number
 }
 
 interface RiotChampionData {
@@ -46,14 +41,6 @@ interface RiotChampionData {
   name: string
   key: string
   [key: string]: unknown
-}
-
-// Add interface for role data
-interface RoleStats {
-  pickRate: number
-  winRate: number
-  banRate: number
-  totalGames: number
 }
 
 // Tier colors
