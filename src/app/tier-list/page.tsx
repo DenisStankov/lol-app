@@ -70,11 +70,11 @@ const tierColors: Record<string, string> = {
 
 // Define role icons for the UI - using text abbreviations like in-game
 const roleIcons: Record<string, string> = {
-  "Top": "TOP",
-  "Jungle": "JNG",
-  "Mid": "MID",
-  "Bot": "BOT",
-  "Support": "SUP",
+  "top": "TOP",
+  "jungle": "JNG",
+  "mid": "MID",
+  "bot": "BOT",
+  "support": "SUP",
   "": "ALL", // All roles
 }
 
@@ -85,7 +85,7 @@ export default function TierList() {
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [viewMode, setViewMode] = useState("table")
-  const [patchVersion] = useState("")
+  const [patchVersion, setPatchVersion] = useState("")
   const [sortBy, setSortBy] = useState("tier")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [selectedRole, setSelectedRole] = useState("")
@@ -111,8 +111,12 @@ export default function TierList() {
     try {
       setLoading(true)
       setError("")
+      
+      // Use a fixed patch version if patchVersion is empty
+      const currentPatch = patchVersion || "14.11.1";
+      setPatchVersion(currentPatch);
 
-      const response = await fetch(`/api/champion-stats?patch=${patchVersion}`)
+      const response = await fetch(`/api/champion-stats?patch=${currentPatch}`)
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)
       }
@@ -146,7 +150,7 @@ export default function TierList() {
         return {
           id: champion.id,
           name: champion.name,
-          image: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`,
+          image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champion.image.full}`,
           winRate,
           pickRate,
           banRate,
@@ -222,7 +226,7 @@ export default function TierList() {
     // Apply role filter
     if (selectedRole !== "") {
       filtered = filtered.filter(
-        (champ) => champ.roles[selectedRole] && champ.roles[selectedRole].pickRate >= 1, // Only show champions with at least 1% pick rate in role
+        (champ) => champ.roles[selectedRole] && champ.roles[selectedRole].pickRate > 0, // Allow any pick rate
       )
 
       // Update stats based on selected role
@@ -529,22 +533,29 @@ export default function TierList() {
                   <div>
                     <label className="block mb-2 text-sm font-medium text-zinc-400">Roles</label>
                     <div className="grid grid-cols-5 gap-1">
-                      {Object.entries(roleIcons).map(([role, icon]) => (
+                      {[
+                        {value: "", label: "ALL"},
+                        {value: "top", label: "TOP"},
+                        {value: "jungle", label: "JNG"},
+                        {value: "mid", label: "MID"},
+                        {value: "bot", label: "BOT"},
+                        {value: "support", label: "SUP"}
+                      ].map((role) => (
                         <Button
-                          key={role}
-                          variant={selectedRole === role ? "default" : "outline"}
-                          className={`h-10 ${selectedRole === role ? "bg-blue-600 hover:bg-blue-700" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
+                          key={role.value}
+                          variant={selectedRole === role.value ? "default" : "outline"}
+                          className={`h-10 ${selectedRole === role.value ? "bg-blue-600 hover:bg-blue-700" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
                           onClick={() => {
-                            if (selectedRole === role) {
+                            if (selectedRole === role.value) {
                               setSelectedRole("");
                               updateActiveFilters({role: ""});
                             } else {
-                              setSelectedRole(role);
-                              updateActiveFilters({role});
+                              setSelectedRole(role.value);
+                              updateActiveFilters({role: role.value});
                             }
                           }}
                         >
-                          <span className="text-sm font-semibold">{icon}</span>
+                          <span className="text-sm font-semibold">{role.label}</span>
                         </Button>
                       ))}
                     </div>
@@ -822,12 +833,13 @@ export default function TierList() {
                             {/* Champion */}
                             <div className="col-span-3 py-3 px-4">
                               <div className="flex items-center">
-                                <div className="h-10 w-10 relative">
+                                <div className="h-10 w-10 relative overflow-hidden rounded-md">
                                   <Image
-                                    src={champion.image}
+                                    src={champion.image || "/placeholder.svg"}
                                     alt={champion.name}
-                                    fill
-                                    className="rounded-md object-cover"
+                                    width={40}
+                                    height={40}
+                                    className="object-cover"
                                     unoptimized
                                   />
                                 </div>
