@@ -25,6 +25,13 @@ interface ChampionData {
   };
 }
 
+interface ChampionInfo {
+  attack: number;
+  defense: number;
+  magic: number;
+  difficulty: number;
+}
+
 interface ChampionDataResponse {
   type: string;
   version: string;
@@ -77,7 +84,7 @@ async function getCurrentPatch(): Promise<string> {
 }
 
 // Map Data Dragon tags to damage type
-function getDamageType(tags: string[], info: any): 'AP' | 'AD' | 'Hybrid' {
+function getDamageType(tags: string[], info: ChampionInfo): 'AP' | 'AD' | 'Hybrid' {
   if (tags.includes('Assassin') && tags.includes('Mage')) return 'Hybrid';
   if (tags.includes('Marksman') && tags.includes('Mage')) return 'Hybrid';
   
@@ -99,7 +106,7 @@ function getDamageType(tags: string[], info: any): 'AP' | 'AD' | 'Hybrid' {
 }
 
 // Map Data Dragon info to difficulty
-function getDifficulty(info: any): 'Easy' | 'Medium' | 'Hard' {
+function getDifficulty(info: ChampionInfo): 'Easy' | 'Medium' | 'Hard' {
   const difficultyRating = info.difficulty;
   
   if (difficultyRating <= 3) return 'Easy';
