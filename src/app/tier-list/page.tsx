@@ -79,22 +79,13 @@ const roleIcons: Record<string, string> = {
   support: "🛡️",
 }
 
-// Role colors for visual distinction
-const roleColors: Record<string, string> = {
-  top: "#FF9500",
-  jungle: "#00C2A8",
-  mid: "#A855F7",
-  bot: "#4F8EFF",
-  support: "#FFB700",
-}
-
 export default function TierList() {
   // State variables
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [champions, setChampions] = useState<Champion[]>([])
   const [filteredChampions, setFilteredChampions] = useState<Champion[]>([])
-  const [patchVersion, setPatchVersion] = useState("13.23.1")
+  const [patchVersion, setPatchVersion] = useState("13.23.1") // Currently fixed value, will be updated in future versions
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
