@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { ChevronDown, Filter, Info, Search, ArrowUpDown, X, ChevronUp, Sliders } from "lucide-react"
+import { ChevronDown, Filter, Info, Search, X, ChevronUp, Sliders } from "lucide-react"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
