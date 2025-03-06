@@ -136,7 +136,6 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const patch = searchParams.get('patch') || await getCurrentPatch(); // Fetch current patch if not specified
-    const region = searchParams.get('region'); // Allow region to be set dynamically
 
     // Get the list of all champions from Data Dragon
     const championsResponse = await axios.get<ChampionDataResponse>(
