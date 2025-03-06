@@ -126,10 +126,17 @@ function getChampionAttributes(championId: string): {
   return { difficulty, damageType, range };
 }
 
+// Fetch the latest patch version dynamically
+async function getCurrentPatch(): Promise<string> {
+  const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
+  return response.data[0]; // Latest patch version
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const patch = searchParams.get('patch') || '13.23.1'; // Use latest patch if not specified
+    const patch = searchParams.get('patch') || await getCurrentPatch(); // Fetch current patch if not specified
+    const region = searchParams.get('region'); // Allow region to be set dynamically
 
     // Get the list of all champions from Data Dragon
     const championsResponse = await axios.get<ChampionDataResponse>(
