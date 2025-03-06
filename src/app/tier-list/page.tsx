@@ -85,7 +85,7 @@ export default function TierList() {
   const [error, setError] = useState("")
   const [champions, setChampions] = useState<Champion[]>([])
   const [filteredChampions, setFilteredChampions] = useState<Champion[]>([])
-  const [patchVersion, setPatchVersion] = useState("13.23.1") // Currently fixed value, will be updated in future versions
+  const [patchVersion, _setPatchVersion] = useState("13.23.1") // Fixed value for current version
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilters, setActiveFilters] = useState<string[]>([])
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
