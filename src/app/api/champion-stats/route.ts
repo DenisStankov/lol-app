@@ -72,15 +72,25 @@ function calculateTier(winRate: number, pickRate: number, banRate: number): Tier
   return 'D';
 }
 
-// Fetch the latest patch version from Data Dragon
+// Function to get the current patch version
 async function getCurrentPatch(): Promise<string> {
+  // Return a fixed patch version for consistency
+  return '14.11.1';
+  
+  // Commented out dynamic patch fetching to ensure stable version
+  /*
   try {
-    const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
-    return response.data[0]; // Latest patch version
+    const response = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
+    if (!response.ok) {
+      throw new Error('Failed to fetch versions');
+    }
+    const versions = await response.json();
+    return versions[0]; // Return the latest version
   } catch (error) {
-    console.error('Error fetching patch version:', error);
-    return '14.11.1'; // Fallback to a recent version
+    console.error('Error fetching current patch:', error);
+    return '14.11.1'; // Fallback to a known version
   }
+  */
 }
 
 // Map Data Dragon tags to damage type
