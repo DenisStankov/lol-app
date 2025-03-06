@@ -442,11 +442,10 @@ export default function TierList() {
           </div>
 
           {/* Search and View Controls */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 w-4 h-4" />
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500" />
               <Input
-                type="text"
                 placeholder="Search champions..."
                 value={searchQuery}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
@@ -462,70 +461,15 @@ export default function TierList() {
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2 ml-4">
               <Button
                 variant="outline"
                 size="sm"
-                className="md:hidden"
                 onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
               >
                 <Sliders className="w-4 h-4 mr-2" />
                 Filters
               </Button>
-
-              <Tabs value={viewMode} onValueChange={setViewMode} className="hidden md:flex">
-                <TabsList className="bg-zinc-900 border border-zinc-800">
-                  <TabsTrigger value="table" className="data-[state=active]:bg-zinc-800">
-                    Table
-                  </TabsTrigger>
-                  <TabsTrigger value="grid" className="data-[state=active]:bg-zinc-800">
-                    Grid
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="hidden md:flex">
-                    <ArrowUpDown className="w-4 h-4 mr-2" />
-                    {sortOptions.find((opt) => opt.value === sortBy)?.label || "Sort"}
-                    {sortOrder === "asc" ? (
-                      <ChevronUp className="w-4 h-4 ml-1" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 ml-1" />
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-48 p-0" align="end">
-                  <div className="p-2 border-b border-zinc-800">
-                    <p className="text-sm font-medium text-zinc-400">Sort by</p>
-                  </div>
-                  <div className="py-1">
-                    {sortOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        className={`w-full text-left px-3 py-1.5 text-sm ${sortBy === option.value ? "bg-zinc-800 text-white" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"}`}
-                        onClick={() => {
-                          if (sortBy === option.value) {
-                            setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                          } else {
-                            setSortBy(option.value)
-                            setSortOrder("desc")
-                          }
-                        }}
-                      >
-                        {option.label}
-                        {sortBy === option.value &&
-                          (sortOrder === "asc" ? (
-                            <ChevronUp className="w-4 h-4 ml-1 inline" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4 ml-1 inline" />
-                          ))}
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
             </div>
           </div>
 
@@ -876,15 +820,14 @@ export default function TierList() {
             </TooltipProvider>
           </div>
 
-          {/* Active Filters */}
+          {/* Active Filters Display */}
           {activeFilters.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap items-center gap-2 mb-4 p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+              <span className="text-sm text-zinc-400">Active filters:</span>
               {activeFilters.map((filter) => (
-                <Badge key={filter} variant="outline" className="bg-zinc-900 text-zinc-300 gap-1 px-3 py-1">
+                <Badge key={filter} variant="outline" className="px-2 py-0 h-6">
                   {filter}
-                  <button className="ml-1 text-zinc-500 hover:text-zinc-300" onClick={() => removeFilter(filter)}>
-                    <X className="w-3 h-3" />
-                  </button>
+                  <X className="w-3 h-3 ml-1 cursor-pointer" onClick={() => removeFilter(filter)} />
                 </Badge>
               ))}
 
@@ -895,222 +838,235 @@ export default function TierList() {
           )}
 
           {/* Content Tabs */}
-          <TabsContent value="table" className="mt-0">
-            {/* Champion Table */}
-            <div className="rounded-lg overflow-hidden border border-zinc-800">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 bg-zinc-900">
-                <div
-                  className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
-                  onClick={() => handleHeaderClick("ranking")}
-                >
-                  Rank
-                  {sortBy === "ranking" &&
-                    (sortOrder === "asc" ? (
-                      <ChevronUp className="w-4 h-4 ml-1" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 ml-1" />
-                    ))}
+          <Tabs value={viewMode} onValueChange={setViewMode} className="w-full">
+            <div className="flex justify-between items-center mb-6">
+              <TabsList className="bg-zinc-900 border border-zinc-800">
+                <TabsTrigger value="table" className="data-[state=active]:bg-zinc-800">
+                  Table
+                </TabsTrigger>
+                <TabsTrigger value="grid" className="data-[state=active]:bg-zinc-800">
+                  Grid
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="table" className="mt-0">
+              {/* Champion Table */}
+              <div className="rounded-lg overflow-hidden border border-zinc-800">
+                {/* Table Header */}
+                <div className="grid grid-cols-12 bg-zinc-900">
+                  <div
+                    className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
+                    onClick={() => handleHeaderClick("ranking")}
+                  >
+                    Rank
+                    {sortBy === "ranking" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="w-4 h-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 ml-1" />
+                      ))}
+                  </div>
+                  <div className="col-span-3 py-4 px-4 text-zinc-300 text-sm font-medium">Champion</div>
+                  <div
+                    className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
+                    onClick={() => handleHeaderClick("role")}
+                  >
+                    Lane
+                    {sortBy === "role" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="w-4 h-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 ml-1" />
+                      ))}
+                  </div>
+                  <div
+                    className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
+                    onClick={() => handleHeaderClick("tier")}
+                  >
+                    Tier
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="w-4 h-4 ml-1 text-zinc-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Champion performance tier based on win rate, pick rate, and ban rate</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    {sortBy === "tier" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="w-4 h-4 ml-1" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 ml-1" />
+                      ))}
+                  </div>
+                  <div
+                    className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
+                    onClick={() => handleHeaderClick("winRate")}
+                  >
+                    Winrate
+                    {sortBy === "winRate" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="w-4 h-4 ml-1 inline" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 ml-1 inline" />
+                      ))}
+                  </div>
+                  <div
+                    className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
+                    onClick={() => handleHeaderClick("pickRate")}
+                  >
+                    Pickrate
+                    {sortBy === "pickRate" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="w-4 h-4 ml-1 inline" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 ml-1 inline" />
+                      ))}
+                  </div>
+                  <div
+                    className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
+                    onClick={() => handleHeaderClick("totalGames")}
+                  >
+                    Games
+                    {sortBy === "totalGames" &&
+                      (sortOrder === "asc" ? (
+                        <ChevronUp className="w-4 h-4 ml-1 inline" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 ml-1 inline" />
+                      ))}
+                  </div>
                 </div>
-                <div className="col-span-3 py-4 px-4 text-zinc-300 text-sm font-medium">Champion</div>
-                <div
-                  className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
-                  onClick={() => handleHeaderClick("role")}
-                >
-                  Lane
-                  {sortBy === "role" &&
-                    (sortOrder === "asc" ? (
-                      <ChevronUp className="w-4 h-4 ml-1" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 ml-1" />
-                    ))}
-                </div>
-                <div
-                  className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
-                  onClick={() => handleHeaderClick("tier")}
-                >
-                  Tier
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Info className="w-4 h-4 ml-1 text-zinc-500" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Champion performance tier based on win rate, pick rate, and ban rate</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                  {sortBy === "tier" &&
-                    (sortOrder === "asc" ? (
-                      <ChevronUp className="w-4 h-4 ml-1" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 ml-1" />
-                    ))}
-                </div>
-                <div
-                  className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
-                  onClick={() => handleHeaderClick("winRate")}
-                >
-                  Winrate
-                  {sortBy === "winRate" &&
-                    (sortOrder === "asc" ? (
-                      <ChevronUp className="w-4 h-4 ml-1 inline" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 ml-1 inline" />
-                    ))}
-                </div>
-                <div
-                  className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
-                  onClick={() => handleHeaderClick("pickRate")}
-                >
-                  Pickrate
-                  {sortBy === "pickRate" &&
-                    (sortOrder === "asc" ? (
-                      <ChevronUp className="w-4 h-4 ml-1 inline" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 ml-1 inline" />
-                    ))}
-                </div>
-                <div
-                  className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
-                  onClick={() => handleHeaderClick("totalGames")}
-                >
-                  Games
-                  {sortBy === "totalGames" &&
-                    (sortOrder === "asc" ? (
-                      <ChevronUp className="w-4 h-4 ml-1 inline" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 ml-1 inline" />
-                    ))}
+
+                {/* Table Body */}
+                <div className="divide-y divide-zinc-800">
+                  {filteredChampions.map((champion, index) => (
+                    <div
+                      key={champion.id}
+                      className="grid grid-cols-12 items-center bg-zinc-950 hover:bg-zinc-900/50 transition-colors"
+                    >
+                      {/* Rank */}
+                      <div className="col-span-1 py-3 px-4 text-center">
+                        <span className="text-zinc-300 font-medium">{index + 1}</span>
+                      </div>
+
+                      {/* Champion */}
+                      <div className="col-span-3 py-3 px-4 flex items-center">
+                        <div
+                          className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2"
+                          style={{ borderColor: tierColors[champion.tier as keyof typeof tierColors] || "#FFFFFF" }}
+                        >
+                          <Image
+                            src={champion.image || "/placeholder.svg"}
+                            alt={champion.name}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <span className="ml-3 font-medium text-white">{champion.name}</span>
+                      </div>
+
+                      {/* Lane */}
+                      <div className="col-span-2 py-3 px-4">
+                        <div className="flex items-center">
+                          <span className="text-lg mr-2">{roleIcons[champion.role] || "❓"}</span>
+                          <div className="text-zinc-400 text-sm">{champion.role.toUpperCase()}</div>
+                        </div>
+                      </div>
+
+                      {/* Tier */}
+                      <div className="col-span-2 py-3 px-4">
+                        <span
+                          className="inline-block px-3 py-1 rounded-full font-semibold text-sm"
+                          style={{
+                            backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}20` || "#FFFFFF20",
+                            color: tierColors[champion.tier as keyof typeof tierColors] || "#FFFFFF",
+                          }}
+                        >
+                          {champion.tier}
+                        </span>
+                      </div>
+
+                      {/* Win Rate */}
+                      <div className="col-span-1 py-3 px-4 text-right">
+                        <div>
+                          <div className="text-white font-medium">{champion.winRate.toFixed(1)}%</div>
+                          <div className="text-xs text-green-500">+0.2%</div>
+                        </div>
+                      </div>
+
+                      {/* Pick Rate */}
+                      <div className="col-span-1 py-3 px-4 text-right">
+                        <div className="text-white">{champion.pickRate.toFixed(1)}%</div>
+                      </div>
+
+                      {/* Games */}
+                      <div className="col-span-2 py-3 px-4 text-right">
+                        <div className="text-white">{champion.totalGames.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
+            </TabsContent>
 
-              {/* Table Body */}
-              <div className="divide-y divide-zinc-800">
-                {filteredChampions.map((champion, index) => (
+            <TabsContent value="grid" className="mt-0">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {filteredChampions.map((champion) => (
                   <div
                     key={champion.id}
-                    className="grid grid-cols-12 items-center bg-zinc-950 hover:bg-zinc-900/50 transition-colors"
+                    className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 hover:border-zinc-700 transition-colors"
                   >
-                    {/* Rank */}
-                    <div className="col-span-1 py-3 px-4 text-center">
-                      <span className="text-zinc-300 font-medium">{index + 1}</span>
-                    </div>
-
-                    {/* Champion */}
-                    <div className="col-span-3 py-3 px-4 flex items-center">
-                      <div
-                        className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2"
-                        style={{ borderColor: tierColors[champion.tier as keyof typeof tierColors] || "#FFFFFF" }}
-                      >
+                    <div className="relative">
+                      <div className="aspect-square relative overflow-hidden">
                         <Image
                           src={champion.image || "/placeholder.svg"}
                           alt={champion.name}
                           fill
-                          className="object-cover"
+                          className="object-cover transition-transform hover:scale-110"
                         />
                       </div>
-                      <span className="ml-3 font-medium text-white">{champion.name}</span>
-                    </div>
-
-                    {/* Lane */}
-                    <div className="col-span-2 py-3 px-4">
-                      <div className="flex items-center">
-                        <span className="text-lg mr-2">{roleIcons[champion.role] || "❓"}</span>
-                        <div className="text-zinc-400 text-sm">{champion.role.toUpperCase()}</div>
+                      <div className="absolute top-2 right-2">
+                        <span
+                          className="inline-block px-2 py-0.5 rounded-full text-xs font-bold"
+                          style={{
+                            backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}CC` || "#FFFFFFCC",
+                            color: "#000000",
+                          }}
+                        >
+                          {champion.tier}
+                        </span>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg">{roleIcons[champion.role] || "❓"}</span>
+                          <div className="text-white text-xs font-medium">{champion.winRate.toFixed(1)}% WR</div>
+                        </div>
                       </div>
                     </div>
-
-                    {/* Tier */}
-                    <div className="col-span-2 py-3 px-4">
-                      <span
-                        className="inline-block px-3 py-1 rounded-full font-semibold text-sm"
-                        style={{
-                          backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}20` || "#FFFFFF20",
-                          color: tierColors[champion.tier as keyof typeof tierColors] || "#FFFFFF",
-                        }}
-                      >
-                        {champion.tier}
-                      </span>
-                    </div>
-
-                    {/* Win Rate */}
-                    <div className="col-span-1 py-3 px-4 text-right">
-                      <div>
-                        <div className="text-white font-medium">{champion.winRate.toFixed(1)}%</div>
-                        <div className="text-xs text-green-500">+0.2%</div>
+                    <div className="p-3">
+                      <h3 className="font-medium text-white truncate">{champion.name}</h3>
+                      <div className="flex justify-between items-center mt-1 text-xs text-zinc-400">
+                        <span>{champion.pickRate.toFixed(1)}% PR</span>
+                        <span>{champion.totalGames.toLocaleString()} games</span>
                       </div>
-                    </div>
-
-                    {/* Pick Rate */}
-                    <div className="col-span-1 py-3 px-4 text-right">
-                      <div className="text-white">{champion.pickRate.toFixed(1)}%</div>
-                    </div>
-
-                    {/* Games */}
-                    <div className="col-span-2 py-3 px-4 text-right">
-                      <div className="text-white">{champion.totalGames.toLocaleString()}</div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="grid" className="mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {filteredChampions.map((champion) => (
-                <div
-                  key={champion.id}
-                  className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 hover:border-zinc-700 transition-colors"
-                >
-                  <div className="relative">
-                    <div className="aspect-square relative overflow-hidden">
-                      <Image
-                        src={champion.image || "/placeholder.svg"}
-                        alt={champion.name}
-                        fill
-                        className="object-cover transition-transform hover:scale-110"
-                      />
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <span
-                        className="inline-block px-2 py-0.5 rounded-full text-xs font-bold"
-                        style={{
-                          backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}CC` || "#FFFFFFCC",
-                          color: "#000000",
-                        }}
-                      >
-                        {champion.tier}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg">{roleIcons[champion.role] || "❓"}</span>
-                        <div className="text-white text-xs font-medium">{champion.winRate.toFixed(1)}% WR</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <h3 className="font-medium text-white truncate">{champion.name}</h3>
-                    <div className="flex justify-between items-center mt-1 text-xs text-zinc-400">
-                      <span>{champion.pickRate.toFixed(1)}% PR</span>
-                      <span>{champion.totalGames.toLocaleString()} games</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          {filteredChampions.length === 0 && (
-            <div className="bg-zinc-900 p-8 rounded-lg border border-zinc-800 text-center">
-              <p className="text-zinc-400">No champions found matching your filters.</p>
-              <Button variant="outline" className="mt-4" onClick={clearAllFilters}>
-                Clear All Filters
-              </Button>
-            </div>
-          )}
+            {filteredChampions.length === 0 && (
+              <div className="bg-zinc-900 p-8 rounded-lg border border-zinc-800 text-center">
+                <p className="text-zinc-400">No champions found matching your filters.</p>
+                <Button variant="outline" className="mt-4" onClick={clearAllFilters}>
+                  Clear All Filters
+                </Button>
+              </div>
+            )}
+          </Tabs>
         </div>
       </main>
     </div>
