@@ -198,7 +198,7 @@ export default function TierList() {
         return {
           id: champion.id,
           name: champion.name,
-          image: `http://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`,
+          image: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`,
           winRate,
           pickRate,
           banRate,
@@ -960,8 +960,10 @@ export default function TierList() {
                           <Image
                             src={champion.image || "/placeholder.svg"}
                             alt={champion.name}
-                            fill
+                            width={40}
+                            height={40}
                             className="object-cover"
+                            unoptimized
                           />
                         </div>
                         <span className="ml-3 font-medium text-white">{champion.name}</span>
@@ -1025,6 +1027,7 @@ export default function TierList() {
                           alt={champion.name}
                           fill
                           className="object-cover transition-transform hover:scale-110"
+                          unoptimized
                         />
                       </div>
                       <div className="absolute top-2 right-2">
