@@ -85,7 +85,7 @@ export default function TierList() {
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [viewMode, setViewMode] = useState("table")
-  const [patchVersion, setPatchVersion] = useState("")
+  const [patchVersion] = useState("")
   const [sortBy, setSortBy] = useState("tier")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [selectedRole, setSelectedRole] = useState("")
@@ -96,57 +96,7 @@ export default function TierList() {
   const [selectedRange, setSelectedRange] = useState<string[]>([])
   const [activeFilters, setActiveFilters] = useState<string[]>([])
 
-  // Filters
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-
   // Filter options
-  const ranks = [
-    { value: "ALL", label: "ALL" },
-    { value: "IRON+", label: "IRON+" },
-    { value: "BRONZE+", label: "BRONZE+" },
-    { value: "SILVER+", label: "SILVER+" },
-    { value: "GOLD+", label: "GOLD+" },
-    { value: "PLATINUM+", label: "PLATINUM+" },
-    { value: "EMERALD+", label: "EMERALD+" },
-    { value: "DIAMOND+", label: "DIAMOND+" },
-  ]
-
-  const roles = [
-    { value: "", label: "ALL", icon: "" },
-    { value: "Top", label: "TOP", icon: "🛡️" },
-    { value: "Jungle", label: "JUNGLE", icon: "🌲" },
-    { value: "Mid", label: "MID", icon: "🔮" },
-    { value: "Bot", label: "BOT", icon: "🏹" },
-    { value: "Support", label: "SUPPORT", icon: "💫" },
-  ]
-
-  const tiers = [
-    { value: "", label: "ALL" },
-    { value: "S+", label: "S+" },
-    { value: "S", label: "S" },
-    { value: "A", label: "A" },
-    { value: "B", label: "B" },
-    { value: "C", label: "C" },
-    { value: "D", label: "D" },
-  ]
-
-  const difficulties = [
-    { value: "Easy", label: "Easy" },
-    { value: "Medium", label: "Medium" },
-    { value: "Hard", label: "Hard" },
-  ]
-
-  const damageTypes = [
-    { value: "AD", label: "Attack Damage" },
-    { value: "AP", label: "Ability Power" },
-    { value: "Hybrid", label: "Hybrid" },
-  ]
-
-  const ranges = [
-    { value: "Melee", label: "Melee" },
-    { value: "Ranged", label: "Ranged" },
-  ]
-
   const sortOptions = [
     { value: "tier", label: "Tier" },
     { value: "winRate", label: "Win Rate" },
@@ -361,7 +311,7 @@ export default function TierList() {
   const clearAllFilters = () => {
     setSelectedRole("")
     setSelectedTier("")
-    setSelectedRank("ALL")
+    setSelectedRank("")
     setSelectedDifficulty([])
     setSelectedDamageType([])
     setSelectedRange([])
