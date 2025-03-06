@@ -60,14 +60,14 @@ interface RoleStatsResponse {
   tier: string
 }
 
-// Tier colors with updated modern palette
-const tierColors = {
-  "S+": "#FF9500", // Vibrant Orange
-  S: "#FFB700", // Gold
-  A: "#00C2A8", // Teal
-  B: "#4F8EFF", // Blue
-  C: "#A855F7", // Purple
-  D: "#FF5757", // Red
+// Improved tier color mapping with more distinct colors
+const tierColors: Record<string, string> = {
+  "S+": "#FF4E50", // Vibrant red
+  "S": "#FF9500", // Orange
+  "A": "#FFCC00", // Yellow
+  "B": "#00CC88", // Teal
+  "C": "#4F8EFF", // Blue
+  "D": "#A855F7", // Purple
 }
 
 // Role icons mapping with improved emojis
@@ -431,13 +431,12 @@ export default function TierList() {
     <div className="min-h-screen bg-zinc-950 text-white">
       <Navigation />
 
-      <main className="py-8 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">Champion Tier List</h1>
-            <p className="text-zinc-400">
-              Patch {patchVersion} • {filteredChampions.length} champions
+      <main className="container py-12 px-4 lg:px-8">
+        <div className="max-w-screen-2xl mx-auto">
+          <div className="flex flex-col space-y-4 mb-8">
+            <h1 className="text-4xl font-bold tracking-tight">League of Legends Champion Tier List</h1>
+            <p className="text-lg text-zinc-400">
+              Current patch: <span className="font-semibold text-white">{patchVersion}</span>
             </p>
           </div>
 
