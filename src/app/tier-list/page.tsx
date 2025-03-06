@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { ChevronDown, Filter, Info, Search, X, ChevronUp, Sliders } from "lucide-react"
+import { ChevronDown, Search, X, ChevronUp, Info } from "lucide-react"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
@@ -9,8 +9,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
 interface Champion {
@@ -72,34 +70,34 @@ const tierColors: Record<string, string> = {
 
 // Role icons mapping with improved emojis
 const roleIcons: Record<string, string> = {
-  top: "⚔️",
-  jungle: "🌿",
-  mid: "✨",
-  bot: "🏹",
-  support: "🛡️",
+  "Top": "🛡️",
+  "Jungle": "🌲",
+  "Mid": "🔮",
+  "Bot": "🏹",
+  "Support": "💫",
+  "": "📊", // All roles
 }
 
 export default function TierList() {
-  // State variables
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
   const [champions, setChampions] = useState<Champion[]>([])
   const [filteredChampions, setFilteredChampions] = useState<Champion[]>([])
-  const patchVersion = "14.11.1" // Latest patch version
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeFilters, setActiveFilters] = useState<string[]>([])
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-
-  // Filters
+  const [viewMode, setViewMode] = useState("table")
+  const [patchVersion, setPatchVersion] = useState("")
+  const [sortBy, setSortBy] = useState("tier")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedTier, setSelectedTier] = useState("")
-  const [selectedRank, setSelectedRank] = useState("ALL")
+  const [selectedRank, setSelectedRank] = useState("")
   const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([])
   const [selectedDamageType, setSelectedDamageType] = useState<string[]>([])
   const [selectedRange, setSelectedRange] = useState<string[]>([])
-  const [sortBy, setSortBy] = useState("tier")
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-  const [viewMode, setViewMode] = useState("table")
+  const [activeFilters, setActiveFilters] = useState<string[]>([])
+
+  // Filters
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
   // Filter options
   const ranks = [
@@ -114,12 +112,12 @@ export default function TierList() {
   ]
 
   const roles = [
-    { value: "", label: "ALL", icon: "🌐" },
-    { value: "top", label: "TOP", icon: "⚔️" },
-    { value: "jungle", label: "JUNGLE", icon: "🌿" },
-    { value: "mid", label: "MID", icon: "✨" },
-    { value: "bot", label: "BOT", icon: "🏹" },
-    { value: "support", label: "SUPPORT", icon: "🛡️" },
+    { value: "", label: "ALL", icon: "" },
+    { value: "Top", label: "TOP", icon: "🛡️" },
+    { value: "Jungle", label: "JUNGLE", icon: "🌲" },
+    { value: "Mid", label: "MID", icon: "🔮" },
+    { value: "Bot", label: "BOT", icon: "🏹" },
+    { value: "Support", label: "SUPPORT", icon: "💫" },
   ]
 
   const tiers = [
