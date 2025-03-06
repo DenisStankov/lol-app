@@ -58,24 +58,24 @@ interface RoleStatsResponse {
   tier: string
 }
 
-// Improved tier color mapping with dpm.lol style colors
+// Improved tier color mapping to match dpm.lol
 const tierColors: Record<string, string> = {
   "S+": "#FF4E50", // Red
-  "S": "#FF9500", // Orange 
-  "A": "#FFCC00", // Yellow
-  "B": "#00CC88", // Teal
-  "C": "#4F8EFF", // Blue
-  "D": "#A855F7", // Purple
+  "S": "#FF9500",  // Orange
+  "A": "#FFCC00",  // Yellow
+  "B": "#00CC88",  // Teal
+  "C": "#4F8EFF",  // Blue
+  "D": "#A855F7",  // Purple
 }
 
-// Define role icons for the UI - using text abbreviations like in-game
-const roleIcons: Record<string, string> = {
-  "top": "TOP",
-  "jungle": "JNG",
-  "mid": "MID",
-  "bot": "BOT",
-  "support": "SUP",
-  "": "ALL", // All roles
+// Define role icons and colors for the UI - using text abbreviations with dpm.lol styling
+const roleData: Record<string, { label: string; icon: string; color: string }> = {
+  "top": { label: "TOP", icon: "TOP", color: "#FF9500" },
+  "jungle": { label: "JNG", icon: "JNG", color: "#19B326" },
+  "mid": { label: "MID", icon: "MID", color: "#4F8EFF" },
+  "bot": { label: "BOT", icon: "BOT", color: "#FF4E50" },
+  "support": { label: "SUP", icon: "SUP", color: "#CC66FF" },
+  "": { label: "ALL", icon: "ALL", color: "#FFFFFF" }
 }
 
 export default function TierList() {
@@ -532,30 +532,28 @@ export default function TierList() {
                   {/* Roles */}
                   <div>
                     <label className="block mb-2 text-sm font-medium text-zinc-400">Roles</label>
-                    <div className="grid grid-cols-5 gap-1">
-                      {[
-                        {value: "", label: "ALL"},
-                        {value: "top", label: "TOP"},
-                        {value: "jungle", label: "JNG"},
-                        {value: "mid", label: "MID"},
-                        {value: "bot", label: "BOT"},
-                        {value: "support", label: "SUP"}
-                      ].map((role) => (
+                    <div className="grid grid-cols-6 gap-1">
+                      {Object.entries(roleData).map(([roleKey, roleInfo]) => (
                         <Button
-                          key={role.value}
-                          variant={selectedRole === role.value ? "default" : "outline"}
-                          className={`h-10 ${selectedRole === role.value ? "bg-blue-600 hover:bg-blue-700" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
+                          key={roleKey}
+                          variant={selectedRole === roleKey ? "default" : "outline"}
+                          className={`h-10 ${selectedRole === roleKey ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
+                          style={{ 
+                            borderColor: selectedRole === roleKey ? roleInfo.color : 'transparent',
+                            color: selectedRole === roleKey ? roleInfo.color : 'white',
+                            ...(selectedRole === roleKey ? { boxShadow: `0 0 8px ${roleInfo.color}40` } : {})
+                          }}
                           onClick={() => {
-                            if (selectedRole === role.value) {
+                            if (selectedRole === roleKey) {
                               setSelectedRole("");
                               updateActiveFilters({role: ""});
                             } else {
-                              setSelectedRole(role.value);
-                              updateActiveFilters({role: role.value});
+                              setSelectedRole(roleKey);
+                              updateActiveFilters({role: roleKey});
                             }
                           }}
                         >
-                          <span className="text-sm font-semibold">{role.label}</span>
+                          <span className="text-sm font-semibold">{roleInfo.label}</span>
                         </Button>
                       ))}
                     </div>
@@ -569,10 +567,11 @@ export default function TierList() {
                         <Button
                           key={tier}
                           variant={selectedTier === tier ? "default" : "outline"}
-                          className={`h-10 ${selectedTier === tier ? "bg-blue-600 hover:bg-blue-700" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
+                          className={`h-10 ${selectedTier === tier ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
                           style={{ 
-                            borderColor: selectedTier === tier ? 'transparent' : tierColors[tier],
-                            color: selectedTier === tier ? 'white' : tierColors[tier]
+                            borderColor: selectedTier === tier ? tierColors[tier] : 'transparent',
+                            color: selectedTier === tier ? tierColors[tier] : 'white',
+                            ...(selectedTier === tier ? { boxShadow: `0 0 8px ${tierColors[tier]}40` } : {})
                           }}
                           onClick={() => {
                             if (selectedTier === tier) {
@@ -594,14 +593,23 @@ export default function TierList() {
                   <div>
                     <label className="block mb-2 text-sm font-medium text-zinc-400">Difficulty</label>
                     <div className="grid grid-cols-3 gap-1">
-                      {["Easy", "Medium", "Hard"].map((diff) => (
+                      {[
+                        { value: "Easy", color: "#19B326" },
+                        { value: "Medium", color: "#FF9500" },
+                        { value: "Hard", color: "#FF4E50" }
+                      ].map((diff) => (
                         <Button
-                          key={diff}
-                          variant={selectedDifficulty.includes(diff) ? "default" : "outline"}
-                          className={`h-10 ${selectedDifficulty.includes(diff) ? "bg-blue-600 hover:bg-blue-700" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
-                          onClick={() => toggleDifficultyFilter(diff)}
+                          key={diff.value}
+                          variant={selectedDifficulty.includes(diff.value) ? "default" : "outline"}
+                          className={`h-10 ${selectedDifficulty.includes(diff.value) ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
+                          style={{ 
+                            borderColor: selectedDifficulty.includes(diff.value) ? diff.color : 'transparent',
+                            color: selectedDifficulty.includes(diff.value) ? diff.color : 'white',
+                            ...(selectedDifficulty.includes(diff.value) ? { boxShadow: `0 0 8px ${diff.color}40` } : {})
+                          }}
+                          onClick={() => toggleDifficultyFilter(diff.value)}
                         >
-                          {diff}
+                          {diff.value}
                         </Button>
                       ))}
                     </div>
@@ -611,14 +619,23 @@ export default function TierList() {
                   <div>
                     <label className="block mb-2 text-sm font-medium text-zinc-400">Damage Type</label>
                     <div className="grid grid-cols-3 gap-1">
-                      {["AP", "AD", "Hybrid"].map((type) => (
+                      {[
+                        { value: "AP", color: "#4F8EFF" },
+                        { value: "AD", color: "#FF4E50" },
+                        { value: "Hybrid", color: "#CC66FF" }
+                      ].map((type) => (
                         <Button
-                          key={type}
-                          variant={selectedDamageType.includes(type) ? "default" : "outline"}
-                          className={`h-10 ${selectedDamageType.includes(type) ? "bg-blue-600 hover:bg-blue-700" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
-                          onClick={() => toggleDamageTypeFilter(type)}
+                          key={type.value}
+                          variant={selectedDamageType.includes(type.value) ? "default" : "outline"}
+                          className={`h-10 ${selectedDamageType.includes(type.value) ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
+                          style={{ 
+                            borderColor: selectedDamageType.includes(type.value) ? type.color : 'transparent',
+                            color: selectedDamageType.includes(type.value) ? type.color : 'white',
+                            ...(selectedDamageType.includes(type.value) ? { boxShadow: `0 0 8px ${type.color}40` } : {})
+                          }}
+                          onClick={() => toggleDamageTypeFilter(type.value)}
                         >
-                          {type}
+                          {type.value}
                         </Button>
                       ))}
                     </div>
@@ -628,14 +645,22 @@ export default function TierList() {
                   <div>
                     <label className="block mb-2 text-sm font-medium text-zinc-400">Range</label>
                     <div className="grid grid-cols-2 gap-1">
-                      {["Melee", "Ranged"].map((range) => (
+                      {[
+                        { value: "Melee", color: "#FF9500" },
+                        { value: "Ranged", color: "#00CC88" }
+                      ].map((range) => (
                         <Button
-                          key={range}
-                          variant={selectedRange.includes(range) ? "default" : "outline"}
-                          className={`h-10 ${selectedRange.includes(range) ? "bg-blue-600 hover:bg-blue-700" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
-                          onClick={() => toggleRangeFilter(range)}
+                          key={range.value}
+                          variant={selectedRange.includes(range.value) ? "default" : "outline"}
+                          className={`h-10 ${selectedRange.includes(range.value) ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
+                          style={{ 
+                            borderColor: selectedRange.includes(range.value) ? range.color : 'transparent',
+                            color: selectedRange.includes(range.value) ? range.color : 'white',
+                            ...(selectedRange.includes(range.value) ? { boxShadow: `0 0 8px ${range.color}40` } : {})
+                          }}
+                          onClick={() => toggleRangeFilter(range.value)}
                         >
-                          {range}
+                          {range.value}
                         </Button>
                       ))}
                     </div>
@@ -850,8 +875,14 @@ export default function TierList() {
                             {/* Lane */}
                             <div className="col-span-2 py-3 px-4">
                               <div className="flex items-center justify-center">
-                                <div className="w-8 h-8 flex items-center justify-center bg-zinc-800 rounded-md">
-                                  <span className="text-sm font-semibold">{roleIcons[champion.role] || "ALL"}</span>
+                                <div 
+                                  className="w-8 h-8 flex items-center justify-center rounded-md"
+                                  style={{ 
+                                    backgroundColor: `${roleData[champion.role]?.color || '#FFFFFF'}20`,
+                                    color: roleData[champion.role]?.color || '#FFFFFF'
+                                  }}
+                                >
+                                  <span className="text-sm font-semibold">{roleData[champion.role]?.label || "ALL"}</span>
                                 </div>
                               </div>
                             </div>
@@ -862,8 +893,9 @@ export default function TierList() {
                                 <span
                                   className="inline-block px-3 py-1 rounded-full text-xs font-bold"
                                   style={{
-                                    backgroundColor: tierColors[champion.tier as keyof typeof tierColors] || "#FFFFFF",
-                                    color: "#000000",
+                                    backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}20`,
+                                    color: tierColors[champion.tier as keyof typeof tierColors],
+                                    boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors]}30`
                                   }}
                                 >
                                   {champion.tier}

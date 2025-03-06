@@ -61,15 +61,39 @@ interface ChampionStats {
 
 // Calculate tier based on win rate, pick rate, and ban rate
 function calculateTier(winRate: number, pickRate: number, banRate: number): TierType {
-  // Score based on statistical significance and performance
-  const score = (winRate - 50) * 2.5 + pickRate * 0.8 + banRate * 0.4;
+  // Calculate presence (pick rate + ban rate)
+  const presence = pickRate + banRate;
   
-  if (score > 12) return 'S+';
-  if (score > 8) return 'S';
-  if (score > 4) return 'A';
-  if (score > 0) return 'B';
-  if (score > -4) return 'C';
-  return 'D';
+  // Calculate score based on win rate and presence (similar to dpm.lol approach)
+  // Win rate is weighted more heavily, with adjustments based on pick+ban rate
+  let score = 0;
+  
+  // Win rate component (centered around 50%)
+  const winRateComponent = (winRate - 50) * 3;
+  
+  // Presence component (pick + ban rate)
+  const presenceComponent = Math.log10(presence) * 5;
+  
+  // Combined score with adjustments
+  score = winRateComponent + presenceComponent;
+  
+  // Additional bonus for very high win rates
+  if (winRate > 52) {
+    score += (winRate - 52) * 1.5;
+  }
+  
+  // Additional bonus for very high presence
+  if (presence > 20) {
+    score += (presence - 20) * 0.3;
+  }
+  
+  // Tier thresholds
+  if (score > 15) return 'S+';  // Extremely strong champions
+  if (score > 10) return 'S';   // Very strong champions
+  if (score > 5) return 'A';    // Strong champions
+  if (score > 0) return 'B';    // Balanced champions
+  if (score > -5) return 'C';   // Below average champions
+  return 'D';                  // Weak champions
 }
 
 // Function to get the current patch version
