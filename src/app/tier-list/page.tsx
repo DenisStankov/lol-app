@@ -68,14 +68,14 @@ const tierColors: Record<string, string> = {
   "D": "#A855F7", // Purple
 }
 
-// Role icons mapping with improved emojis
+// Define role icons for the UI - using text abbreviations like in-game
 const roleIcons: Record<string, string> = {
-  "Top": "🛡️",
-  "Jungle": "🌲",
-  "Mid": "🔮",
-  "Bot": "🏹",
-  "Support": "💫",
-  "": "📊", // All roles
+  "Top": "TOP",
+  "Jungle": "JNG",
+  "Mid": "MID",
+  "Bot": "BOT",
+  "Support": "SUP",
+  "": "ALL", // All roles
 }
 
 export default function TierList() {
@@ -309,43 +309,131 @@ export default function TierList() {
   }
 
   const clearAllFilters = () => {
-    setSelectedRole("")
-    setSelectedTier("")
-    setSelectedRank("")
-    setSelectedDifficulty([])
-    setSelectedDamageType([])
-    setSelectedRange([])
-    setSearchQuery("")
+    setSelectedRole("");
+    setSelectedTier("");
+    setSelectedRank("");
+    setSelectedDifficulty([]);
+    setSelectedDamageType([]);
+    setSelectedRange([]);
+    setSearchQuery("");
+    setActiveFilters([]); // Clear all active filters at once
   }
 
   const removeFilter = (filter: string) => {
     if (filter.startsWith("Role:")) {
-      setSelectedRole("")
+      setSelectedRole("");
+      updateActiveFilters({role: ""});
     } else if (filter.startsWith("Tier:")) {
-      setSelectedTier("")
-    } else if (filter.startsWith("Rank:")) {
-      setSelectedRank("ALL")
+      setSelectedTier("");
+      updateActiveFilters({tier: ""});
     } else if (filter.startsWith("Difficulty:")) {
-      setSelectedDifficulty([])
+      const difficulty = filter.replace("Difficulty: ", "");
+      setSelectedDifficulty(prev => {
+        const updated = prev.filter(item => item !== difficulty);
+        updateActiveFilters({difficulty: updated});
+        return updated;
+      });
     } else if (filter.startsWith("Damage:")) {
-      setSelectedDamageType([])
+      const damageType = filter.replace("Damage: ", "");
+      setSelectedDamageType(prev => {
+        const updated = prev.filter(item => item !== damageType);
+        updateActiveFilters({damageType: updated});
+        return updated;
+      });
     } else if (filter.startsWith("Range:")) {
-      setSelectedRange([])
+      const range = filter.replace("Range: ", "");
+      setSelectedRange(prev => {
+        const updated = prev.filter(item => item !== range);
+        updateActiveFilters({range: updated});
+        return updated;
+      });
     } else if (filter.startsWith("Search:")) {
-      setSearchQuery("")
+      setSearchQuery("");
+      updateActiveFilters({search: ""});
     }
   }
 
   const toggleDifficultyFilter = (value: string) => {
-    setSelectedDifficulty((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]))
+    setSelectedDifficulty((prev) => {
+      const updated = prev.includes(value) 
+        ? prev.filter((item) => item !== value) 
+        : [...prev, value];
+      
+      // Update active filters
+      updateActiveFilters({difficulty: updated});
+      return updated;
+    });
   }
 
   const toggleDamageTypeFilter = (value: string) => {
-    setSelectedDamageType((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]))
+    setSelectedDamageType((prev) => {
+      const updated = prev.includes(value) 
+        ? prev.filter((item) => item !== value) 
+        : [...prev, value];
+      
+      // Update active filters
+      updateActiveFilters({damageType: updated});
+      return updated;
+    });
   }
 
   const toggleRangeFilter = (value: string) => {
-    setSelectedRange((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]))
+    setSelectedRange((prev) => {
+      const updated = prev.includes(value) 
+        ? prev.filter((item) => item !== value) 
+        : [...prev, value];
+      
+      // Update active filters
+      updateActiveFilters({range: updated});
+      return updated;
+    });
+  }
+
+  // Add a helper function to update active filters
+  const updateActiveFilters = (filters: {
+    role?: string;
+    tier?: string;
+    difficulty?: string[];
+    damageType?: string[];
+    range?: string[];
+    search?: string;
+  }) => {
+    setActiveFilters((prev) => {
+      let updated = [...prev];
+      
+      // Remove related filter types first
+      if (filters.role !== undefined) {
+        updated = updated.filter(f => !f.startsWith('Role:'));
+        if (filters.role) updated.push(`Role: ${filters.role}`);
+      }
+      
+      if (filters.tier !== undefined) {
+        updated = updated.filter(f => !f.startsWith('Tier:'));
+        if (filters.tier) updated.push(`Tier: ${filters.tier}`);
+      }
+      
+      if (filters.difficulty !== undefined) {
+        updated = updated.filter(f => !f.startsWith('Difficulty:'));
+        filters.difficulty.forEach(d => updated.push(`Difficulty: ${d}`));
+      }
+      
+      if (filters.damageType !== undefined) {
+        updated = updated.filter(f => !f.startsWith('Damage:'));
+        filters.damageType.forEach(d => updated.push(`Damage: ${d}`));
+      }
+      
+      if (filters.range !== undefined) {
+        updated = updated.filter(f => !f.startsWith('Range:'));
+        filters.range.forEach(r => updated.push(`Range: ${r}`));
+      }
+      
+      if (filters.search !== undefined) {
+        updated = updated.filter(f => !f.startsWith('Search:'));
+        if (filters.search) updated.push(`Search: ${filters.search}`);
+      }
+      
+      return updated;
+    });
   }
 
   if (loading) {
@@ -416,13 +504,20 @@ export default function TierList() {
                       <Input
                         placeholder="Search champions..."
                         value={searchQuery}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          const query = e.target.value;
+                          setSearchQuery(query);
+                          updateActiveFilters({search: query});
+                        }}
                         className="pl-10 bg-zinc-800/50 border-zinc-700 text-white w-full"
                       />
                       {searchQuery && (
                         <button
                           className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                          onClick={() => setSearchQuery("")}
+                          onClick={() => {
+                            setSearchQuery("");
+                            updateActiveFilters({search: ""});
+                          }}
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -442,12 +537,14 @@ export default function TierList() {
                           onClick={() => {
                             if (selectedRole === role) {
                               setSelectedRole("");
+                              updateActiveFilters({role: ""});
                             } else {
                               setSelectedRole(role);
+                              updateActiveFilters({role});
                             }
                           }}
                         >
-                          <span className="text-lg">{icon}</span>
+                          <span className="text-sm font-semibold">{icon}</span>
                         </Button>
                       ))}
                     </div>
@@ -469,8 +566,10 @@ export default function TierList() {
                           onClick={() => {
                             if (selectedTier === tier) {
                               setSelectedTier("");
+                              updateActiveFilters({tier: ""});
                             } else {
                               setSelectedTier(tier);
+                              updateActiveFilters({tier});
                             }
                           }}
                         >
@@ -721,42 +820,43 @@ export default function TierList() {
                             </div>
 
                             {/* Champion */}
-                            <div className="col-span-3 py-3 px-4 flex items-center">
-                              <div
-                                className="relative w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2"
-                                style={{ borderColor: tierColors[champion.tier as keyof typeof tierColors] || "#FFFFFF" }}
-                              >
-                                <Image
-                                  src={champion.image || "/placeholder.svg"}
-                                  alt={champion.name}
-                                  width={40}
-                                  height={40}
-                                  className="object-cover"
-                                  unoptimized
-                                />
+                            <div className="col-span-3 py-3 px-4">
+                              <div className="flex items-center">
+                                <div className="h-10 w-10 relative">
+                                  <Image
+                                    src={champion.image}
+                                    alt={champion.name}
+                                    fill
+                                    className="rounded-md object-cover"
+                                    unoptimized
+                                  />
+                                </div>
+                                <span className="ml-3 font-medium text-white">{champion.name}</span>
                               </div>
-                              <span className="ml-3 font-medium text-white">{champion.name}</span>
                             </div>
 
                             {/* Lane */}
                             <div className="col-span-2 py-3 px-4">
-                              <div className="flex items-center">
-                                <span className="text-lg mr-2">{roleIcons[champion.role] || "❓"}</span>
-                                <div className="text-zinc-400 text-sm">{champion.role.toUpperCase()}</div>
+                              <div className="flex items-center justify-center">
+                                <div className="w-8 h-8 flex items-center justify-center bg-zinc-800 rounded-md">
+                                  <span className="text-sm font-semibold">{roleIcons[champion.role] || "ALL"}</span>
+                                </div>
                               </div>
                             </div>
 
                             {/* Tier */}
                             <div className="col-span-2 py-3 px-4">
-                              <span
-                                className="inline-block px-3 py-1 rounded-full font-semibold text-sm"
-                                style={{
-                                  backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}20` || "#FFFFFF20",
-                                  color: tierColors[champion.tier as keyof typeof tierColors] || "#FFFFFF",
-                                }}
-                              >
-                                {champion.tier}
-                              </span>
+                              <div className="flex justify-center">
+                                <span
+                                  className="inline-block px-3 py-1 rounded-full text-xs font-bold"
+                                  style={{
+                                    backgroundColor: tierColors[champion.tier as keyof typeof tierColors] || "#FFFFFF",
+                                    color: "#000000",
+                                  }}
+                                >
+                                  {champion.tier}
+                                </span>
+                              </div>
                             </div>
 
                             {/* Win Rate */}
