@@ -148,6 +148,99 @@ const tierColors: Record<string, string> = {
   "D": "#A855F7",  // Purple
 }
 
+// League of Legends division rank icons
+const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
+  "CHALLENGER": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,29.5c-1.5-1.5-3.8-2.4-6.3-2.4c-0.9,0-1.7,0.1-2.5,0.3l-2.7-4.6c3.7-2.1,5.8-5.1,5.8-8.1 c0-5.2-4.9-9.5-10.8-9.5v-2.5c7.8,0,13.8,5.1,13.8,11.9c0,3.4-1.6,6.7-4.2,9.1l0.7,1.1c1.7-0.5,3.5-0.8,5.3-0.8 c2.8,0,5.4,0.6,7.3,1.7l-0.6,1.8C19.4,26.6,17.3,27.8,16,29.5z"/>
+        <path fill="currentColor" d="M32,4.7c-5.9,0-10.8,4.3-10.8,9.5c0,3,2.1,6,5.8,8.1l-2.7,4.6c-0.8-0.2-1.7-0.3-2.5-0.3 c-2.5,0-4.8,0.9-6.3,2.4C14,27.8,12,26.6,9.5,27.3l-0.6-1.8c1.9-1.1,4.4-1.7,7.3-1.7c1.8,0,3.6,0.3,5.3,0.8l0.7-1.1 c-2.7-2.4-4.2-5.7-4.2-9.1c0-6.9,6-11.9,13.8-11.9V4.7z"/>
+      </svg>
+    ),
+    color: "#f4c874"
+  },
+  "GRANDMASTER": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,2L7.4,6.2v8.4c0,6.7,3.7,13,9.6,16.3l0,0l0,0c5.9-3.3,9.6-9.6,9.6-16.3V6.2L16,2z M23.7,14.6 c0,5.8-3.2,11.2-8.3,14c-5.1-2.8-8.3-8.2-8.3-14V7.6L16,4.1l8.9,3.5v7L23.7,14.6z M10.1,14.2l2.9,2.4l-0.9,3.8l3.4-2.2l3.4,2.2 l-0.9-3.8l2.9-2.4l-3.9-0.3l-1.5-3.6l-1.5,3.6L10.1,14.2z"/>
+      </svg>
+    ),
+    color: "#ce3f56"
+  },
+  "MASTER": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,2L7.4,6.2v8.4c0,6.7,3.7,13,9.6,16.3l0,0l0,0c5.9-3.3,9.6-9.6,9.6-16.3V6.2L16,2z M23.7,14.6 c0,5.8-3.2,11.2-8.3,14c-5.1-2.8-8.3-8.2-8.3-14V7.6L16,4.1l8.9,3.5v7L23.7,14.6z M10.1,14.2l2.9,2.4l-0.9,3.8l3.4-2.2l3.4,2.2 l-0.9-3.8l2.9-2.4l-3.9-0.3l-1.5-3.6l-1.5,3.6L10.1,14.2z"/>
+      </svg>
+    ),
+    color: "#9d5ddd"
+  },
+  "DIAMOND": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,2L3,15l13,15l13-15L16,2z M16,25.7L5.6,15L16,4.3L26.4,15L16,25.7z"/>
+      </svg>
+    ),
+    color: "#76c9f0"
+  },
+  "EMERALD": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,2L5,13v10l11,7l11-7V13L16,2z M24.3,21.7L16,27.2l-8.3-5.5v-7L16,7.2l8.3,7.5V21.7z"/>
+      </svg>
+    ),
+    color: "#3a9479"
+  },
+  "PLATINUM": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M27,6H5L2,15l14,13l14-13L27,6z M16,24.7L4.7,14.1l2-6.1h18.6l2,6.1L16,24.7z"/>
+      </svg>
+    ),
+    color: "#39c4aa"
+  },
+  "GOLD": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,4L4,16l12,12l12-12L16,4z M16,23.4L6.6,14l9.4-9.4l9.4,9.4L16,23.4z"/>
+      </svg>
+    ),
+    color: "#fdb148"
+  },
+  "SILVER": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,4L8,16l8,12l8-12L16,4z M16,23.4L10.5,16l5.5-8.3l5.5,8.3L16,23.4z"/>
+      </svg>
+    ),
+    color: "#a5aab5"
+  },
+  "BRONZE": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,5L9,16l7,11l7-11L16,5z M16,22.2l-4.7-7.4l4.7-7.4l4.7,7.4L16,22.2z"/>
+      </svg>
+    ),
+    color: "#b9846c"
+  },
+  "IRON": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
+        <path fill="currentColor" d="M16,5l-5,9l5,9l5-9L16,5z M16,18.9L13.4,14l2.6-4.7l2.6,4.7L16,18.9z"/>
+      </svg>
+    ),
+    color: "#747479"
+  },
+  "ALL": {
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
+        <path fill="currentColor" d="M16.293 17.03c.362.628.147 1.43-.48 1.793-.629.364-1.431.149-1.794-.479l-2.144-3.717-2.144 3.717c-.363.628-1.165.843-1.793.48-.628-.363-.843-1.166-.48-1.793l2.144-3.718h-4.29c-.724 0-1.312-.587-1.312-1.312 0-.727.588-1.314 1.313-1.314h4.289L7.457 6.969c-.362-.627-.147-1.43.48-1.792.629-.364 1.431-.149 1.794.479l2.144 3.717 2.144-3.717c.363-.628 1.165-.843 1.793-.48.628.363.843 1.166.48 1.793l-2.144 3.718h4.29c.725 0 1.312.587 1.312 1.312 0 .727-.587 1.314-1.312 1.314h-4.29l2.145 3.718z" />
+      </svg>
+    ),
+    color: "#FFFFFF"
+  }
+};
+
 export default function TierList() {
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedTier, setSelectedTier] = useState("")
@@ -454,124 +547,235 @@ export default function TierList() {
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold mb-2 text-white">League of Legends Champion Tier List</h1>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-zinc-400">Patch {patchVersion || "14.11.1"}</span>
+            <span className="text-zinc-400">Patch {patchVersion || "14.14.1"}</span>
             <span className="bg-blue-900/30 text-blue-300 px-2 py-0.5 rounded-full text-xs">Global Data</span>
           </div>
         </div>
 
-        {/* Filter Bar - Made smaller with better spacing */}
-        <div className="bg-zinc-900/70 border border-zinc-800 rounded-lg p-3 mb-6 flex flex-col gap-4">
-          {/* Role and search filters */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {/* Role icons - made smaller */}
-            {Object.entries(roleData).map(([role, info]) => (
-              <button
-                key={role}
-                onClick={() => setSelectedRole(role)}
-                className={`p-1.5 rounded-md transition-colors ${selectedRole === role ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-                title={role === "" ? "All Lanes" : `${info.label} Lane`}
-              >
-                <div 
-                  className="w-7 h-7 rounded-md flex items-center justify-center"
-                  style={{ color: info.color }}
+        {/* Improved Layout - Better spacing and organization */}
+        <div className="bg-zinc-900/70 border border-zinc-800 rounded-lg p-5 mb-8">
+          {/* Top filter bar with better organization */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            {/* Left section: Role selection */}
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+              {Object.entries(roleData).map(([role, info]) => (
+                <button
+                  key={role}
+                  onClick={() => setSelectedRole(role)}
+                  className={`p-1.5 rounded-md transition-colors ${selectedRole === role ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
+                  title={role === "" ? "All Lanes" : `${info.label} Lane`}
                 >
-                  {info.icon}
-                </div>
-                <span className="sr-only">{info.label}</span>
-              </button>
-            ))}
-
-            {/* Add a lane label to make it clearer what the icons represent */}
-            <div className="text-zinc-400 text-sm ml-2">
-              {selectedRole === "" ? "All Lanes" : `${roleData[selectedRole]?.label || ""} Lane`}
-            </div>
-          </div>
-
-          {/* Rank Dropdown */}
-          <div className="flex items-center">
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm">
-                  <span>{selectedRank}</span>
-                  <ChevronDown size={14} />
+                  <div 
+                    className="w-7 h-7 rounded-md flex items-center justify-center"
+                    style={{ color: info.color }}
+                  >
+                    {info.icon}
+                  </div>
+                  <span className="sr-only">{info.label}</span>
                 </button>
-              </PopoverTrigger>
-              <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-[300px] text-zinc-300">
-                <div className="grid grid-cols-3 gap-2">
-                  {["CHALLENGER", "GRANDMASTER", "MASTER+", "MASTER", "DIAMOND+", "DIAMOND", "EMERALD+", "EMERALD", "PLATINUM+", "PLATINUM", "GOLD+", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
-                    <button
-                      key={rank}
-                      onClick={() => {
-                        setSelectedRank(rank);
-                        document.body.click(); // Close popover
-                      }}
-                      className={`p-2 flex items-center justify-center rounded-md text-xs ${
-                        selectedRank === rank ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
-                      }`}
-                    >
-                      <span>{rank}</span>
-                    </button>
-                  ))}
+              ))}
+              <div className="text-zinc-400 text-sm ml-2">
+                {selectedRole === "" ? "All Lanes" : `${roleData[selectedRole]?.label || ""} Lane`}
+              </div>
+            </div>
+
+            {/* Center section: Rank selector */}
+            <div className="flex justify-center">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm min-w-[160px]">
+                    {rankIcons[selectedRank.replace("+", "")]?.icon && (
+                      <div 
+                        className="flex items-center justify-center" 
+                        style={{ color: rankIcons[selectedRank.replace("+", "")]?.color || "#FFFFFF" }}
+                      >
+                        {rankIcons[selectedRank.replace("+", "")]?.icon}
+                      </div>
+                    )}
+                    <span className="text-zinc-200">{selectedRank}</span>
+                    <ChevronDown size={14} className="ml-auto text-zinc-400" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="bg-zinc-800 border border-zinc-700 p-3 w-[320px] text-zinc-300">
+                  <div className="grid grid-cols-4 gap-2">
+                    {["CHALLENGER", "GRANDMASTER", "MASTER+", "MASTER", "DIAMOND+", "DIAMOND", "EMERALD+", "EMERALD", "PLATINUM+", "PLATINUM", "GOLD+", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
+                      <button
+                        key={rank}
+                        onClick={() => {
+                          setSelectedRank(rank);
+                          document.body.click(); // Close popover
+                        }}
+                        className={`p-2 flex flex-col items-center justify-center gap-1 rounded-md text-xs transition-colors ${
+                          selectedRank === rank ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
+                        }`}
+                        style={{ 
+                          color: selectedRank === rank 
+                            ? rankIcons[rank.replace("+", "")]?.color || "#FFFFFF" 
+                            : "inherit" 
+                        }}
+                      >
+                        {rankIcons[rank.replace("+", "")]?.icon && (
+                          <div className="flex items-center justify-center">
+                            {rankIcons[rank.replace("+", "")]?.icon}
+                          </div>
+                        )}
+                        <span>{rank}</span>
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Right section: Search bar */}
+            <div className="flex justify-center md:justify-end">
+              <div className="relative w-full max-w-md">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search size={16} className="text-zinc-400" />
                 </div>
-              </PopoverContent>
-            </Popover>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search champions..."
+                  className="w-full bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-2 pl-10 pr-10 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-300 placeholder-zinc-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-200"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Search bar */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-              <Search size={14} className="text-zinc-400" />
+          {/* Secondary filter options - displayed in a more compact form */}
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-3 border-t border-zinc-800">
+            {/* Difficulty filter */}
+            <div className="flex items-center">
+              <span className="text-sm text-zinc-400 mr-2">Difficulty:</span>
+              <div className="flex gap-1">
+                {["Easy", "Medium", "Hard"].map((difficulty) => (
+                  <button
+                    key={difficulty}
+                    onClick={() => toggleDifficultyFilter(difficulty)}
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      selectedDifficulty.includes(difficulty)
+                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/40"
+                        : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
+                    }`}
+                  >
+                    {difficulty}
+                  </button>
+                ))}
+              </div>
             </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search champions..."
-              className="bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-1.5 pl-7 pr-7 rounded-md w-[200px] text-sm focus:outline-none text-zinc-300 placeholder-zinc-500"
-            />
-            {searchQuery && (
+
+            {/* Damage Type filter */}
+            <div className="flex items-center">
+              <span className="text-sm text-zinc-400 mr-2">Damage:</span>
+              <div className="flex gap-1">
+                {["AP", "AD", "Hybrid"].map((damageType) => (
+                  <button
+                    key={damageType}
+                    onClick={() => toggleDamageTypeFilter(damageType)}
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      selectedDamageType.includes(damageType)
+                        ? "bg-purple-500/20 text-purple-400 border border-purple-500/40"
+                        : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
+                    }`}
+                  >
+                    {damageType}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Range filter */}
+            <div className="flex items-center">
+              <span className="text-sm text-zinc-400 mr-2">Range:</span>
+              <div className="flex gap-1">
+                {["Melee", "Ranged"].map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => toggleRangeFilter(range)}
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      selectedRange.includes(range)
+                        ? "bg-green-500/20 text-green-400 border border-green-500/40"
+                        : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
+                    }`}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Clear Filters button - Only show when some filters are active */}
+            {(selectedRole !== "" || selectedTier !== "" || selectedRank !== "ALL" || 
+              selectedDifficulty.length > 0 || selectedDamageType.length > 0 || 
+              selectedRange.length > 0 || searchQuery) && (
               <button
-                onClick={() => setSearchQuery("")}
-                className="absolute inset-y-0 right-0 flex items-center pr-2"
+                onClick={() => {
+                  setSelectedRole("");
+                  setSelectedTier("");
+                  setSelectedRank("ALL");
+                  setSelectedDifficulty([]);
+                  setSelectedDamageType([]);
+                  setSelectedRange([]);
+                  setSearchQuery("");
+                }}
+                className="ml-auto px-3 py-1 bg-red-800/40 hover:bg-red-800/60 text-red-300 rounded-md text-xs font-medium"
               >
-                <X size={14} className="text-zinc-400" />
+                Clear All Filters
               </button>
             )}
           </div>
 
-          {/* Additional filter options - optional display */}
-          {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0) && (
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-sm">
+          {/* Active filter tags - optional display */}
+          {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0 || searchQuery) && (
+            <div className="flex flex-wrap items-center gap-2 mt-4 text-sm">
+              {searchQuery && (
+                <span className="bg-blue-900/20 border border-blue-800/40 px-2 py-1 rounded-md flex items-center gap-1 text-blue-300 text-xs">
+                  Search: {searchQuery}
+                  <button onClick={() => setSearchQuery("")} className="opacity-60 hover:opacity-100">
+                    <X size={12} />
+                  </button>
+                </span>
+              )}
               {selectedDifficulty.map((difficulty) => (
                 <span
                   key={difficulty}
-                  className="bg-zinc-800 border border-zinc-700 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300"
+                  className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
                 >
                   Difficulty: {difficulty}
                   <button onClick={() => toggleDifficultyFilter(difficulty)} className="opacity-60 hover:opacity-100">
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </span>
               ))}
               {selectedDamageType.map((damageType) => (
                 <span
                   key={damageType}
-                  className="bg-zinc-800 border border-zinc-700 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300"
+                  className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
                 >
                   Damage: {damageType}
                   <button onClick={() => toggleDamageTypeFilter(damageType)} className="opacity-60 hover:opacity-100">
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </span>
               ))}
               {selectedRange.map((range) => (
                 <span
                   key={range}
-                  className="bg-zinc-800 border border-zinc-700 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300"
+                  className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
                 >
                   Range: {range}
                   <button onClick={() => toggleRangeFilter(range)} className="opacity-60 hover:opacity-100">
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </span>
               ))}
@@ -580,12 +784,12 @@ export default function TierList() {
         </div>
 
         {/* Champion Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-hidden rounded-lg border border-zinc-800">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-zinc-900 text-zinc-300 text-center border-b border-zinc-800">
-                <th className="px-3 py-2 text-sm">Lane</th>
-                <th className="px-3 py-2 text-left">
+              <tr className="bg-zinc-900/80 text-zinc-400 border-b border-zinc-800">
+                <th className="px-3 py-3 text-sm font-medium">Lane</th>
+                <th className="px-3 py-3 text-left text-sm font-medium">
                   <button 
                     onClick={() => {
                       setSortBy("name")
@@ -599,7 +803,7 @@ export default function TierList() {
                     )}
                   </button>
                 </th>
-                <th className="px-3 py-2 text-sm">
+                <th className="px-3 py-3 text-sm text-center font-medium">
                   <div className="flex items-center justify-center gap-1">
                     <button 
                       onClick={() => {
@@ -616,7 +820,7 @@ export default function TierList() {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
-                          <Info size={14} className="text-zinc-500" />
+                          <Info size={12} className="text-zinc-500" />
                         </TooltipTrigger>
                         <TooltipContent className="bg-zinc-800 border border-zinc-700 text-zinc-300">
                           <p className="w-[200px] text-xs">
@@ -633,7 +837,7 @@ export default function TierList() {
                     </TooltipProvider>
                   </div>
                 </th>
-                <th className="px-3 py-2 text-sm">
+                <th className="px-3 py-3 text-sm text-center font-medium">
                   <button 
                     onClick={() => {
                       setSortBy("winRate")
@@ -647,7 +851,7 @@ export default function TierList() {
                     )}
                   </button>
                 </th>
-                <th className="px-3 py-2 text-sm">
+                <th className="px-3 py-3 text-sm text-center font-medium">
                   <button 
                     onClick={() => {
                       setSortBy("pickRate")
@@ -661,7 +865,7 @@ export default function TierList() {
                     )}
                   </button>
                 </th>
-                <th className="px-3 py-2 text-sm">
+                <th className="px-3 py-3 text-sm text-center font-medium">
                   <button 
                     onClick={() => {
                       setSortBy("banRate")
@@ -675,7 +879,7 @@ export default function TierList() {
                     )}
                   </button>
                 </th>
-                <th className="px-3 py-2 text-sm">
+                <th className="px-3 py-3 text-sm text-center font-medium">
                   <button 
                     onClick={() => {
                       setSortBy("totalGames")
@@ -691,7 +895,7 @@ export default function TierList() {
                 </th>
               </tr>
             </thead>
-            <tbody className="text-zinc-300">
+            <tbody className="text-zinc-300 divide-y divide-zinc-800/50">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8">
@@ -737,13 +941,13 @@ export default function TierList() {
                 filteredChampions.map((champion) => (
                   <tr
                     key={`${champion.id}-${champion.role}`}
-                    className="border-t border-zinc-800 hover:bg-zinc-900/50"
+                    className="hover:bg-zinc-900/50 transition-colors"
                   >
                     {/* Lane Cell with SVG */}
-                    <td className="py-2">
+                    <td className="py-3 px-3">
                       <div className="flex items-center justify-center">
                         <div 
-                          className="w-8 h-8 rounded-md flex items-center justify-center bg-zinc-800"
+                          className="w-8 h-8 rounded-md flex items-center justify-center bg-zinc-800/80"
                           style={{ 
                             color: roleData[champion.role]?.color || '#FFFFFF',
                             border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
@@ -755,33 +959,40 @@ export default function TierList() {
                     </td>
                     
                     {/* Champion Cell - Better Alignment */}
-                    <td className="py-2">
+                    <td className="py-3 px-3">
                       <div className="flex items-center">
-                        <div className="w-10 h-10 flex items-center justify-center mr-3">
-                          <div className="w-9 h-9 overflow-hidden rounded-full border border-zinc-700">
-                            <Image
-                              src={champion.image}
-                              alt={champion.name}
-                              width={36}
-                              height={36}
-                              className="object-cover"
-                              unoptimized
-                            />
+                        <div className="w-10 h-10 flex items-center justify-center mr-3 overflow-hidden rounded-full bg-zinc-800 border border-zinc-700">
+                          <Image
+                            src={champion.image}
+                            alt={champion.name}
+                            width={40}
+                            height={40}
+                            className="object-cover"
+                            unoptimized
+                          />
+                        </div>
+                        <div>
+                          <div className="font-medium">{champion.name}</div>
+                          <div className="text-xs text-zinc-500 flex gap-2 mt-1">
+                            <span>{champion.damageType}</span>
+                            <span>•</span>
+                            <span>{champion.difficulty}</span>
+                            <span>•</span>
+                            <span>{champion.range}</span>
                           </div>
                         </div>
-                        <span className="font-medium">{champion.name}</span>
                       </div>
                     </td>
                     
                     {/* Tier Cell - Centered Badge with Colored Background */}
-                    <td className="py-2">
+                    <td className="py-3 px-3">
                       <div className="flex items-center justify-center">
                         <div 
-                          className="w-7 h-7 rounded-full flex items-center justify-center font-bold"
+                          className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm"
                           style={{
-                            backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}40`,
+                            backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}20`,
                             color: tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF',
-                            boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}30`
+                            boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}15`
                           }}
                         >
                           <span>{champion.tier}</span>
@@ -789,23 +1000,25 @@ export default function TierList() {
                       </div>
                     </td>
                     
-                    {/* Win Rate Cell - Centered Text */}
-                    <td className="py-2 text-center font-medium">
-                      {champion.winRate.toFixed(1)}%
+                    {/* Win Rate Cell - Centered Text with color */}
+                    <td className="py-3 px-3 text-center font-medium">
+                      <span className={`${champion.winRate >= 51.5 ? 'text-green-400' : champion.winRate < 49 ? 'text-red-400' : 'text-zinc-300'}`}>
+                        {champion.winRate.toFixed(1)}%
+                      </span>
                     </td>
                     
                     {/* Pick Rate Cell - Centered Text */}
-                    <td className="py-2 text-center font-medium">
+                    <td className="py-3 px-3 text-center font-medium">
                       {champion.pickRate.toFixed(1)}%
                     </td>
                     
                     {/* Ban Rate Cell - Centered Text */}
-                    <td className="py-2 text-center font-medium">
+                    <td className="py-3 px-3 text-center font-medium">
                       {champion.banRate.toFixed(1)}%
                     </td>
                     
                     {/* Games Cell - Centered Text */}
-                    <td className="py-2 text-center text-zinc-500">
+                    <td className="py-3 px-3 text-center text-zinc-500">
                       {champion.totalGames.toLocaleString()}
                     </td>
                   </tr>
