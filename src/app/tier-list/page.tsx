@@ -156,13 +156,28 @@ export default function TierList() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedTier, setSelectedTier] = useState("")
-  const [selectedRank, setSelectedRank] = useState("")
+  const [selectedRank, setSelectedRank] = useState("ALL")
   const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([])
   const [selectedDamageType, setSelectedDamageType] = useState<string[]>([])
   const [selectedRange, setSelectedRange] = useState<string[]>([])
   const [activeFilters, setActiveFilters] = useState<string[]>([])
 
-  // Filter options
+  // Rank options for the dropdown
+  const rankOptions = [
+    { value: "ALL", label: "ALL" },
+    { value: "IRON+", label: "IRON+" },
+    { value: "BRONZE+", label: "BRONZE+" },
+    { value: "SILVER+", label: "SILVER+" },
+    { value: "GOLD+", label: "GOLD+" },
+    { value: "PLATINUM+", label: "PLATINUM+" },
+    { value: "EMERALD+", label: "EMERALD+" },
+    { value: "DIAMOND+", label: "DIAMOND+" },
+    { value: "MASTER+", label: "MASTER+" },
+    { value: "GRANDMASTER+", label: "GRANDMASTER+" },
+    { value: "CHALLENGER", label: "CHALLENGER" },
+  ];
+
+  // Sort options for the dropdown
   const sortOptions = [
     { value: "tier", label: "Tier" },
     { value: "winRate", label: "Win Rate" },
@@ -381,7 +396,7 @@ export default function TierList() {
   const clearAllFilters = () => {
     setSelectedRole("");
     setSelectedTier("");
-    setSelectedRank("");
+    setSelectedRank("ALL");
     setSelectedDifficulty([]);
     setSelectedDamageType([]);
     setSelectedRange([]);
@@ -463,6 +478,7 @@ export default function TierList() {
   const updateActiveFilters = (filters: {
     role?: string;
     tier?: string;
+    rank?: string;
     difficulty?: string[];
     damageType?: string[];
     range?: string[];
@@ -480,6 +496,11 @@ export default function TierList() {
       if (filters.tier !== undefined) {
         updated = updated.filter(f => !f.startsWith('Tier:'));
         if (filters.tier) updated.push(`Tier: ${filters.tier}`);
+      }
+      
+      if (filters.rank !== undefined) {
+        updated = updated.filter(f => !f.startsWith('Rank:'));
+        if (filters.rank && filters.rank !== "ALL") updated.push(`Rank: ${filters.rank}`);
       }
       
       if (filters.difficulty !== undefined) {
@@ -539,463 +560,304 @@ export default function TierList() {
 
       <main className="container py-6 px-4 lg:px-8">
         <div className="max-w-screen-2xl mx-auto">
-          <div className="flex flex-col space-y-4 mb-8">
+          <div className="flex flex-col space-y-4 mb-6">
             <h1 className="text-4xl font-bold tracking-tight">League of Legends Champion Tier List</h1>
             <div className="flex items-center">
               <p className="text-lg text-zinc-400">
-                Patch <span className="font-semibold text-white">{patchVersion}</span>
+                Patch <span className="font-semibold text-white">{patchVersion || "14.11.1"}</span>
               </p>
               <div className="ml-2 bg-blue-900/30 text-blue-300 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs">
-                Solo Queue
+                Global Data
               </div>
             </div>
           </div>
 
-          {/* dpm.lol style filter layout */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            {/* Filter column - 25% width on desktop */}
-            <div className="md:col-span-1">
-              <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
-                  <h3 className="font-medium text-lg text-white">Filters</h3>
-                  {activeFilters.length > 0 && (
-                    <Button variant="ghost" size="sm" onClick={clearAllFilters} className="h-7 px-2 text-xs text-zinc-400 hover:text-white">
-                      Reset
-                    </Button>
-                  )}
-                </div>
-                
-                <div className="p-4 space-y-6">
-                  {/* Search */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-zinc-400">Search</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 w-4 h-4" />
-                      <Input
-                        placeholder="Search champions..."
-                        value={searchQuery}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          const query = e.target.value;
-                          setSearchQuery(query);
-                          updateActiveFilters({search: query});
-                        }}
-                        className="pl-10 bg-zinc-800/50 border-zinc-700 text-white w-full"
-                      />
-                      {searchQuery && (
-                        <button
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                          onClick={() => {
-                            setSearchQuery("");
-                            updateActiveFilters({search: ""});
-                          }}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Roles */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-zinc-400">Roles</label>
-                    <div className="grid grid-cols-6 gap-1.5">
-                      {Object.entries(roleData).map(([roleKey, roleInfo]) => (
-                        <Button
-                          key={roleKey}
-                          variant="outline"
-                          className={`h-11 rounded-md ${
-                            selectedRole === roleKey 
-                              ? "bg-zinc-800 border-0" 
-                              : "bg-zinc-900 border-0 hover:bg-zinc-800"
-                          }`}
-                          style={{ 
-                            color: selectedRole === roleKey ? roleInfo.color : 'rgba(255,255,255,0.65)',
-                          }}
-                          onClick={() => {
-                            if (selectedRole === roleKey) {
-                              setSelectedRole("");
-                              updateActiveFilters({role: ""});
-                            } else {
-                              setSelectedRole(roleKey);
-                              updateActiveFilters({role: roleKey});
-                            }
-                          }}
-                        >
-                          {roleInfo.icon}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Tiers */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-zinc-400">Tiers</label>
-                    <div className="grid grid-cols-3 gap-1">
-                      {["S+", "S", "A", "B", "C", "D"].map((tier) => (
-                        <Button
-                          key={tier}
-                          variant={selectedTier === tier ? "default" : "outline"}
-                          className={`h-10 ${selectedTier === tier ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
-                          style={{ 
-                            borderColor: selectedTier === tier ? tierColors[tier] : 'transparent',
-                            color: selectedTier === tier ? tierColors[tier] : 'white',
-                            ...(selectedTier === tier ? { boxShadow: `0 0 8px ${tierColors[tier]}40` } : {})
-                          }}
-                          onClick={() => {
-                            if (selectedTier === tier) {
-                              setSelectedTier("");
-                              updateActiveFilters({tier: ""});
-                            } else {
-                              setSelectedTier(tier);
-                              updateActiveFilters({tier});
-                            }
-                          }}
-                        >
-                          {tier}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Difficulty */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-zinc-400">Difficulty</label>
-                    <div className="grid grid-cols-3 gap-1">
-                      {[
-                        { value: "Easy", color: "#19B326" },
-                        { value: "Medium", color: "#FF9500" },
-                        { value: "Hard", color: "#FF4E50" }
-                      ].map((diff) => (
-                        <Button
-                          key={diff.value}
-                          variant={selectedDifficulty.includes(diff.value) ? "default" : "outline"}
-                          className={`h-10 ${selectedDifficulty.includes(diff.value) ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
-                          style={{ 
-                            borderColor: selectedDifficulty.includes(diff.value) ? diff.color : 'transparent',
-                            color: selectedDifficulty.includes(diff.value) ? diff.color : 'white',
-                            ...(selectedDifficulty.includes(diff.value) ? { boxShadow: `0 0 8px ${diff.color}40` } : {})
-                          }}
-                          onClick={() => toggleDifficultyFilter(diff.value)}
-                        >
-                          {diff.value}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Damage Type */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-zinc-400">Damage Type</label>
-                    <div className="grid grid-cols-3 gap-1">
-                      {[
-                        { value: "AP", color: "#4F8EFF" },
-                        { value: "AD", color: "#FF4E50" },
-                        { value: "Hybrid", color: "#CC66FF" }
-                      ].map((type) => (
-                        <Button
-                          key={type.value}
-                          variant={selectedDamageType.includes(type.value) ? "default" : "outline"}
-                          className={`h-10 ${selectedDamageType.includes(type.value) ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
-                          style={{ 
-                            borderColor: selectedDamageType.includes(type.value) ? type.color : 'transparent',
-                            color: selectedDamageType.includes(type.value) ? type.color : 'white',
-                            ...(selectedDamageType.includes(type.value) ? { boxShadow: `0 0 8px ${type.color}40` } : {})
-                          }}
-                          onClick={() => toggleDamageTypeFilter(type.value)}
-                        >
-                          {type.value}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Range */}
-                  <div>
-                    <label className="block mb-2 text-sm font-medium text-zinc-400">Range</label>
-                    <div className="grid grid-cols-2 gap-1">
-                      {[
-                        { value: "Melee", color: "#FF9500" },
-                        { value: "Ranged", color: "#00CC88" }
-                      ].map((range) => (
-                        <Button
-                          key={range.value}
-                          variant={selectedRange.includes(range.value) ? "default" : "outline"}
-                          className={`h-10 ${selectedRange.includes(range.value) ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
-                          style={{ 
-                            borderColor: selectedRange.includes(range.value) ? range.color : 'transparent',
-                            color: selectedRange.includes(range.value) ? range.color : 'white',
-                            ...(selectedRange.includes(range.value) ? { boxShadow: `0 0 8px ${range.color}40` } : {})
-                          }}
-                          onClick={() => toggleRangeFilter(range.value)}
-                        >
-                          {range.value}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* Top filter bar like in the image */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg mb-6 p-3 flex items-center justify-between flex-wrap gap-3">
+            {/* Role filter pills */}
+            <div className="flex gap-2">
+              {Object.entries(roleData).map(([roleKey, roleInfo]) => (
+                <Button
+                  key={roleKey}
+                  variant="outline"
+                  className={`h-10 w-10 p-0 rounded-md ${
+                    selectedRole === roleKey 
+                      ? "bg-zinc-800 border-0" 
+                      : "bg-zinc-900 border-0 hover:bg-zinc-800"
+                  }`}
+                  style={{ 
+                    color: selectedRole === roleKey ? roleInfo.color : 'rgba(255,255,255,0.65)',
+                  }}
+                  onClick={() => {
+                    if (selectedRole === roleKey) {
+                      setSelectedRole("");
+                      updateActiveFilters({role: ""});
+                    } else {
+                      setSelectedRole(roleKey);
+                      updateActiveFilters({role: roleKey});
+                    }
+                  }}
+                >
+                  {roleInfo.icon}
+                </Button>
+              ))}
             </div>
-
-            {/* Champions list column - 75% width on desktop */}
-            <div className="md:col-span-3">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-xl font-bold text-white">
-                    Champions ({filteredChampions.length})
-                  </h2>
-                  
-                  {/* Active filters display as tags */}
-                  {activeFilters.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1 ml-4">
-                      {activeFilters.map((filter) => (
-                        <Badge key={filter} variant="outline" className="bg-blue-900/30 border-blue-800 text-blue-300 gap-1 px-2 py-0.5">
-                          {filter}
-                          <button onClick={() => removeFilter(filter)}>
-                            <X className="w-3 h-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
+            
+            {/* Rank selector */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-10 bg-zinc-800 border-0">
+                  <div className="flex items-center">
+                    {selectedRank !== "ALL" && (
+                      <svg className="mr-2 h-4 w-4 text-emerald-500" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 1.5L4.5 4.5H10.5L7.5 1.5Z" fill="currentColor" />
+                        <path d="M7.5 13.5L10.5 10.5H4.5L7.5 13.5Z" fill="currentColor" />
+                        <path d="M7.5 1.5V13.5M1.5 7.5H13.5" stroke="currentColor" strokeLinecap="round" />
+                      </svg>
+                    )}
+                    <span className="text-white">{selectedRank}</span>
+                    <ChevronDown className="ml-2 h-4 w-4 text-zinc-400" />
+                  </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0 w-48 bg-zinc-800 border-zinc-700">
+                <div className="py-1">
+                  {rankOptions.map((rank) => (
+                    <button
+                      key={rank.value}
+                      className={`w-full text-left px-3 py-2 text-sm ${selectedRank === rank.value ? "bg-zinc-700 text-white" : "text-zinc-400 hover:bg-zinc-700 hover:text-white"}`}
+                      onClick={() => {
+                        setSelectedRank(rank.value);
+                        updateActiveFilters({rank: rank.value});
+                      }}
+                    >
+                      {rank.label}
+                    </button>
+                  ))}
                 </div>
-                
-                {/* View mode and sort controls */}
-                <div className="flex items-center space-x-2">
-                  <Tabs value={viewMode} onValueChange={setViewMode} className="hidden md:block">
-                    <TabsList className="bg-zinc-800 border border-zinc-700">
-                      <TabsTrigger value="table" className="data-[state=active]:bg-zinc-700">
-                        Table
-                      </TabsTrigger>
-                      <TabsTrigger value="grid" className="data-[state=active]:bg-zinc-700">
-                        Grid
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                  
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm" className="bg-zinc-800 border-zinc-700">
-                        Sort: {sortOptions.find((opt) => opt.value === sortBy)?.label || "Tier"}
-                        {sortOrder === "asc" ? <ChevronUp className="ml-1 w-4 h-4" /> : <ChevronDown className="ml-1 w-4 h-4" />}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-48 p-0 bg-zinc-800 border-zinc-700" align="end">
-                      <div className="py-1">
-                        {sortOptions.map((option) => (
-                          <button
-                            key={option.value}
-                            className={`w-full text-left px-3 py-1.5 text-sm ${sortBy === option.value ? "bg-zinc-700 text-white" : "text-zinc-400 hover:bg-zinc-700 hover:text-white"}`}
-                            onClick={() => {
-                              if (sortBy === option.value) {
-                                setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-                              } else {
-                                setSortBy(option.value);
-                                setSortOrder("desc");
-                              }
-                            }}
-                          >
-                            {option.label}
-                            {sortBy === option.value &&
-                              (sortOrder === "asc" ? (
-                                <ChevronUp className="w-4 h-4 ml-1 inline" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4 ml-1 inline" />
-                              ))}
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-
-              {/* Champion list content */}
-              {loading ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                </div>
-              ) : error ? (
-                <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg">
-                  {error}
-                </div>
-              ) : (
-                <Tabs value={viewMode}>
-                  <TabsContent value="table" className="mt-0">
-                    {/* Champion Table */}
-                    <div className="rounded-lg overflow-hidden border border-zinc-800">
-                      {/* Table Header */}
-                      <div className="grid grid-cols-12 bg-zinc-900">
-                        <div
-                          className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
-                          onClick={() => handleHeaderClick("ranking")}
-                        >
-                          Rank
-                          {sortBy === "ranking" &&
-                            (sortOrder === "asc" ? (
-                              <ChevronUp className="w-4 h-4 ml-1" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 ml-1" />
-                            ))}
-                        </div>
-                        <div className="col-span-3 py-4 px-4 text-zinc-300 text-sm font-medium">Champion</div>
-                        <div
-                          className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
-                          onClick={() => handleHeaderClick("role")}
-                        >
-                          Lane
-                          {sortBy === "role" &&
-                            (sortOrder === "asc" ? (
-                              <ChevronUp className="w-4 h-4 ml-1" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 ml-1" />
-                            ))}
-                        </div>
-                        <div
-                          className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium cursor-pointer hover:text-white flex items-center"
-                          onClick={() => handleHeaderClick("tier")}
-                        >
-                          Tier
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Info className="w-4 h-4 ml-1 text-zinc-500" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Champion performance tier based on win rate, pick rate, and ban rate</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          {sortBy === "tier" &&
-                            (sortOrder === "asc" ? (
-                              <ChevronUp className="w-4 h-4 ml-1" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 ml-1" />
-                            ))}
-                        </div>
-                        <div
-                          className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
-                          onClick={() => handleHeaderClick("winRate")}
-                        >
-                          Winrate
-                          {sortBy === "winRate" &&
-                            (sortOrder === "asc" ? (
-                              <ChevronUp className="w-4 h-4 ml-1 inline" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 ml-1 inline" />
-                            ))}
-                        </div>
-                        <div
-                          className="col-span-1 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
-                          onClick={() => handleHeaderClick("pickRate")}
-                        >
-                          Pickrate
-                          {sortBy === "pickRate" &&
-                            (sortOrder === "asc" ? (
-                              <ChevronUp className="w-4 h-4 ml-1 inline" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 ml-1 inline" />
-                            ))}
-                        </div>
-                        <div
-                          className="col-span-2 py-4 px-4 text-zinc-300 text-sm font-medium text-right cursor-pointer hover:text-white"
-                          onClick={() => handleHeaderClick("totalGames")}
-                        >
-                          Games
-                          {sortBy === "totalGames" &&
-                            (sortOrder === "asc" ? (
-                              <ChevronUp className="w-4 h-4 ml-1 inline" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 ml-1 inline" />
-                            ))}
-                        </div>
-                      </div>
-
-                      {/* Table Body */}
-                      <div className="divide-y divide-zinc-800">
-                        {filteredChampions.map((champion, index) => (
-                          <div
-                            key={champion.id}
-                            className="grid grid-cols-12 items-center bg-zinc-950 hover:bg-zinc-900/50 transition-colors"
-                          >
-                            {/* Rank */}
-                            <div className="col-span-1 py-3 px-4 text-center">
-                              <span className="text-zinc-300 font-medium">{index + 1}</span>
-                            </div>
-
-                            {/* Champion */}
-                            <div className="col-span-3 py-3 px-4">
-                              <div className="flex items-center">
-                                <div className="h-10 w-10 relative overflow-hidden rounded-md">
-                                  <Image
-                                    src={champion.image || "/placeholder.svg"}
-                                    alt={champion.name}
-                                    width={40}
-                                    height={40}
-                                    className="object-cover"
-                                    unoptimized
-                                  />
-                                </div>
-                                <span className="ml-3 font-medium text-white">{champion.name}</span>
-                              </div>
-                            </div>
-
-                            {/* Lane */}
-                            <div className="col-span-2 py-3 px-4">
-                              <div className="flex items-center justify-center">
-                                <div 
-                                  className="w-8 h-8 flex items-center justify-center rounded-md bg-zinc-800"
-                                  style={{ 
-                                    color: roleData[champion.role]?.color || '#FFFFFF'
-                                  }}
-                                >
-                                  {roleData[champion.role]?.icon || roleData[""].icon}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Tier */}
-                            <div className="col-span-2 py-3 px-4">
-                              <div className="flex justify-center">
-                                <span
-                                  className="inline-block px-3 py-1 rounded-full text-xs font-bold"
-                                  style={{
-                                    backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}20`,
-                                    color: tierColors[champion.tier as keyof typeof tierColors],
-                                    boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors]}30`
-                                  }}
-                                >
-                                  {champion.tier}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Win Rate */}
-                            <div className="col-span-1 py-3 px-4 text-right">
-                              <div>
-                                <div className="text-white font-medium">{champion.winRate.toFixed(1)}%</div>
-                                <div className="text-xs text-green-500">+0.2%</div>
-                              </div>
-                            </div>
-
-                            {/* Pick Rate */}
-                            <div className="col-span-1 py-3 px-4 text-right">
-                              <div className="text-white">{champion.pickRate.toFixed(1)}%</div>
-                            </div>
-
-                            {/* Games */}
-                            <div className="col-span-2 py-3 px-4 text-right">
-                              <div className="text-white">{champion.totalGames.toLocaleString()}</div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
+              </PopoverContent>
+            </Popover>
+            
+            {/* Patch version */}
+            <Button variant="outline" className="h-10 bg-zinc-800 border-0">
+              <span className="text-white">{patchVersion || "14.11.1"}</span>
+              <ChevronDown className="ml-2 h-4 w-4 text-zinc-400" />
+            </Button>
+            
+            {/* Search input */}
+            <div className="relative flex-grow max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 w-4 h-4" />
+              <Input
+                placeholder="Search champions..."
+                value={searchQuery}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const query = e.target.value;
+                  setSearchQuery(query);
+                  updateActiveFilters({search: query});
+                }}
+                className="pl-10 h-10 bg-zinc-800 border-0 text-white w-full"
+              />
+              {searchQuery && (
+                <button
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                  onClick={() => {
+                    setSearchQuery("");
+                    updateActiveFilters({search: ""});
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
               )}
             </div>
           </div>
+
+          {/* Champion list content */}
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : error ? (
+            <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg">
+              {error}
+            </div>
+          ) : (
+            <Tabs value={viewMode}>
+              <TabsContent value="table" className="mt-0">
+                {/* Champion Table - with updated header to match image */}
+                <div className="rounded-lg overflow-hidden border border-zinc-800">
+                  {/* Table Header styled like image */}
+                  <div className="grid grid-cols-12 bg-zinc-900 border-b border-zinc-800 font-medium text-sm text-zinc-400">
+                    <div
+                      className="col-span-1 py-3 px-4 cursor-pointer hover:text-white flex items-center"
+                      onClick={() => handleHeaderClick("ranking")}
+                    >
+                      Rank
+                      {sortBy === "ranking" &&
+                        (sortOrder === "asc" ? (
+                          <ChevronUp className="w-4 h-4 ml-1" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 ml-1" />
+                        ))}
+                    </div>
+                    <div className="col-span-3 py-3 px-4">Champion</div>
+                    <div
+                      className="col-span-2 py-3 px-4 cursor-pointer hover:text-white flex items-center"
+                      onClick={() => handleHeaderClick("role")}
+                    >
+                      Lane
+                      {sortBy === "role" &&
+                        (sortOrder === "asc" ? (
+                          <ChevronUp className="w-4 h-4 ml-1" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 ml-1" />
+                        ))}
+                    </div>
+                    <div
+                      className="col-span-2 py-3 px-4 cursor-pointer hover:text-white flex items-center"
+                      onClick={() => handleHeaderClick("tier")}
+                    >
+                      Tier
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="w-4 h-4 ml-1 text-zinc-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Champion performance tier based on win rate, pick rate, and ban rate</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      {sortBy === "tier" &&
+                        (sortOrder === "asc" ? (
+                          <ChevronUp className="w-4 h-4 ml-1" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 ml-1" />
+                        ))}
+                    </div>
+                    <div
+                      className="col-span-1 py-3 px-4 text-right cursor-pointer hover:text-white"
+                      onClick={() => handleHeaderClick("winRate")}
+                    >
+                      Winrate
+                      {sortBy === "winRate" &&
+                        (sortOrder === "asc" ? (
+                          <ChevronUp className="w-4 h-4 ml-1 inline" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 ml-1 inline" />
+                        ))}
+                    </div>
+                    <div
+                      className="col-span-1 py-3 px-4 text-right cursor-pointer hover:text-white"
+                      onClick={() => handleHeaderClick("pickRate")}
+                    >
+                      Pickrate
+                      {sortBy === "pickRate" &&
+                        (sortOrder === "asc" ? (
+                          <ChevronUp className="w-4 h-4 ml-1 inline" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 ml-1 inline" />
+                        ))}
+                    </div>
+                    <div
+                      className="col-span-2 py-3 px-4 text-right cursor-pointer hover:text-white"
+                      onClick={() => handleHeaderClick("totalGames")}
+                    >
+                      Games
+                      {sortBy === "totalGames" &&
+                        (sortOrder === "asc" ? (
+                          <ChevronUp className="w-4 h-4 ml-1 inline" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 ml-1 inline" />
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Table Body - Keep existing implementation but add rank number */}
+                  {filteredChampions.length > 0 ? (
+                    filteredChampions.map((champion, index) => (
+                      <div
+                        key={champion.id}
+                        className="grid grid-cols-12 border-b border-zinc-800 hover:bg-zinc-800/50 text-sm"
+                      >
+                        {/* Rank */}
+                        <div className="col-span-1 py-3 px-4 font-semibold text-zinc-400">
+                          {index + 1}
+                        </div>
+
+                        {/* Champion */}
+                        <div className="col-span-3 py-3 px-4">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 relative overflow-hidden rounded-md">
+                              <Image
+                                src={champion.image || "/placeholder.svg"}
+                                alt={champion.name}
+                                width={40}
+                                height={40}
+                                className="object-cover"
+                                unoptimized
+                              />
+                            </div>
+                            <span className="ml-3 font-medium text-white">{champion.name}</span>
+                          </div>
+                        </div>
+
+                        {/* Lane */}
+                        <div className="col-span-2 py-3 px-4">
+                          <div className="flex items-center justify-center">
+                            <div 
+                              className="w-8 h-8 flex items-center justify-center rounded-md bg-zinc-800"
+                              style={{ 
+                                color: roleData[champion.role]?.color || '#FFFFFF',
+                                border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
+                              }}
+                            >
+                              {roleData[champion.role]?.icon || roleData[""].icon}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Tier */}
+                        <div className="col-span-2 py-3 px-4">
+                          <div className="flex justify-center">
+                            <span
+                              className="inline-block px-3 py-1 rounded-full text-xs font-bold"
+                              style={{
+                                backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}20`,
+                                color: tierColors[champion.tier as keyof typeof tierColors],
+                                boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors]}30`
+                              }}
+                            >
+                              {champion.tier}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Win Rate */}
+                        <div className="col-span-1 py-3 px-4 text-right font-medium">
+                          {champion.winRate.toFixed(1)}%
+                        </div>
+                        
+                        {/* Pick Rate */}
+                        <div className="col-span-1 py-3 px-4 text-right font-medium">
+                          {champion.pickRate.toFixed(1)}%
+                        </div>
+                        
+                        {/* Total Games */}
+                        <div className="col-span-2 py-3 px-4 text-right text-zinc-400">
+                          {champion.totalGames.toLocaleString()}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-8 text-center text-zinc-500">No champions found matching your criteria</div>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Grid view - Keep existing implementation */}
+              {/* ... */}
+            </Tabs>
+          )}
         </div>
       </main>
     </div>
