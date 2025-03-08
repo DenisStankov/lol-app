@@ -62,6 +62,26 @@ interface RoleStatsResponse {
   tier: string
 }
 
+// Define simple representation for roles
+const roleIcons: Record<string, { label: string, abbreviation: string, color: string }> = {
+  "": { label: "All Roles", abbreviation: "*", color: "#FFFFFF" },
+  "TOP": { label: "Top", abbreviation: "TOP", color: "#FF9500" },
+  "JUNGLE": { label: "Jungle", abbreviation: "JNG", color: "#19B326" },
+  "MIDDLE": { label: "Mid", abbreviation: "MID", color: "#4F8EFF" },
+  "BOTTOM": { label: "Bot", abbreviation: "BOT", color: "#FF4E50" },
+  "UTILITY": { label: "Support", abbreviation: "SUP", color: "#CC66FF" }
+}
+
+// Define simple representation for tiers
+const tierColors: Record<string, string> = {
+  "S+": "#FF4E50", // Red
+  "S": "#FF9500",  // Orange
+  "A": "#FFCC00",  // Yellow
+  "B": "#00CC88",  // Teal
+  "C": "#4F8EFF",  // Blue
+  "D": "#A855F7",  // Purple
+}
+
 export default function TierList() {
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedTier, setSelectedTier] = useState("")
@@ -368,98 +388,33 @@ export default function TierList() {
           {/* Role and search filters */}
           <div className="flex flex-wrap items-center justify-center gap-3">
             {/* Role icons - made smaller */}
-            <button
-              onClick={() => setSelectedRole("")}
-              className={`p-1.5 rounded-md transition-colors ${selectedRole === "" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-              title="All Roles"
-            >
-              <div className="w-6 h-6 flex items-center justify-center text-zinc-300">
-                <span className="text-lg">*</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setSelectedRole("TOP")}
-              className={`p-1.5 rounded-md transition-colors ${selectedRole === "TOP" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-              title="Top"
-            >
-              <div className="w-6 h-6 flex items-center justify-center">
-                <Image src="/images/roles/top.svg" alt="Top" width={20} height={20} className="object-contain" />
-              </div>
-            </button>
-            <button
-              onClick={() => setSelectedRole("JUNGLE")}
-              className={`p-1.5 rounded-md transition-colors ${selectedRole === "JUNGLE" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-              title="Jungle"
-            >
-              <div className="w-6 h-6 flex items-center justify-center">
-                <Image src="/images/roles/jungle.svg" alt="Jungle" width={20} height={20} className="object-contain" />
-              </div>
-            </button>
-            <button
-              onClick={() => setSelectedRole("MIDDLE")}
-              className={`p-1.5 rounded-md transition-colors ${selectedRole === "MIDDLE" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-              title="Mid"
-            >
-              <div className="w-6 h-6 flex items-center justify-center">
-                <Image src="/images/roles/mid.svg" alt="Mid" width={20} height={20} className="object-contain" />
-              </div>
-            </button>
-            <button
-              onClick={() => setSelectedRole("BOTTOM")}
-              className={`p-1.5 rounded-md transition-colors ${selectedRole === "BOTTOM" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-              title="Bot"
-            >
-              <div className="w-6 h-6 flex items-center justify-center">
-                <Image src="/images/roles/bot.svg" alt="Bot" width={20} height={20} className="object-contain" />
-              </div>
-            </button>
-            <button
-              onClick={() => setSelectedRole("UTILITY")}
-              className={`p-1.5 rounded-md transition-colors ${selectedRole === "UTILITY" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-              title="Support"
-            >
-              <div className="w-6 h-6 flex items-center justify-center">
-                <Image src="/images/roles/support.svg" alt="Support" width={20} height={20} className="object-contain" />
-              </div>
-            </button>
+            {Object.entries(roleIcons).map(([role, info]) => (
+              <button
+                key={role}
+                onClick={() => setSelectedRole(role)}
+                className={`p-1.5 rounded-md transition-colors ${selectedRole === role ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
+                title={info.label}
+              >
+                <div 
+                  className="w-6 h-6 flex items-center justify-center text-xs font-medium"
+                  style={{ color: info.color }}
+                >
+                  {info.abbreviation}
+                </div>
+              </button>
+            ))}
 
             {/* Divider */}
             <div className="h-6 w-px bg-zinc-700 mx-1"></div>
 
-            {/* Rank Dropdown - Improved with proper icons */}
+            {/* Rank Dropdown - Simple version */}
             <div className="relative">
               <Popover>
                 <PopoverTrigger asChild>
                   <button
                     className="bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-md flex items-center gap-2 text-sm text-zinc-300"
                   >
-                    {selectedRank === "ALL" ? (
-                      <div className="flex items-center gap-1">
-                        <div className="w-5 h-5 opacity-70">
-                          <Image 
-                            src="/images/ranks/all.png" 
-                            alt="All Ranks" 
-                            width={20} 
-                            height={20} 
-                            className="object-contain"
-                          />
-                        </div>
-                        <span>ALL</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1">
-                        <div className="w-5 h-5">
-                          <Image 
-                            src={`/images/ranks/${selectedRank.toLowerCase()}.png`} 
-                            alt={selectedRank} 
-                            width={20} 
-                            height={20} 
-                            className="object-contain"
-                          />
-                        </div>
-                        <span>{selectedRank}</span>
-                      </div>
-                    )}
+                    <span>{selectedRank || "ALL"}</span>
                     <ChevronDown size={14} className="text-zinc-400" />
                   </button>
                 </PopoverTrigger>
@@ -472,19 +427,10 @@ export default function TierList() {
                           setSelectedRank(rank);
                           document.body.click(); // Close popover
                         }}
-                        className={`p-2 flex flex-col items-center justify-center rounded-md text-xs ${
+                        className={`p-2 flex items-center justify-center rounded-md text-xs ${
                           selectedRank === rank ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
                         }`}
                       >
-                        <div className="w-6 h-6 mb-1">
-                          <Image 
-                            src={`/images/ranks/${rank.toLowerCase()}.png`} 
-                            alt={rank} 
-                            width={24} 
-                            height={24} 
-                            className="object-contain"
-                          />
-                        </div>
                         <span>{rank}</span>
                       </button>
                     ))}
@@ -641,17 +587,14 @@ export default function TierList() {
                     key={`${champion.id}-${champion.role}`}
                     className="border-t border-zinc-800 hover:bg-zinc-900/50"
                   >
-                    {/* Lane Cell - Centered Icon */}
+                    {/* Lane Cell - Colored Text Instead of SVG */}
                     <td className="py-2">
                       <div className="flex items-center justify-center">
-                        <div className="w-8 h-8 flex items-center justify-center bg-zinc-800 rounded-md">
-                          <Image
-                            src={`/images/roles/${champion.role.toLowerCase()}.svg`}
-                            alt={champion.role}
-                            width={24}
-                            height={24}
-                            className="object-contain"
-                          />
+                        <div 
+                          className="w-8 h-8 rounded-md flex items-center justify-center bg-zinc-800 text-xs font-bold"
+                          style={{ color: roleIcons[champion.role]?.color || 'white' }}
+                        >
+                          {roleIcons[champion.role]?.abbreviation || champion.role}
                         </div>
                       </div>
                     </td>
@@ -675,16 +618,16 @@ export default function TierList() {
                       </div>
                     </td>
                     
-                    {/* Tier Cell - Centered Badge */}
+                    {/* Tier Cell - Centered Badge with Colored Background */}
                     <td className="py-2">
                       <div className="flex items-center justify-center">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold ${
-                          champion.tier === "S" ? "bg-yellow-500/40 text-yellow-300" :
-                          champion.tier === "A" ? "bg-green-500/40 text-green-300" :
-                          champion.tier === "B" ? "bg-blue-600/40 text-blue-300" :
-                          champion.tier === "C" ? "bg-blue-800/40 text-blue-200" :
-                          "bg-red-500/40 text-red-300"
-                        }`}>
+                        <div 
+                          className="w-7 h-7 rounded-full flex items-center justify-center font-bold"
+                          style={{
+                            backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}40`,
+                            color: tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'
+                          }}
+                        >
                           <span>{champion.tier}</span>
                         </div>
                       </div>
