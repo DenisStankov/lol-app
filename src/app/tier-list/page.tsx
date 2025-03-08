@@ -451,239 +451,360 @@ export default function TierList() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <Navigation />
-      
-      <main className="container mx-auto py-6 px-4 lg:px-8">
-        <div className="max-w-screen-2xl mx-auto">
-          <div className="flex flex-col space-y-4 mb-6">
-            <h1 className="text-4xl font-bold tracking-tight text-center">League of Legends Champion Tier List</h1>
-            <div className="flex items-center justify-center">
-              <p className="text-lg text-zinc-400">
-                Patch <span className="font-semibold text-white">{patchVersion || "Loading..."}</span>
-              </p>
-              <div className="ml-2 bg-blue-900/30 text-blue-300 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs">
-                Global Data
-              </div>
-            </div>
-          </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="text-center mb-6">
+        <h1 className="text-3xl font-bold mb-2">League of Legends Champion Tier List</h1>
+        <div className="flex items-center justify-center gap-2">
+          <span className="text-gray-300">Patch {patchVersion || "14.11.1"}</span>
+          <span className="bg-blue-600 text-xs px-2 py-0.5 rounded-full text-white">Global Data</span>
+        </div>
+      </div>
 
-          {/* Top filter bar like in the image */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg mb-6 p-3 flex items-center justify-center flex-wrap gap-3">
-            {/* Role filter pills */}
-            <div className="flex gap-2">
-              {Object.entries(roleData).map(([roleKey, roleInfo]) => (
-                <Button
-                  key={roleKey}
-                  variant="outline"
-                  className={`h-10 w-10 p-0 rounded-md ${
-                    selectedRole === roleKey 
-                      ? "bg-zinc-800 border-0" 
-                      : "bg-zinc-900 border-0 hover:bg-zinc-800"
-                  }`}
-                  style={{ 
-                    color: selectedRole === roleKey ? roleInfo.color : 'rgba(255,255,255,0.65)',
-                  }}
-                  onClick={() => {
-                    if (selectedRole === roleKey) {
-                      setSelectedRole("");
-                    } else {
-                      setSelectedRole(roleKey);
-                    }
-                  }}
-                >
-                  {roleInfo.icon}
-                </Button>
-              ))}
+      {/* Filter Bar - Made smaller with better spacing */}
+      <div className="bg-zinc-900 rounded-lg p-3 mb-6 flex flex-col gap-4">
+        {/* Role and search filters */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          {/* Role icons - made smaller */}
+          <button
+            onClick={() => setSelectedRole("")}
+            className={`p-1.5 rounded-md transition-colors ${selectedRole === "" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
+            title="All Roles"
+          >
+            <div className="w-6 h-6 flex items-center justify-center">
+              <span className="text-lg">*</span>
             </div>
-            
-            {/* Rank selector */}
+          </button>
+          <button
+            onClick={() => setSelectedRole("TOP")}
+            className={`p-1.5 rounded-md transition-colors ${selectedRole === "TOP" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
+            title="Top"
+          >
+            <div className="w-6 h-6 flex items-center justify-center">
+              <Image src="/images/roles/top.svg" alt="Top" width={20} height={20} className="object-contain" />
+            </div>
+          </button>
+          <button
+            onClick={() => setSelectedRole("JUNGLE")}
+            className={`p-1.5 rounded-md transition-colors ${selectedRole === "JUNGLE" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
+            title="Jungle"
+          >
+            <div className="w-6 h-6 flex items-center justify-center">
+              <Image src="/images/roles/jungle.svg" alt="Jungle" width={20} height={20} className="object-contain" />
+            </div>
+          </button>
+          <button
+            onClick={() => setSelectedRole("MIDDLE")}
+            className={`p-1.5 rounded-md transition-colors ${selectedRole === "MIDDLE" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
+            title="Mid"
+          >
+            <div className="w-6 h-6 flex items-center justify-center">
+              <Image src="/images/roles/mid.svg" alt="Mid" width={20} height={20} className="object-contain" />
+            </div>
+          </button>
+          <button
+            onClick={() => setSelectedRole("BOTTOM")}
+            className={`p-1.5 rounded-md transition-colors ${selectedRole === "BOTTOM" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
+            title="Bot"
+          >
+            <div className="w-6 h-6 flex items-center justify-center">
+              <Image src="/images/roles/bot.svg" alt="Bot" width={20} height={20} className="object-contain" />
+            </div>
+          </button>
+          <button
+            onClick={() => setSelectedRole("UTILITY")}
+            className={`p-1.5 rounded-md transition-colors ${selectedRole === "UTILITY" ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
+            title="Support"
+          >
+            <div className="w-6 h-6 flex items-center justify-center">
+              <Image src="/images/roles/support.svg" alt="Support" width={20} height={20} className="object-contain" />
+            </div>
+          </button>
+
+          {/* Divider */}
+          <div className="h-6 w-px bg-zinc-700 mx-1"></div>
+
+          {/* Rank Dropdown - Improved with proper icons */}
+          <div className="relative">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="h-10 bg-zinc-800 border-0">
-                  <div className="flex items-center">
-                    {selectedRank !== "ALL" && (
-                      <svg className="mr-2 h-4 w-4 text-emerald-500" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7.5 1.5L4.5 4.5H10.5L7.5 1.5Z" fill="currentColor" />
-                        <path d="M7.5 13.5L10.5 10.5H4.5L7.5 13.5Z" fill="currentColor" />
-                        <path d="M7.5 1.5V13.5M1.5 7.5H13.5" stroke="currentColor" strokeLinecap="round" />
-                      </svg>
-                    )}
-                    <span className="text-white">{selectedRank}</span>
-                    <ChevronDown className="ml-2 h-4 w-4 text-zinc-400" />
-                  </div>
-                </Button>
+                <button
+                  className="bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-md flex items-center gap-2 text-sm"
+                >
+                  {selectedRank === "ALL" ? (
+                    <div className="flex items-center gap-1">
+                      <div className="w-5 h-5 opacity-70">
+                        <Image 
+                          src="/images/ranks/all.png" 
+                          alt="All Ranks" 
+                          width={20} 
+                          height={20} 
+                          className="object-contain"
+                        />
+                      </div>
+                      <span>ALL</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <div className="w-5 h-5">
+                        <Image 
+                          src={`/images/ranks/${selectedRank.toLowerCase()}.png`} 
+                          alt={selectedRank} 
+                          width={20} 
+                          height={20} 
+                          className="object-contain"
+                        />
+                      </div>
+                      <span>{selectedRank}</span>
+                    </div>
+                  )}
+                  <ChevronDown size={14} />
+                </button>
               </PopoverTrigger>
-              <PopoverContent className="p-0 w-48 bg-zinc-800 border-zinc-700">
-                <div className="py-1">
-                  {rankOptions.map((rank) => (
+              <PopoverContent className="bg-zinc-800 border-zinc-700 p-2 w-[300px]">
+                <div className="grid grid-cols-3 gap-2">
+                  {["CHALLENGER", "GRANDMASTER", "MASTER+", "MASTER", "DIAMOND+", "DIAMOND", "EMERALD+", "EMERALD", "PLATINUM+", "PLATINUM", "GOLD+", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
                     <button
-                      key={rank.value}
-                      className={`w-full text-left px-3 py-2 text-sm ${selectedRank === rank.value ? "bg-zinc-700 text-white" : "text-zinc-400 hover:bg-zinc-700 hover:text-white"}`}
+                      key={rank}
                       onClick={() => {
-                        setSelectedRank(rank.value);
+                        setSelectedRank(rank);
+                        document.body.click(); // Close popover
                       }}
+                      className={`p-2 flex flex-col items-center justify-center rounded-md text-xs ${
+                        selectedRank === rank ? "bg-zinc-700" : "hover:bg-zinc-700"
+                      }`}
                     >
-                      {rank.label}
+                      <div className="w-6 h-6 mb-1">
+                        <Image 
+                          src={`/images/ranks/${rank.toLowerCase()}.png`} 
+                          alt={rank} 
+                          width={24} 
+                          height={24} 
+                          className="object-contain"
+                        />
+                      </div>
+                      <span>{rank}</span>
                     </button>
                   ))}
                 </div>
               </PopoverContent>
             </Popover>
-            
-            {/* Patch version */}
-            <Button variant="outline" className="h-10 bg-zinc-800 border-0">
-              <span className="text-white">{patchVersion || "Loading..."}</span>
-              <ChevronDown className="ml-2 h-4 w-4 text-zinc-400" />
-            </Button>
-            
-            {/* Search input */}
-            <div className="relative flex-grow max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500 w-4 h-4" />
-              <Input
-                placeholder="Search champions..."
-                value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const query = e.target.value;
-                  setSearchQuery(query);
-                }}
-                className="pl-10 h-10 bg-zinc-800 border-0 text-white w-full"
-              />
-              {searchQuery && (
-                <button
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                  onClick={() => {
-                    setSearchQuery("");
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
           </div>
 
-          {/* Champion list content */}
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          {/* Divider */}
+          <div className="h-6 w-px bg-zinc-700 mx-1"></div>
+
+          {/* Search bar */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+              <Search size={14} className="text-gray-400" />
             </div>
-          ) : error ? (
-            <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg">
-              {error}
-            </div>
-          ) : (
-            <Tabs value={viewMode}>
-              <TabsContent value="table" className="mt-0">
-                {/* Champion Table - with updated header to match image */}
-                <div className="rounded-lg overflow-hidden border border-zinc-800">
-                  {/* Table Header styled like image */}
-                  <div className="grid grid-cols-12 bg-zinc-950 border-b border-zinc-800 font-medium text-sm text-zinc-400">
-                    <div className="col-span-1 py-3 px-4 text-center">
-                      Lane
-                    </div>
-                    <div className="col-span-3 py-3 px-4 text-center">
-                      Champion
-                    </div>
-                    <div className="col-span-2 py-3 px-4 text-center">
-                      Tier
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info className="w-4 h-4 ml-1 text-zinc-500 inline-block" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Champion performance tier based on win rate, pick rate, and ban rate</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <div className="col-span-2 py-3 px-4 text-center">
-                      Winrate
-                    </div>
-                    <div className="col-span-2 py-3 px-4 text-center">
-                      Pickrate
-                    </div>
-                    <div className="col-span-2 py-3 px-4 text-center">
-                      Games
-                    </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search champions..."
+              className="bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-1.5 pl-7 pr-7 rounded-md w-[200px] text-sm focus:outline-none"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-2"
+              >
+                <X size={14} className="text-gray-400" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Additional filter options - optional display */}
+        {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0) && (
+          <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+            {selectedDifficulty.map((difficulty) => (
+              <span
+                key={difficulty}
+                className="bg-zinc-800 px-2 py-1 rounded-md flex items-center gap-1"
+              >
+                Difficulty: {difficulty}
+                <button onClick={() => toggleDifficultyFilter(difficulty)} className="opacity-60 hover:opacity-100">
+                  <X size={14} />
+                </button>
+              </span>
+            ))}
+            {selectedDamageType.map((damageType) => (
+              <span
+                key={damageType}
+                className="bg-zinc-800 px-2 py-1 rounded-md flex items-center gap-1"
+              >
+                Damage: {damageType}
+                <button onClick={() => toggleDamageTypeFilter(damageType)} className="opacity-60 hover:opacity-100">
+                  <X size={14} />
+                </button>
+              </span>
+            ))}
+            {selectedRange.map((range) => (
+              <span
+                key={range}
+                className="bg-zinc-800 px-2 py-1 rounded-md flex items-center gap-1"
+              >
+                Range: {range}
+                <button onClick={() => toggleRangeFilter(range)} className="opacity-60 hover:opacity-100">
+                  <X size={14} />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Champion Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-zinc-950 text-center">
+              <th className="px-3 py-2 text-sm">Lane</th>
+              <th className="px-3 py-2 text-left">Champion</th>
+              <th className="px-3 py-2 text-sm">
+                <div className="flex items-center justify-center gap-1">
+                  Tier
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info size={14} className="text-gray-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="w-[200px] text-xs">
+                        Champion tiers are calculated based on win rate, pick rate, and ban rate.
+                        S: Strongest (55%+ win rate)<br />
+                        A: Very Strong (53-55% win rate)<br />
+                        B: Strong (51-53% win rate)<br />
+                        C: Average (48-51% win rate)<br />
+                        D: Weak (below 48% win rate)
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </th>
+              <th className="px-3 py-2 text-sm">Winrate</th>
+              <th className="px-3 py-2 text-sm">Pickrate</th>
+              <th className="px-3 py-2 text-sm">Games</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-2"></div>
+                    <p>Loading champion data...</p>
                   </div>
-
-                  {/* Table Body - Keep existing implementation but add rank number */}
-                  {filteredChampions.length > 0 ? (
-                    filteredChampions.map((champion) => (
-                      <div
-                        key={champion.id}
-                        className="grid grid-cols-12 border-b border-zinc-800 hover:bg-zinc-800/50 text-sm"
-                      >
-                        {/* Lane */}
-                        <div className="col-span-1 py-3 px-4 flex items-center justify-center">
-                          <div 
-                            className="w-8 h-8 flex items-center justify-center rounded-md bg-zinc-800"
-                            style={{ 
-                              color: roleData[champion.role]?.color || '#FFFFFF',
-                              border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
-                            }}
-                          >
-                            {roleData[champion.role]?.icon || roleData[""].icon}
-                          </div>
-                        </div>
-
-                        {/* Champion */}
-                        <div className="col-span-3 py-3 px-4 flex items-center justify-center">
-                          <div className="flex items-center">
-                            <div className="h-10 w-10 relative overflow-hidden rounded-md">
-                              <Image
-                                src={champion.image || "/placeholder.svg"}
-                                alt={champion.name}
-                                width={40}
-                                height={40}
-                                className="object-cover"
-                                unoptimized
-                              />
-                            </div>
-                            <span className="ml-3 font-medium text-white">{champion.name}</span>
-                          </div>
-                        </div>
-                        
-                        {/* Tier */}
-                        <div className="col-span-2 py-3 px-4 flex items-center justify-center">
-                          <span
-                            className="inline-block w-8 h-8 flex items-center justify-center rounded-full text-center"
-                            style={{
-                              backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}40`,
-                              color: tierColors[champion.tier as keyof typeof tierColors],
-                              boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors]}30`
-                            }}
-                          >
-                            {champion.tier}
-                          </span>
-                        </div>
-                        
-                        {/* Win Rate */}
-                        <div className="col-span-2 py-3 px-4 text-center font-medium">
-                          {champion.winRate.toFixed(1)}%
-                        </div>
-                        
-                        {/* Pick Rate */}
-                        <div className="col-span-2 py-3 px-4 text-center font-medium">
-                          {champion.pickRate.toFixed(1)}%
-                        </div>
-                        
-                        {/* Total Games */}
-                        <div className="col-span-2 py-3 px-4 text-center text-zinc-400">
-                          {champion.totalGames.toLocaleString()}
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8 text-red-400">
+                  <p>{error}</p>
+                  <button
+                    onClick={fetchChampions}
+                    className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm"
+                  >
+                    Try Again
+                  </button>
+                </td>
+              </tr>
+            ) : filteredChampions.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  <p>No champions found matching your filters.</p>
+                  <button
+                    onClick={() => {
+                      setSelectedRole("")
+                      setSelectedTier("")
+                      setSelectedRank("ALL")
+                      setSelectedDifficulty([])
+                      setSelectedDamageType([])
+                      setSelectedRange([])
+                      setSearchQuery("")
+                    }}
+                    className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm"
+                  >
+                    Clear Filters
+                  </button>
+                </td>
+              </tr>
+            ) : (
+              filteredChampions.map((champion) => (
+                <tr
+                  key={`${champion.id}-${champion.role}`}
+                  className="border-t border-zinc-800 hover:bg-zinc-900/50"
+                >
+                  {/* Lane Cell - Centered Icon */}
+                  <td className="py-2">
+                    <div className="flex items-center justify-center">
+                      <div className="w-8 h-8 flex items-center justify-center">
+                        <Image
+                          src={`/images/roles/${champion.role.toLowerCase()}.svg`}
+                          alt={champion.role}
+                          width={24}
+                          height={24}
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Champion Cell - Better Alignment */}
+                  <td className="py-2">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 flex items-center justify-center mr-3">
+                        <div className="w-9 h-9 overflow-hidden rounded-full">
+                          <Image
+                            src={champion.image}
+                            alt={champion.name}
+                            width={36}
+                            height={36}
+                            className="object-cover"
+                            unoptimized
+                          />
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="py-8 text-center text-zinc-500">No champions found matching your criteria</div>
-                  )}
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
-        </div>
-      </main>
+                      <span>{champion.name}</span>
+                    </div>
+                  </td>
+                  
+                  {/* Tier Cell - Centered Badge */}
+                  <td className="py-2">
+                    <div className="flex items-center justify-center">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                        champion.tier === "S" ? "bg-yellow-500/40" :
+                        champion.tier === "A" ? "bg-green-500/40" :
+                        champion.tier === "B" ? "bg-blue-600/40" :
+                        champion.tier === "C" ? "bg-blue-800/40" :
+                        "bg-red-500/40"
+                      }`}>
+                        <span>{champion.tier}</span>
+                      </div>
+                    </div>
+                  </td>
+                  
+                  {/* Win Rate Cell - Centered Text */}
+                  <td className="py-2 text-center">
+                    {(champion.winRate * 100).toFixed(1)}%
+                  </td>
+                  
+                  {/* Pick Rate Cell - Centered Text */}
+                  <td className="py-2 text-center">
+                    {(champion.pickRate * 100).toFixed(1)}%
+                  </td>
+                  
+                  {/* Games Cell - Centered Text */}
+                  <td className="py-2 text-center">
+                    {champion.totalGames.toLocaleString()}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
