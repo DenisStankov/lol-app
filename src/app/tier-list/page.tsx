@@ -6,8 +6,7 @@ import Image from "next/image"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Badge } from "@/components/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs"
+import { Tabs, TabsContent } from "@/components/tabs"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 
@@ -150,7 +149,7 @@ export default function TierList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [viewMode, setViewMode] = useState("table")
+  const [viewMode] = useState("table")
   const [patchVersion, setPatchVersion] = useState("")
   const [sortBy, setSortBy] = useState("tier")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
@@ -160,7 +159,6 @@ export default function TierList() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([])
   const [selectedDamageType, setSelectedDamageType] = useState<string[]>([])
   const [selectedRange, setSelectedRange] = useState<string[]>([])
-  const [activeFilters, setActiveFilters] = useState<string[]>([])
 
   // Rank options for the dropdown
   const rankOptions = [
@@ -176,16 +174,6 @@ export default function TierList() {
     { value: "GRANDMASTER+", label: "GRANDMASTER+" },
     { value: "CHALLENGER", label: "CHALLENGER" },
   ];
-
-  // Sort options for the dropdown
-  const sortOptions = [
-    { value: "tier", label: "Tier" },
-    { value: "winRate", label: "Win Rate" },
-    { value: "pickRate", label: "Pick Rate" },
-    { value: "banRate", label: "Ban Rate" },
-    { value: "totalGames", label: "Total Games" },
-    { value: "name", label: "Name" },
-  ]
 
   // Use useCallback to memoize the fetchChampions function
   const fetchChampions = useCallback(async () => {
@@ -258,41 +246,6 @@ export default function TierList() {
   useEffect(() => {
     fetchChampions()
   }, [fetchChampions])
-
-  // Update active filters display
-  useEffect(() => {
-    const filters: string[] = []
-
-    if (selectedRole) {
-      filters.push(`Role: ${selectedRole.toUpperCase()}`)
-    }
-
-    if (selectedTier) {
-      filters.push(`Tier: ${selectedTier}`)
-    }
-
-    if (selectedRank !== "ALL") {
-      filters.push(`Rank: ${selectedRank}`)
-    }
-
-    if (selectedDifficulty.length > 0) {
-      filters.push(`Difficulty: ${selectedDifficulty.join(", ")}`)
-    }
-
-    if (selectedDamageType.length > 0) {
-      filters.push(`Damage: ${selectedDamageType.join(", ")}`)
-    }
-
-    if (selectedRange.length > 0) {
-      filters.push(`Range: ${selectedRange.join(", ")}`)
-    }
-
-    if (searchQuery) {
-      filters.push(`Search: ${searchQuery}`)
-    }
-
-    setActiveFilters(filters)
-  }, [selectedRole, selectedTier, selectedRank, selectedDifficulty, selectedDamageType, selectedRange, searchQuery])
 
   // Filter and sort champions
   useEffect(() => {
@@ -401,40 +354,33 @@ export default function TierList() {
     setSelectedDamageType([]);
     setSelectedRange([]);
     setSearchQuery("");
-    setActiveFilters([]); // Clear all active filters at once
   }
 
   const removeFilter = (filter: string) => {
     if (filter.startsWith("Role:")) {
       setSelectedRole("");
-      updateActiveFilters({role: ""});
     } else if (filter.startsWith("Tier:")) {
       setSelectedTier("");
-      updateActiveFilters({tier: ""});
     } else if (filter.startsWith("Difficulty:")) {
       const difficulty = filter.replace("Difficulty: ", "");
       setSelectedDifficulty(prev => {
         const updated = prev.filter(item => item !== difficulty);
-        updateActiveFilters({difficulty: updated});
         return updated;
       });
     } else if (filter.startsWith("Damage:")) {
       const damageType = filter.replace("Damage: ", "");
       setSelectedDamageType(prev => {
         const updated = prev.filter(item => item !== damageType);
-        updateActiveFilters({damageType: updated});
         return updated;
       });
     } else if (filter.startsWith("Range:")) {
       const range = filter.replace("Range: ", "");
       setSelectedRange(prev => {
         const updated = prev.filter(item => item !== range);
-        updateActiveFilters({range: updated});
         return updated;
       });
     } else if (filter.startsWith("Search:")) {
       setSearchQuery("");
-      updateActiveFilters({search: ""});
     }
   }
 
@@ -443,9 +389,6 @@ export default function TierList() {
       const updated = prev.includes(value) 
         ? prev.filter((item) => item !== value) 
         : [...prev, value];
-      
-      // Update active filters
-      updateActiveFilters({difficulty: updated});
       return updated;
     });
   }
@@ -455,9 +398,6 @@ export default function TierList() {
       const updated = prev.includes(value) 
         ? prev.filter((item) => item !== value) 
         : [...prev, value];
-      
-      // Update active filters
-      updateActiveFilters({damageType: updated});
       return updated;
     });
   }
@@ -467,62 +407,6 @@ export default function TierList() {
       const updated = prev.includes(value) 
         ? prev.filter((item) => item !== value) 
         : [...prev, value];
-      
-      // Update active filters
-      updateActiveFilters({range: updated});
-      return updated;
-    });
-  }
-
-  // Add a helper function to update active filters
-  const updateActiveFilters = (filters: {
-    role?: string;
-    tier?: string;
-    rank?: string;
-    difficulty?: string[];
-    damageType?: string[];
-    range?: string[];
-    search?: string;
-  }) => {
-    setActiveFilters((prev) => {
-      let updated = [...prev];
-      
-      // Remove related filter types first
-      if (filters.role !== undefined) {
-        updated = updated.filter(f => !f.startsWith('Role:'));
-        if (filters.role) updated.push(`Role: ${filters.role}`);
-      }
-      
-      if (filters.tier !== undefined) {
-        updated = updated.filter(f => !f.startsWith('Tier:'));
-        if (filters.tier) updated.push(`Tier: ${filters.tier}`);
-      }
-      
-      if (filters.rank !== undefined) {
-        updated = updated.filter(f => !f.startsWith('Rank:'));
-        if (filters.rank && filters.rank !== "ALL") updated.push(`Rank: ${filters.rank}`);
-      }
-      
-      if (filters.difficulty !== undefined) {
-        updated = updated.filter(f => !f.startsWith('Difficulty:'));
-        filters.difficulty.forEach(d => updated.push(`Difficulty: ${d}`));
-      }
-      
-      if (filters.damageType !== undefined) {
-        updated = updated.filter(f => !f.startsWith('Damage:'));
-        filters.damageType.forEach(d => updated.push(`Damage: ${d}`));
-      }
-      
-      if (filters.range !== undefined) {
-        updated = updated.filter(f => !f.startsWith('Range:'));
-        filters.range.forEach(r => updated.push(`Range: ${r}`));
-      }
-      
-      if (filters.search !== undefined) {
-        updated = updated.filter(f => !f.startsWith('Search:'));
-        if (filters.search) updated.push(`Search: ${filters.search}`);
-      }
-      
       return updated;
     });
   }
@@ -591,10 +475,8 @@ export default function TierList() {
                   onClick={() => {
                     if (selectedRole === roleKey) {
                       setSelectedRole("");
-                      updateActiveFilters({role: ""});
                     } else {
                       setSelectedRole(roleKey);
-                      updateActiveFilters({role: roleKey});
                     }
                   }}
                 >
@@ -628,7 +510,6 @@ export default function TierList() {
                       className={`w-full text-left px-3 py-2 text-sm ${selectedRank === rank.value ? "bg-zinc-700 text-white" : "text-zinc-400 hover:bg-zinc-700 hover:text-white"}`}
                       onClick={() => {
                         setSelectedRank(rank.value);
-                        updateActiveFilters({rank: rank.value});
                       }}
                     >
                       {rank.label}
@@ -653,7 +534,6 @@ export default function TierList() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const query = e.target.value;
                   setSearchQuery(query);
-                  updateActiveFilters({search: query});
                 }}
                 className="pl-10 h-10 bg-zinc-800 border-0 text-white w-full"
               />
@@ -662,7 +542,6 @@ export default function TierList() {
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
                   onClick={() => {
                     setSearchQuery("");
-                    updateActiveFilters({search: ""});
                   }}
                 >
                   <X className="w-4 h-4" />
