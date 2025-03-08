@@ -151,8 +151,10 @@ export default function TierList() {
   const [searchQuery, setSearchQuery] = useState("")
   const [viewMode] = useState("table")
   const [patchVersion, setPatchVersion] = useState("")
-  const [sortBy, /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ setSortBy] = useState<string>("tier")
-  const [sortOrder, /* eslint-disable-next-line @typescript-eslint/no-unused-vars */ setSortOrder] = useState<"asc" | "desc">("desc")
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sortBy, setSortBy] = useState("tier")
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedTier, setSelectedTier] = useState("")
   const [selectedRank, setSelectedRank] = useState("ALL")
