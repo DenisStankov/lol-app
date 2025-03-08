@@ -39,6 +39,7 @@ interface ChampionDataResponse {
 }
 
 // Role mapping for consistent naming
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const roleMapping: Record<string, string> = {
   "TOP": "TOP",
   "JUNGLE": "JUNGLE",
@@ -161,6 +162,11 @@ function getDifficulty(info: ChampionInfo): 'Easy' | 'Medium' | 'Hard' {
   return 'Hard';
 }
 
+// Function to normalize role names
+function normalizeRoleName(role: string): string {
+  return roleMapping[role] || role;
+}
+
 // Fetch champion stats from Riot API
 async function fetchChampionStats(): Promise<Record<string, Record<string, RoleStats>>> {
   try {
@@ -179,15 +185,56 @@ async function fetchChampionStats(): Promise<Record<string, Record<string, RoleS
     
     // Popular champions in their respective roles with realistic stats
     const popularChampions = [
-      { id: 'Yasuo', roles: ['MIDDLE'], winRate: 49.2, pickRate: 12.5, banRate: 18.3 },
+      // TOP LANE
       { id: 'Darius', roles: ['TOP'], winRate: 51.7, pickRate: 9.8, banRate: 15.2 },
-      { id: 'LeeSin', roles: ['JUNGLE'], winRate: 48.3, pickRate: 11.2, banRate: 8.7 },
-      { id: 'Jinx', roles: ['BOTTOM'], winRate: 52.1, pickRate: 14.5, banRate: 7.8 },
-      { id: 'Thresh', roles: ['UTILITY'], winRate: 50.9, pickRate: 13.7, banRate: 6.2 },
-      { id: 'Zed', roles: ['MIDDLE'], winRate: 50.3, pickRate: 10.8, banRate: 20.1 },
+      { id: 'Jax', roles: ['TOP', 'JUNGLE'], winRate: 50.3, pickRate: 8.2, banRate: 9.5 },
+      { id: 'Sett', roles: ['TOP'], winRate: 52.4, pickRate: 7.8, banRate: 6.9 },
+      { id: 'Fiora', roles: ['TOP'], winRate: 49.8, pickRate: 7.2, banRate: 8.1 },
+      { id: 'Camille', roles: ['TOP'], winRate: 50.2, pickRate: 6.4, banRate: 4.3 },
       { id: 'Irelia', roles: ['TOP', 'MIDDLE'], winRate: 49.5, pickRate: 8.9, banRate: 12.3 },
+      { id: 'Garen', roles: ['TOP'], winRate: 51.9, pickRate: 5.6, banRate: 2.8 },
+      { id: 'Mordekaiser', roles: ['TOP'], winRate: 52.3, pickRate: 6.1, banRate: 7.2 },
+
+      // JUNGLE
+      { id: 'LeeSin', roles: ['JUNGLE'], winRate: 48.3, pickRate: 11.2, banRate: 8.7 },
+      { id: 'Kayn', roles: ['JUNGLE'], winRate: 50.7, pickRate: 10.1, banRate: 11.5 },
+      { id: 'Graves', roles: ['JUNGLE'], winRate: 49.8, pickRate: 7.5, banRate: 4.1 },
+      { id: 'Hecarim', roles: ['JUNGLE'], winRate: 52.2, pickRate: 8.3, banRate: 9.6 },
+      { id: 'Udyr', roles: ['JUNGLE'], winRate: 53.1, pickRate: 5.4, banRate: 7.8 },
+      { id: 'Karthus', roles: ['JUNGLE'], winRate: 51.3, pickRate: 4.2, banRate: 2.1 },
+      { id: 'Khazix', roles: ['JUNGLE'], winRate: 50.2, pickRate: 6.8, banRate: 5.4 },
+      { id: 'Shaco', roles: ['JUNGLE', 'UTILITY'], winRate: 51.4, pickRate: 6.3, banRate: 10.2 },
+
+      // MIDDLE
+      { id: 'Yasuo', roles: ['MIDDLE'], winRate: 49.2, pickRate: 12.5, banRate: 18.3 },
+      { id: 'Zed', roles: ['MIDDLE'], winRate: 50.3, pickRate: 10.8, banRate: 20.1 },
+      { id: 'Ahri', roles: ['MIDDLE'], winRate: 51.5, pickRate: 9.3, banRate: 3.2 },
+      { id: 'Syndra', roles: ['MIDDLE'], winRate: 49.7, pickRate: 6.1, banRate: 2.8 },
+      { id: 'Viktor', roles: ['MIDDLE'], winRate: 52.1, pickRate: 5.7, banRate: 3.1 },
+      { id: 'Leblanc', roles: ['MIDDLE'], winRate: 48.9, pickRate: 7.2, banRate: 9.3 },
+      { id: 'Katarina', roles: ['MIDDLE'], winRate: 50.8, pickRate: 8.4, banRate: 12.5 },
+      { id: 'Sylas', roles: ['MIDDLE', 'TOP'], winRate: 50.1, pickRate: 9.1, banRate: 11.2 },
       { id: 'Lux', roles: ['MIDDLE', 'UTILITY'], winRate: 51.8, pickRate: 11.5, banRate: 5.6 },
-      // Add more champions as needed
+
+      // BOTTOM
+      { id: 'Jinx', roles: ['BOTTOM'], winRate: 52.1, pickRate: 14.5, banRate: 7.8 },
+      { id: 'Caitlyn', roles: ['BOTTOM'], winRate: 50.6, pickRate: 12.8, banRate: 6.9 },
+      { id: 'Ezreal', roles: ['BOTTOM'], winRate: 49.2, pickRate: 15.6, banRate: 5.3 },
+      { id: 'Jhin', roles: ['BOTTOM'], winRate: 51.3, pickRate: 11.2, banRate: 4.1 },
+      { id: 'Vayne', roles: ['BOTTOM', 'TOP'], winRate: 50.4, pickRate: 10.6, banRate: 14.2 },
+      { id: 'Samira', roles: ['BOTTOM'], winRate: 50.9, pickRate: 9.7, banRate: 16.8 },
+      { id: 'KaiSa', roles: ['BOTTOM'], winRate: 49.8, pickRate: 13.2, banRate: 6.3 },
+      { id: 'MissFortune', roles: ['BOTTOM'], winRate: 52.4, pickRate: 8.9, banRate: 2.7 },
+
+      // UTILITY (SUPPORT)
+      { id: 'Thresh', roles: ['UTILITY'], winRate: 50.9, pickRate: 13.7, banRate: 6.2 },
+      { id: 'Pyke', roles: ['UTILITY'], winRate: 50.2, pickRate: 9.3, banRate: 12.8 },
+      { id: 'Blitzcrank', roles: ['UTILITY'], winRate: 51.6, pickRate: 10.2, banRate: 18.9 },
+      { id: 'Leona', roles: ['UTILITY'], winRate: 51.8, pickRate: 8.7, banRate: 9.4 },
+      { id: 'Morgana', roles: ['UTILITY', 'MIDDLE'], winRate: 50.5, pickRate: 10.4, banRate: 22.3 },
+      { id: 'Nami', roles: ['UTILITY'], winRate: 51.3, pickRate: 7.1, banRate: 2.1 },
+      { id: 'Soraka', roles: ['UTILITY'], winRate: 52.7, pickRate: 6.8, banRate: 4.6 },
+      { id: 'Yuumi', roles: ['UTILITY'], winRate: 48.9, pickRate: 8.2, banRate: 19.5 },
     ];
     
     popularChampions.forEach(champion => {
@@ -196,12 +243,15 @@ async function fetchChampionStats(): Promise<Record<string, Record<string, RoleS
       }
       
       champion.roles.forEach(role => {
+        // Normalize the role name using our mapping
+        const normalizedRole = normalizeRoleName(role);
+        
         // Adjust stats slightly for secondary roles
         const isSecondaryRole = role !== champion.roles[0];
         const winRateAdjustment = isSecondaryRole ? -1.5 : 0;
         const pickRateAdjustment = isSecondaryRole ? -3.0 : 0;
         
-        champStats[champion.id][role] = {
+        champStats[champion.id][normalizedRole] = {
           winRate: champion.winRate + winRateAdjustment,
           pickRate: champion.pickRate + pickRateAdjustment,
           banRate: champion.banRate,
@@ -296,6 +346,9 @@ export async function GET(request: Request) {
         
         // Create data for each potential role
         potentialRoles.forEach((role, index) => {
+          // Normalize the role name
+          const normalizedRole = normalizeRoleName(role);
+          
           // Primary role gets better stats than secondary roles
           const isPrimary = index === 0;
           
@@ -314,7 +367,7 @@ export async function GET(request: Request) {
           // Calculate tier
           const tier = calculateTier(baseWinRate, pickRate, banRate);
           
-          roles[role] = {
+          roles[normalizedRole] = {
             winRate: parseFloat(baseWinRate.toFixed(1)),
             pickRate: parseFloat(pickRate.toFixed(1)),
             banRate: parseFloat(banRate.toFixed(1)),

@@ -591,10 +591,34 @@ export default function TierList() {
             <thead>
               <tr className="bg-zinc-900 text-zinc-300 text-center border-b border-zinc-800">
                 <th className="px-3 py-2 text-sm">Lane</th>
-                <th className="px-3 py-2 text-left">Champion</th>
+                <th className="px-3 py-2 text-left">
+                  <button 
+                    onClick={() => {
+                      setSortBy("name")
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    }}
+                    className="flex items-center hover:text-blue-400 transition-colors"
+                  >
+                    Champion
+                    {sortBy === "name" && (
+                      <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                </th>
                 <th className="px-3 py-2 text-sm">
                   <div className="flex items-center justify-center gap-1">
-                    Tier
+                    <button 
+                      onClick={() => {
+                        setSortBy("tier")
+                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                      }}
+                      className="flex items-center hover:text-blue-400 transition-colors"
+                    >
+                      Tier
+                      {sortBy === "tier" && (
+                        <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                      )}
+                    </button>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
@@ -603,26 +627,80 @@ export default function TierList() {
                         <TooltipContent className="bg-zinc-800 border border-zinc-700 text-zinc-300">
                           <p className="w-[200px] text-xs">
                             Champion tiers are calculated based on win rate, pick rate, and ban rate.
-                            S: Strongest (55%+ win rate)<br />
-                            A: Very Strong (53-55% win rate)<br />
-                            B: Strong (51-53% win rate)<br />
-                            C: Average (48-51% win rate)<br />
-                            D: Weak (below 48% win rate)
+                            S+: Overpowered (top tier)<br />
+                            S: Very strong<br />
+                            A: Strong<br />
+                            B: Balanced<br />
+                            C: Below average<br />
+                            D: Weak
                           </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
                 </th>
-                <th className="px-3 py-2 text-sm">Winrate</th>
-                <th className="px-3 py-2 text-sm">Pickrate</th>
-                <th className="px-3 py-2 text-sm">Games</th>
+                <th className="px-3 py-2 text-sm">
+                  <button 
+                    onClick={() => {
+                      setSortBy("winRate")
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    }}
+                    className="flex items-center justify-center hover:text-blue-400 transition-colors w-full"
+                  >
+                    Winrate
+                    {sortBy === "winRate" && (
+                      <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                </th>
+                <th className="px-3 py-2 text-sm">
+                  <button 
+                    onClick={() => {
+                      setSortBy("pickRate")
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    }}
+                    className="flex items-center justify-center hover:text-blue-400 transition-colors w-full"
+                  >
+                    Pickrate
+                    {sortBy === "pickRate" && (
+                      <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                </th>
+                <th className="px-3 py-2 text-sm">
+                  <button 
+                    onClick={() => {
+                      setSortBy("banRate")
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    }}
+                    className="flex items-center justify-center hover:text-blue-400 transition-colors w-full"
+                  >
+                    Banrate
+                    {sortBy === "banRate" && (
+                      <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                </th>
+                <th className="px-3 py-2 text-sm">
+                  <button 
+                    onClick={() => {
+                      setSortBy("totalGames")
+                      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                    }}
+                    className="flex items-center justify-center hover:text-blue-400 transition-colors w-full"
+                  >
+                    Games
+                    {sortBy === "totalGames" && (
+                      <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody className="text-zinc-300">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8">
+                  <td colSpan={7} className="text-center py-8">
                     <div className="flex flex-col items-center justify-center">
                       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-2"></div>
                       <p>Loading champion data...</p>
@@ -631,7 +709,7 @@ export default function TierList() {
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-red-400">
+                  <td colSpan={7} className="text-center py-8 text-red-400">
                     <p>{error}</p>
                     <button
                       onClick={fetchChampions}
@@ -643,7 +721,7 @@ export default function TierList() {
                 </tr>
               ) : filteredChampions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8">
+                  <td colSpan={7} className="text-center py-8">
                     <p>No champions found matching your filters.</p>
                     <button
                       onClick={() => {
@@ -725,6 +803,11 @@ export default function TierList() {
                     {/* Pick Rate Cell - Centered Text */}
                     <td className="py-2 text-center font-medium">
                       {(champion.pickRate * 100).toFixed(1)}%
+                    </td>
+                    
+                    {/* Ban Rate Cell - Centered Text */}
+                    <td className="py-2 text-center font-medium">
+                      {(champion.banRate * 100).toFixed(1)}%
                     </td>
                     
                     {/* Games Cell - Centered Text */}
