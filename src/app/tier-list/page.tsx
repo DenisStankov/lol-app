@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { ChevronDown, Search, X, ChevronUp, Info } from "lucide-react"
+import { ChevronDown, Search, X, Info } from "lucide-react"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
@@ -351,15 +351,6 @@ export default function TierList() {
     searchQuery,
   ])
 
-  const handleHeaderClick = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-    } else {
-      setSortBy(column)
-      setSortOrder("desc")
-    }
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const clearAllFilters = () => {
     setSelectedRole("");
@@ -617,7 +608,7 @@ export default function TierList() {
 
                   {/* Table Body - Keep existing implementation but add rank number */}
                   {filteredChampions.length > 0 ? (
-                    filteredChampions.map((champion, index) => (
+                    filteredChampions.map((champion) => (
                       <div
                         key={champion.id}
                         className="grid grid-cols-12 border-b border-zinc-800 hover:bg-zinc-800/50 text-sm"
