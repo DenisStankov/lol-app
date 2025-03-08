@@ -1,13 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { ChevronDown, Search, X, ChevronUp, Info } from "lucide-react"
+import { ChevronDown, Search, X, ChevronUp, Info, Square, Asterisk, Slash, Flower } from "lucide-react"
 import Image from "next/image"
 import Navigation from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Badge } from "@/components/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
 
@@ -68,60 +68,36 @@ const tierColors: Record<string, string> = {
   "D": "#A855F7",  // Purple
 }
 
-// Define role icons and colors for the UI - using icons similar to the provided image
+// Define role icons using Lucide icons that match the UI in the user's image
 const roleData: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   "": { 
     label: "ALL", 
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 4L14 8.5L19 9.5L15.5 13L16.5 18L12 15.5L7.5 18L8.5 13L5 9.5L10 8.5L12 4Z" />
-      </svg>
-    ),  
+    icon: <Asterisk size={18} />,  
     color: "#FFFFFF" 
   },
   "top": { 
     label: "TOP", 
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <rect x="6" y="6" width="12" height="12" />
-      </svg>
-    ), 
+    icon: <Square size={18} fill="currentColor" />, 
     color: "#FF9500" 
   },
   "jungle": { 
     label: "JNG", 
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M7 17L12 7L17 17H7Z" />
-      </svg>
-    ), 
+    icon: <Flower size={18} />, 
     color: "#19B326" 
   },
   "mid": { 
     label: "MID", 
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" fill="none">
-        <line x1="6" y1="18" x2="18" y2="6" strokeLinecap="round" />
-      </svg>
-    ), 
+    icon: <Slash size={18} />, 
     color: "#4F8EFF" 
   },
   "bot": { 
     label: "BOT", 
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none">
-        <rect x="6" y="6" width="12" height="12" />
-      </svg>
-    ), 
+    icon: <Square size={18} strokeWidth={2} fill="none" />, 
     color: "#FF4E50" 
   },
   "support": { 
     label: "SUP", 
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 4L7 12L12 20L17 12L12 4Z" />
-      </svg>
-    ), 
+    icon: <Flower size={18} />, 
     color: "#CC66FF" 
   }
 }
@@ -580,20 +556,18 @@ export default function TierList() {
                   {/* Roles */}
                   <div>
                     <label className="block mb-2 text-sm font-medium text-zinc-400">Roles</label>
-                    <div className="grid grid-cols-6 gap-2">
+                    <div className="grid grid-cols-6 gap-1.5">
                       {Object.entries(roleData).map(([roleKey, roleInfo]) => (
                         <Button
                           key={roleKey}
-                          variant={selectedRole === roleKey ? "default" : "outline"}
-                          className={`h-10 rounded-md p-0 ${
+                          variant="outline"
+                          className={`h-11 rounded-md ${
                             selectedRole === roleKey 
-                              ? "bg-zinc-700/90 hover:bg-zinc-700" 
-                              : "bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-700/50"
+                              ? "bg-zinc-800 border-0" 
+                              : "bg-zinc-900 border-0 hover:bg-zinc-800"
                           }`}
                           style={{ 
-                            borderColor: selectedRole === roleKey ? roleInfo.color : 'transparent',
-                            color: roleInfo.color,
-                            ...(selectedRole === roleKey ? { boxShadow: `0 0 8px ${roleInfo.color}40` } : {})
+                            color: selectedRole === roleKey ? roleInfo.color : 'rgba(255,255,255,0.65)',
                           }}
                           onClick={() => {
                             if (selectedRole === roleKey) {
@@ -928,11 +902,9 @@ export default function TierList() {
                             <div className="col-span-2 py-3 px-4">
                               <div className="flex items-center justify-center">
                                 <div 
-                                  className="w-8 h-8 flex items-center justify-center rounded-md"
+                                  className="w-8 h-8 flex items-center justify-center rounded-md bg-zinc-800"
                                   style={{ 
-                                    backgroundColor: `${roleData[champion.role]?.color || '#FFFFFF'}20`,
-                                    color: roleData[champion.role]?.color || '#FFFFFF',
-                                    border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
+                                    color: roleData[champion.role]?.color || '#FFFFFF'
                                   }}
                                 >
                                   {roleData[champion.role]?.icon || roleData[""].icon}
