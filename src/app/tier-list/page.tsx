@@ -68,14 +68,62 @@ const tierColors: Record<string, string> = {
   "D": "#A855F7",  // Purple
 }
 
-// Define role icons and colors for the UI - using text abbreviations with dpm.lol styling
-const roleData: Record<string, { label: string; icon: string; color: string }> = {
-  "top": { label: "TOP", icon: "TOP", color: "#FF9500" },
-  "jungle": { label: "JNG", icon: "JNG", color: "#19B326" },
-  "mid": { label: "MID", icon: "MID", color: "#4F8EFF" },
-  "bot": { label: "BOT", icon: "BOT", color: "#FF4E50" },
-  "support": { label: "SUP", icon: "SUP", color: "#CC66FF" },
-  "": { label: "ALL", icon: "ALL", color: "#FFFFFF" }
+// Define role icons and colors for the UI - using icons similar to the provided image
+const roleData: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  "": { 
+    label: "ALL", 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 4L14 8.5L19 9.5L15.5 13L16.5 18L12 15.5L7.5 18L8.5 13L5 9.5L10 8.5L12 4Z" />
+      </svg>
+    ),  
+    color: "#FFFFFF" 
+  },
+  "top": { 
+    label: "TOP", 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="6" y="6" width="12" height="12" />
+      </svg>
+    ), 
+    color: "#FF9500" 
+  },
+  "jungle": { 
+    label: "JNG", 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M7 17L12 7L17 17H7Z" />
+      </svg>
+    ), 
+    color: "#19B326" 
+  },
+  "mid": { 
+    label: "MID", 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" fill="none">
+        <line x1="6" y1="18" x2="18" y2="6" strokeLinecap="round" />
+      </svg>
+    ), 
+    color: "#4F8EFF" 
+  },
+  "bot": { 
+    label: "BOT", 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none">
+        <rect x="6" y="6" width="12" height="12" />
+      </svg>
+    ), 
+    color: "#FF4E50" 
+  },
+  "support": { 
+    label: "SUP", 
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 4L7 12L12 20L17 12L12 4Z" />
+      </svg>
+    ), 
+    color: "#CC66FF" 
+  }
 }
 
 export default function TierList() {
@@ -532,15 +580,19 @@ export default function TierList() {
                   {/* Roles */}
                   <div>
                     <label className="block mb-2 text-sm font-medium text-zinc-400">Roles</label>
-                    <div className="grid grid-cols-6 gap-1">
+                    <div className="grid grid-cols-6 gap-2">
                       {Object.entries(roleData).map(([roleKey, roleInfo]) => (
                         <Button
                           key={roleKey}
                           variant={selectedRole === roleKey ? "default" : "outline"}
-                          className={`h-10 ${selectedRole === roleKey ? "bg-gradient-to-r from-zinc-800 to-zinc-900" : "bg-zinc-800/50 border-zinc-700 hover:bg-zinc-700"}`}
+                          className={`h-10 rounded-md p-0 ${
+                            selectedRole === roleKey 
+                              ? "bg-zinc-700/90 hover:bg-zinc-700" 
+                              : "bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-700/50"
+                          }`}
                           style={{ 
                             borderColor: selectedRole === roleKey ? roleInfo.color : 'transparent',
-                            color: selectedRole === roleKey ? roleInfo.color : 'white',
+                            color: roleInfo.color,
                             ...(selectedRole === roleKey ? { boxShadow: `0 0 8px ${roleInfo.color}40` } : {})
                           }}
                           onClick={() => {
@@ -553,7 +605,7 @@ export default function TierList() {
                             }
                           }}
                         >
-                          <span className="text-sm font-semibold">{roleInfo.label}</span>
+                          {roleInfo.icon}
                         </Button>
                       ))}
                     </div>
@@ -879,10 +931,11 @@ export default function TierList() {
                                   className="w-8 h-8 flex items-center justify-center rounded-md"
                                   style={{ 
                                     backgroundColor: `${roleData[champion.role]?.color || '#FFFFFF'}20`,
-                                    color: roleData[champion.role]?.color || '#FFFFFF'
+                                    color: roleData[champion.role]?.color || '#FFFFFF',
+                                    border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
                                   }}
                                 >
-                                  <span className="text-sm font-semibold">{roleData[champion.role]?.label || "ALL"}</span>
+                                  {roleData[champion.role]?.icon || roleData[""].icon}
                                 </div>
                               </div>
                             </div>
