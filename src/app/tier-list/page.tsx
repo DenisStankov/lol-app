@@ -200,33 +200,56 @@ export default function TierList() {
       const data = (await response.json()) as ChampionStatsResponse
 
       // Transform the data to match our Champion interface
-      const transformedChampions: Champion[] = Object.values(data).flatMap((champion) => {
+      const transformedChampions: Champion[] = Object.values(data).map((champion) => {
+        // Select the primary role based on highest pick rate
         const roles = champion.roles || {}
+        let primaryRole = ""
+        let highestPickRate = 0
         
-        // Create a champion entry for each role instead of just the primary role
-        return Object.entries(roles).map(([role, stats]) => {
-          // Ensure percentage values are handled correctly
-          // If winRate is already a percentage (e.g., 52.3), divide by 100
-          const normalizedWinRate = stats.winRate > 1 ? stats.winRate / 100 : stats.winRate
-          const normalizedPickRate = stats.pickRate > 1 ? stats.pickRate / 100 : stats.pickRate
-          const normalizedBanRate = stats.banRate > 1 ? stats.banRate / 100 : stats.banRate
-          
-          return {
-            id: champion.id,
-            name: champion.name,
-            image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champion.image.full}`,
-            winRate: normalizedWinRate,
-            pickRate: normalizedPickRate,
-            banRate: normalizedBanRate,
-            totalGames: stats.totalGames || 0,
-            role: role, // Use the specific role for this entry
-            tier: stats.tier || "C",
-            roles: champion.roles,
-            difficulty: champion.difficulty || "Medium",
-            damageType: champion.damageType || "AD",
-            range: champion.range || "Melee",
+        // Find the role with the highest pick rate
+        Object.entries(roles).forEach(([role, stats]) => {
+          if (stats.pickRate > highestPickRate) {
+            highestPickRate = stats.pickRate
+            primaryRole = role
           }
         })
+        
+        // If no primary role found, default to the first role or a placeholder
+        if (!primaryRole && Object.keys(roles).length > 0) {
+          primaryRole = Object.keys(roles)[0]
+        } else if (!primaryRole) {
+          primaryRole = "TOP" // Default fallback
+        }
+        
+        // Get the stats for the primary role
+        const primaryRoleStats = roles[primaryRole] || {
+          winRate: 0,
+          pickRate: 0,
+          banRate: 0,
+          totalGames: 0,
+          tier: "C"
+        }
+        
+        // Ensure percentage values are handled correctly
+        const normalizedWinRate = primaryRoleStats.winRate > 1 ? primaryRoleStats.winRate / 100 : primaryRoleStats.winRate
+        const normalizedPickRate = primaryRoleStats.pickRate > 1 ? primaryRoleStats.pickRate / 100 : primaryRoleStats.pickRate
+        const normalizedBanRate = primaryRoleStats.banRate > 1 ? primaryRoleStats.banRate / 100 : primaryRoleStats.banRate
+        
+        return {
+          id: champion.id,
+          name: champion.name,
+          image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champion.image.full}`,
+          winRate: normalizedWinRate,
+          pickRate: normalizedPickRate,
+          banRate: normalizedBanRate,
+          totalGames: primaryRoleStats.totalGames || 0,
+          role: primaryRole,
+          tier: primaryRoleStats.tier || "C",
+          roles: champion.roles,
+          difficulty: champion.difficulty || "Medium",
+          damageType: champion.damageType || "AD",
+          range: champion.range || "Melee",
+        }
       })
 
       setChampions(transformedChampions)
@@ -255,20 +278,22 @@ export default function TierList() {
 
     // Apply role filter
     if (selectedRole !== "") {
-      filtered = filtered.filter(
-        (champ) => champ.roles[selectedRole] && champ.roles[selectedRole].pickRate > 0, // Allow any pick rate
-      )
-
-      // Update stats based on selected role
-      filtered = filtered.map((champ) => ({
-        ...champ,
-        winRate: champ.roles[selectedRole].winRate,
-        pickRate: champ.roles[selectedRole].pickRate,
-        banRate: champ.roles[selectedRole].banRate,
-        totalGames: champ.roles[selectedRole].totalGames,
-        tier: champ.roles[selectedRole].tier || champ.tier,
-        role: selectedRole,
-      }))
+      // Create a new array with champions that have data for the selected role
+      filtered = champions.filter(
+        (champ) => champ.roles && champ.roles[selectedRole] && champ.roles[selectedRole].pickRate > 0
+      ).map(champ => {
+        // Clone the champion object but update with role-specific stats
+        const roleStats = champ.roles[selectedRole]
+        return {
+          ...champ,
+          winRate: roleStats.winRate,
+          pickRate: roleStats.pickRate,
+          banRate: roleStats.banRate,
+          totalGames: roleStats.totalGames,
+          tier: roleStats.tier || champ.tier,
+          role: selectedRole,
+        }
+      })
     }
 
     // Filter by tier
