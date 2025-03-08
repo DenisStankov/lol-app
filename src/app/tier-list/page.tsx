@@ -200,44 +200,33 @@ export default function TierList() {
       const data = (await response.json()) as ChampionStatsResponse
 
       // Transform the data to match our Champion interface
-      const transformedChampions: Champion[] = Object.values(data).map((champion) => {
-        // Find the primary role (highest pick rate)
+      const transformedChampions: Champion[] = Object.values(data).flatMap((champion) => {
         const roles = champion.roles || {}
-        let primaryRole = ""
-        let highestPickRate = 0
-        let tier = "C" // Default tier
-        let winRate = 0
-        let pickRate = 0
-        let banRate = 0
-        let totalGames = 0
-
-        Object.entries(roles).forEach(([role, stats]) => {
-          if (stats.pickRate > highestPickRate) {
-            highestPickRate = stats.pickRate
-            primaryRole = role
-            tier = stats.tier || "C"
-            winRate = stats.winRate || 0
-            pickRate = stats.pickRate || 0
-            banRate = stats.banRate || 0
-            totalGames = stats.totalGames || 0
+        
+        // Create a champion entry for each role instead of just the primary role
+        return Object.entries(roles).map(([role, stats]) => {
+          // Ensure percentage values are handled correctly
+          // If winRate is already a percentage (e.g., 52.3), divide by 100
+          const normalizedWinRate = stats.winRate > 1 ? stats.winRate / 100 : stats.winRate
+          const normalizedPickRate = stats.pickRate > 1 ? stats.pickRate / 100 : stats.pickRate
+          const normalizedBanRate = stats.banRate > 1 ? stats.banRate / 100 : stats.banRate
+          
+          return {
+            id: champion.id,
+            name: champion.name,
+            image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champion.image.full}`,
+            winRate: normalizedWinRate,
+            pickRate: normalizedPickRate,
+            banRate: normalizedBanRate,
+            totalGames: stats.totalGames || 0,
+            role: role, // Use the specific role for this entry
+            tier: stats.tier || "C",
+            roles: champion.roles,
+            difficulty: champion.difficulty || "Medium",
+            damageType: champion.damageType || "AD",
+            range: champion.range || "Melee",
           }
         })
-
-        return {
-          id: champion.id,
-          name: champion.name,
-          image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champion.image.full}`,
-          winRate,
-          pickRate,
-          banRate,
-          totalGames,
-          role: primaryRole,
-          tier,
-          roles,
-          difficulty: champion.difficulty || "Medium",
-          damageType: champion.damageType || "AD",
-          range: champion.range || "Melee",
-        }
       })
 
       setChampions(transformedChampions)
