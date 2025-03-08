@@ -71,7 +71,7 @@ const roleData: Record<string, { label: string; icon: React.ReactNode; color: st
         <g fillRule="evenodd">
           <g fillRule="nonzero">
             <g>
-              <path d="M16.293 17.03c.362.628.147 1.43-.48 1.793-.629.364-1.431.149-1.794-.479l-2.144-3.717-2.144 3.717c-.363.628-1.165.843-1.793.48-.628-.363-.843-1.166-.48-1.793l2.144-3.718h-4.29c-.724 0-1.312-.587-1.312-1.312 0-.727.588-1.314 1.313-1.314h4.289L7.457 6.969c-.362-.627-.147-1.43.48-1.792.629-.364 1.431-.149 1.794.479l2.144 3.717 2.144-3.717c.363-.628 1.165-.843 1.793-.48.628.363.843 1.166.48 1.793l-2.144 3.718h4.29c.725 0 1.312.587 1.312 1.312 0 .727-.587 1.314-1.312 1.314h-4.29l2.145 3.718z" />
+              <path d="M16.293 17.03c.362.628.147 1.43-.48 1.793-.629.364-1.431.149-1.794-.479l-2.144-3.717-2.144 3.717c-.363.628-1.165.843-1.793.48-.628-.363-.843-1.166-.48-1.793l2.144-3.718h-4.29c-.724 0-1.312-.587-1.312-1.312 0-.727.588-1.313 1.313-1.314h4.289L7.457 6.969c-.362-.627-.147-1.43.48-1.792.629-.364 1.431-.149 1.794.479l2.144 3.717 2.144-3.717c.363-.628 1.165-.843 1.793-.48.628.363.843 1.166.48 1.793l-2.144 3.718h4.29c.725 0 1.312.587 1.312 1.312 0 .727-.587 1.314-1.312 1.314h-4.29l2.145 3.718z" />
             </g>
           </g>
         </g>
@@ -94,7 +94,7 @@ const roleData: Record<string, { label: string; icon: React.ReactNode; color: st
     label: "JNG", 
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-        <path d="M5.14 2c1.58 1.21 5.58 5.023 6.976 9.953s0 10.047 0 10.047c-2.749-3.164-5.893-5.2-6.18-5.382l-.02-.013C5.45 13.814 3 8.79 3 8.79c3.536.867 4.93 4.279 4.93 4.279C7.558 8.698 5.14 2 5.14 2zm14.976 5.907s-1.243 2.471-1.814 4.604c-.235.878-.285 2.2-.29 3.058v.282c.003.347.01.568.01.568s-1.738 2.397-3.38 3.678c.088-1.601.062-3.435-.208-5.334.928-2.023 2.846-5.454 5.682-6.856zm-2.124-5.331s-2.325 3.052-2.836 6.029c-.11.636-.201 1.194-.284 1.695-.379.584-.73 1.166-1.05 1.733-.033-.125-.06-.25-.095-.375-.302-1.07-.704-2.095-1.16-3.08.053-.146.103-.29.17-.438 0 0 1.814-3.78 5.255-5.564z" />
+        <path d="M5 2c1.58 1.21 5.58 5.02 6.98 9.95 1.4 4.93 0 10.05 0 10.05-2.75-3.16-5.9-5.2-6.18-5.38C5.45 13.81 3 8.79 3 8.79c3.54.87 4.93 4.28 4.93 4.28C7.56 8.7 5 2 5 2zm15 5.91s-1.24 2.47-1.81 4.6c-.24.88-.29 2.2-.29 3.06v.28c0 .35.01.57.01.57s-1.74 2.4-3.38 3.68c.09-1.6.06-3.44-.21-5.33.93-2.02 2.85-5.45 5.68-6.86zm-2.12-5.33s-2.33 3.05-2.84 6.03c-.11.64-.2 1.2-.28 1.7-.38.58-.73 1.16-1.05 1.73-.03-.13-.06-.25-.1-.38-.3-1.07-.7-2.1-1.16-3.08.05-.15.1-.29.17-.44 0 0 1.81-3.78 5.26-5.56z" />
       </svg>
     ), 
     color: "#19B326" 
@@ -238,7 +238,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string, imgUrl: 
   "ALL": {
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
-        <path fill="currentColor" d="M16.293 17.03c.362.628.147 1.43-.48 1.793-.629.364-1.431.149-1.794-.479l-2.144-3.717-2.144 3.717c-.363.628-1.165.843-1.793.48-.628-.363-.843-1.166-.48-1.793l2.144-3.718h-4.29c-.724 0-1.312-.587-1.312-1.312 0-.727.588-1.314 1.313-1.314h4.289L7.457 6.969c-.362-.627-.147-1.43.48-1.792.629-.364 1.431-.149 1.794.479l2.144 3.717 2.144-3.717c.363-.628 1.165-.843 1.793-.48.628.363.843 1.166.48 1.793l-2.144 3.718h4.29c.725 0 1.312.587 1.312 1.312 0 .727-.587 1.314-1.312 1.314h-4.29l2.145 3.718z" />
+        <path fill="currentColor" d="M16.293 17.03c.362.628.147 1.43-.48 1.793-.629.364-1.431.149-1.794-.479l-2.144-3.717-2.144 3.717c-.363.628-1.165.843-1.793.48-.628-.363-.843-1.166-.48-1.793l2.144-3.718h-4.29c-.724 0-1.312-.587-1.312-1.312 0-.727.588-1.313 1.313-1.314h4.289L7.457 6.969c-.362-.627-.147-1.43.48-1.792.629-.364 1.431-.149 1.794.479l2.144 3.717 2.144-3.717c.363-.628 1.165-.843 1.793-.48.628.363.843 1.166.48 1.793l-2.144 3.718h4.29c.725 0 1.312.587 1.312 1.312 0 .727-.587 1.314-1.312 1.314h-4.29l2.145 3.718z" />
       </svg>
     ),
     color: "#FFFFFF",
@@ -268,112 +268,204 @@ export default function TierList() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [viewMode] = useState("table")
 
-  // Use useCallback to memoize the fetchChampions function
-  const fetchChampions = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError("")
-      
-      // Fetch available patches from Data Dragon API
+  // Initial data load
+  useEffect(() => {
+    // Perform initial load on component mount
+    const initialFetch = async () => {
       try {
-        const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
-        if (response.ok) {
-          const versions = await response.json();
-          // Get the recent patches (top 10)
-          const recentPatches = versions.slice(0, 10);
-          setAvailablePatches(recentPatches);
-          
-          // Set the current patch
-          const currentPatch = recentPatches[0];
-          setPatchVersion(currentPatch);
-          setSelectedPatch(currentPatch);
-        } else {
-          // Fallback to static version
+        setLoading(true);
+        setError("");
+        
+        // Fetch available patches from Data Dragon API
+        try {
+          const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+          if (response.ok) {
+            const versions = await response.json();
+            // Get the recent patches (top 10)
+            const recentPatches = versions.slice(0, 10);
+            setAvailablePatches(recentPatches);
+            
+            // Set the current patch
+            const currentPatch = recentPatches[0];
+            setPatchVersion(currentPatch);
+            setSelectedPatch(currentPatch);
+          } else {
+            // Fallback to static version
+            setPatchVersion("14.14.1");
+            setSelectedPatch("14.14.1");
+            setAvailablePatches(["14.14.1", "14.13.1", "14.12.1", "14.11.1"]);
+          }
+        } catch (error) {
+          console.error("Error fetching patch version:", error);
           setPatchVersion("14.14.1");
           setSelectedPatch("14.14.1");
           setAvailablePatches(["14.14.1", "14.13.1", "14.12.1", "14.11.1"]);
         }
-      } catch (error) {
-        console.error("Error fetching patch version:", error);
-        setPatchVersion("14.14.1");
-        setSelectedPatch("14.14.1");
-        setAvailablePatches(["14.14.1", "14.13.1", "14.12.1", "14.11.1"]);
-      }
-      
-      const currentPatch = patchVersion || "14.14.1";
-      
-      // Now when fetching champion data, use the selected patch
-      const response = await fetch(`/api/champion-stats?patch=${selectedPatch || currentPatch}&rank=${selectedRank}`)
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
-      }
-
-      const data = (await response.json()) as ChampionStatsResponse
-
-      // Transform the data to match our Champion interface
-      const transformedChampions: Champion[] = Object.values(data).map((champion) => {
-        // Select the primary role based on highest pick rate
-        const roles = champion.roles || {}
-        let primaryRole = ""
-        let highestPickRate = 0
         
-        // Find the role with the highest pick rate
-        Object.entries(roles).forEach(([role, stats]) => {
-          if (stats.pickRate > highestPickRate) {
-            highestPickRate = stats.pickRate
-            primaryRole = role
+        const patchToUse = patchVersion || "14.14.1";
+        const rankToUse = selectedRank || "ALL";
+        
+        // Make API request
+        const apiUrl = `/api/champion-stats?patch=${patchToUse}&rank=${rankToUse}`;
+        console.log(`Making API request to: ${apiUrl}`);
+    
+        const response = await fetch(apiUrl);
+        console.log(`API response status: ${response.status}`);
+    
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        console.log(`API data received, champions count: ${Object.keys(data).length}`);
+    
+        // Transform the data to match our Champion interface
+        const transformedChampions: Champion[] = Object.values(data as ChampionStatsResponse).map((champion) => {
+          // Select the primary role based on highest pick rate
+          const roles = champion.roles || {}
+          let primaryRole = ""
+          let highestPickRate = 0
+          
+          // Find the role with the highest pick rate
+          Object.entries(roles).forEach(([role, stats]) => {
+            if (stats.pickRate > highestPickRate) {
+              highestPickRate = stats.pickRate
+              primaryRole = role
+            }
+          })
+          
+          // If no primary role found, default to the first role or a placeholder
+          if (!primaryRole && Object.keys(roles).length > 0) {
+            primaryRole = Object.keys(roles)[0]
+          } else if (!primaryRole) {
+            primaryRole = "TOP" // Default fallback
+          }
+          
+          // Get the stats for the primary role
+          const primaryRoleStats = roles[primaryRole] || {
+            winRate: 0,
+            pickRate: 0,
+            banRate: 0,
+            totalGames: 0,
+            tier: "C"
+          }
+          
+          // Values are already in percentage form from the API, no need to normalize
+          return {
+            id: champion.id,
+            name: champion.name,
+            image: `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.image.full}`,
+            winRate: primaryRoleStats.winRate,
+            pickRate: primaryRoleStats.pickRate,
+            banRate: primaryRoleStats.banRate,
+            totalGames: primaryRoleStats.totalGames || 0,
+            role: primaryRole,
+            tier: primaryRoleStats.tier || "C",
+            roles: champion.roles,
+            difficulty: champion.difficulty || "Medium",
+            damageType: champion.damageType || "AD",
+            range: champion.range || "Melee",
           }
         })
-        
-        // If no primary role found, default to the first role or a placeholder
-        if (!primaryRole && Object.keys(roles).length > 0) {
-          primaryRole = Object.keys(roles)[0]
-        } else if (!primaryRole) {
-          primaryRole = "TOP" // Default fallback
-        }
-        
-        // Get the stats for the primary role
-        const primaryRoleStats = roles[primaryRole] || {
-          winRate: 0,
-          pickRate: 0,
-          banRate: 0,
-          totalGames: 0,
-          tier: "C"
-        }
-        
-        // Values are already in percentage form from the API, no need to normalize
-        return {
-          id: champion.id,
-          name: champion.name,
-          image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champion.image.full}`,
-          winRate: primaryRoleStats.winRate,
-          pickRate: primaryRoleStats.pickRate,
-          banRate: primaryRoleStats.banRate,
-          totalGames: primaryRoleStats.totalGames || 0,
-          role: primaryRole,
-          tier: primaryRoleStats.tier || "C",
-          roles: champion.roles,
-          difficulty: champion.difficulty || "Medium",
-          damageType: champion.damageType || "AD",
-          range: champion.range || "Melee",
-        }
-      })
+    
+        setChampions(transformedChampions)
+        setFilteredChampions(transformedChampions)
+        setLoading(false)
+      } catch (error) {
+        console.error("Error fetching champions:", error)
+        setError(`Failed to fetch champion data: ${(error as Error).message}`)
+        setLoading(false)
+      }
+    };
+    
+    initialFetch();
+  }, []);
 
-      setChampions(transformedChampions)
-      setFilteredChampions(transformedChampions) // Initially show all champions
-      setLoading(false)
-    } catch (error) {
-      console.error("Error fetching champions:", error)
-      setError(`Failed to fetch champion data: ${(error as Error).message}`)
-      setLoading(false)
-    }
-  }, [patchVersion, selectedPatch, selectedRank])
-
+  // Fetch when patch or rank changes
   useEffect(() => {
-    if (selectedPatch && selectedRank) {
-      fetchChampions();
+    // Only fetch if patches are loaded and we have selected values
+    if (availablePatches.length > 0 && selectedPatch && selectedRank) {
+      const fetchWithParams = async () => {
+        try {
+          setLoading(true);
+          setError("");
+          
+          // Make API request with current selected patch and rank
+          const apiUrl = `/api/champion-stats?patch=${selectedPatch}&rank=${selectedRank}`;
+          console.log(`Making API request with params to: ${apiUrl}`);
+      
+          const response = await fetch(apiUrl);
+          console.log(`API response status: ${response.status}`);
+      
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+          }
+      
+          const data = await response.json();
+          console.log(`API data received, champions count: ${Object.keys(data).length}`);
+      
+          // Transform the data to match our Champion interface
+          const transformedChampions: Champion[] = Object.values(data as ChampionStatsResponse).map((champion) => {
+            // Select the primary role based on highest pick rate
+            const roles = champion.roles || {}
+            let primaryRole = ""
+            let highestPickRate = 0
+            
+            // Find the role with the highest pick rate
+            Object.entries(roles).forEach(([role, stats]) => {
+              if (stats.pickRate > highestPickRate) {
+                highestPickRate = stats.pickRate
+                primaryRole = role
+              }
+            })
+            
+            // If no primary role found, default to the first role or a placeholder
+            if (!primaryRole && Object.keys(roles).length > 0) {
+              primaryRole = Object.keys(roles)[0]
+            } else if (!primaryRole) {
+              primaryRole = "TOP" // Default fallback
+            }
+            
+            // Get the stats for the primary role
+            const primaryRoleStats = roles[primaryRole] || {
+              winRate: 0,
+              pickRate: 0,
+              banRate: 0,
+              totalGames: 0,
+              tier: "C"
+            }
+            
+            // Values are already in percentage form from the API, no need to normalize
+            return {
+              id: champion.id,
+              name: champion.name,
+              image: `https://ddragon.leagueoflegends.com/cdn/${selectedPatch}/img/champion/${champion.image.full}`,
+              winRate: primaryRoleStats.winRate,
+              pickRate: primaryRoleStats.pickRate,
+              banRate: primaryRoleStats.banRate,
+              totalGames: primaryRoleStats.totalGames || 0,
+              role: primaryRole,
+              tier: primaryRoleStats.tier || "C",
+              roles: champion.roles,
+              difficulty: champion.difficulty || "Medium",
+              damageType: champion.damageType || "AD",
+              range: champion.range || "Melee",
+            }
+          })
+      
+          setChampions(transformedChampions)
+          setFilteredChampions(transformedChampions)
+          setLoading(false)
+        } catch (error) {
+          console.error("Error fetching champions:", error)
+          setError(`Failed to fetch champion data: ${(error as Error).message}`)
+          setLoading(false)
+        }
+      };
+      
+      fetchWithParams();
     }
-  }, [selectedPatch, selectedRank, fetchChampions]);
+  }, [selectedPatch, selectedRank, availablePatches]);
 
   // Filter and sort champions
   useEffect(() => {
@@ -467,8 +559,7 @@ export default function TierList() {
     searchQuery,
   ])
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setSelectedRole("");
     setSelectedTier("");
     setSelectedRank("ALL");
@@ -476,7 +567,7 @@ export default function TierList() {
     setSelectedDamageType([]);
     setSelectedRange([]);
     setSearchQuery("");
-  }
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const removeFilter = (filter: string) => {
@@ -531,6 +622,91 @@ export default function TierList() {
     )
   }
 
+  const refetchData = useCallback(() => {
+    // Perform a fetch with current settings or defaults
+    const fetchAgain = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        
+        const patchToUse = selectedPatch || patchVersion || "14.14.1";
+        const rankToUse = selectedRank || "ALL";
+        
+        // Make API request
+        const apiUrl = `/api/champion-stats?patch=${patchToUse}&rank=${rankToUse}`;
+        console.log(`Retrying API request to: ${apiUrl}`);
+    
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        console.log(`API data received, champions count: ${Object.keys(data).length}`);
+    
+        // Transform the data to match our Champion interface
+        const transformedChampions: Champion[] = Object.values(data as ChampionStatsResponse).map((champion) => {
+          // Select the primary role based on highest pick rate
+          const roles = champion.roles || {}
+          let primaryRole = ""
+          let highestPickRate = 0
+          
+          // Find the role with the highest pick rate
+          Object.entries(roles).forEach(([role, stats]) => {
+            if (stats.pickRate > highestPickRate) {
+              highestPickRate = stats.pickRate
+              primaryRole = role
+            }
+          })
+          
+          // If no primary role found, default to the first role or a placeholder
+          if (!primaryRole && Object.keys(roles).length > 0) {
+            primaryRole = Object.keys(roles)[0]
+          } else if (!primaryRole) {
+            primaryRole = "TOP" // Default fallback
+          }
+          
+          // Get the stats for the primary role
+          const primaryRoleStats = roles[primaryRole] || {
+            winRate: 0,
+            pickRate: 0,
+            banRate: 0,
+            totalGames: 0,
+            tier: "C"
+          }
+          
+          // Values are already in percentage form from the API, no need to normalize
+          return {
+            id: champion.id,
+            name: champion.name,
+            image: `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.image.full}`,
+            winRate: primaryRoleStats.winRate,
+            pickRate: primaryRoleStats.pickRate,
+            banRate: primaryRoleStats.banRate,
+            totalGames: primaryRoleStats.totalGames || 0,
+            role: primaryRole,
+            tier: primaryRoleStats.tier || "C",
+            roles: champion.roles,
+            difficulty: champion.difficulty || "Medium",
+            damageType: champion.damageType || "AD",
+            range: champion.range || "Melee",
+          }
+        })
+    
+        setChampions(transformedChampions)
+        setFilteredChampions(transformedChampions)
+        setLoading(false)
+      } catch (error) {
+        console.error("Error fetching champions:", error)
+        setError(`Failed to fetch champion data: ${(error as Error).message}`)
+        setLoading(false)
+      }
+    };
+    
+    fetchAgain();
+  }, [selectedPatch, patchVersion, selectedRank]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -550,7 +726,7 @@ export default function TierList() {
             <h2 className="text-2xl font-bold mb-4">Error Loading Data</h2>
             <p className="mb-4">{error}</p>
             <button
-              onClick={fetchChampions}
+              onClick={refetchData}
               className="px-4 py-2 bg-red-800 hover:bg-red-700 rounded-md"
             >
               Try Again
@@ -596,7 +772,8 @@ export default function TierList() {
                         <button
                           key={patch}
                           onClick={() => {
-                            setSelectedPatch(patch);
+                            const newPatch = patch;
+                            setSelectedPatch(newPatch);
                             document.body.click(); // Close popover
                           }}
                           className={`p-2 text-left rounded-md text-sm ${
@@ -733,7 +910,13 @@ export default function TierList() {
                     {searchQuery && (
                       <span className="bg-blue-900/20 border border-blue-800/40 px-2 py-1 rounded-md flex items-center gap-1 text-blue-300 text-xs">
                         Search: {searchQuery}
-                        <button onClick={() => setSearchQuery("")} className="opacity-60 hover:opacity-100">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            clearAllFilters();
+                          }}
+                          className="opacity-60 hover:opacity-100"
+                        >
                           <X size={12} />
                         </button>
                       </span>
@@ -744,7 +927,13 @@ export default function TierList() {
                         className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
                       >
                         Difficulty: {difficulty}
-                        <button onClick={() => toggleDifficultyFilter(difficulty)} className="opacity-60 hover:opacity-100">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleDifficultyFilter(difficulty);
+                          }}
+                          className="opacity-60 hover:opacity-100"
+                        >
                           <X size={12} />
                         </button>
                       </span>
@@ -755,7 +944,13 @@ export default function TierList() {
                         className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
                       >
                         Damage: {damageType}
-                        <button onClick={() => toggleDamageTypeFilter(damageType)} className="opacity-60 hover:opacity-100">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleDamageTypeFilter(damageType);
+                          }}
+                          className="opacity-60 hover:opacity-100"
+                        >
                           <X size={12} />
                         </button>
                       </span>
@@ -766,7 +961,13 @@ export default function TierList() {
                         className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
                       >
                         Range: {range}
-                        <button onClick={() => toggleRangeFilter(range)} className="opacity-60 hover:opacity-100">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleRangeFilter(range);
+                          }}
+                          className="opacity-60 hover:opacity-100"
+                        >
                           <X size={12} />
                         </button>
                       </span>
@@ -820,14 +1021,9 @@ export default function TierList() {
               selectedRange.length > 0 || searchQuery) && (
               <div className="flex justify-center mt-4">
                 <button
-                  onClick={() => {
-                    setSelectedRole("");
-                    setSelectedTier("");
-                    setSelectedRank("ALL");
-                    setSelectedDifficulty([]);
-                    setSelectedDamageType([]);
-                    setSelectedRange([]);
-                    setSearchQuery("");
+                  onClick={(e) => {
+                    e.preventDefault();
+                    clearAllFilters();
                   }}
                   className="px-4 py-2 bg-red-800/40 hover:bg-red-800/60 text-red-300 rounded-md text-sm font-medium"
                 >
@@ -965,7 +1161,7 @@ export default function TierList() {
                   <td colSpan={7} className="text-center py-8 text-red-400">
                     <p>{error}</p>
                     <button
-                      onClick={fetchChampions}
+                      onClick={refetchData}
                       className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm"
                     >
                       Try Again
@@ -977,15 +1173,7 @@ export default function TierList() {
                   <td colSpan={7} className="text-center py-8">
                     <p>No champions found matching your filters.</p>
                     <button
-                      onClick={() => {
-                        setSelectedRole("")
-                        setSelectedTier("")
-                        setSelectedRank("ALL")
-                        setSelectedDifficulty([])
-                        setSelectedDamageType([])
-                        setSelectedRange([])
-                        setSearchQuery("")
-                      }}
+                      onClick={clearAllFilters}
                       className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm"
                     >
                       Clear Filters
