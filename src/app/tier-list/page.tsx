@@ -181,10 +181,24 @@ export default function TierList() {
       setLoading(true)
       setError("")
       
-      // Use a fixed patch version if patchVersion is empty
-      const currentPatch = patchVersion || "14.11.1";
-      setPatchVersion(currentPatch);
-
+      // Fetch current patch version from Data Dragon API
+      try {
+        const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+        if (response.ok) {
+          const versions = await response.json();
+          const currentPatch = versions[0]; // Get the latest patch
+          setPatchVersion(currentPatch);
+        } else {
+          // Fallback to static version
+          setPatchVersion("14.14.1");
+        }
+      } catch (error) {
+        console.error("Error fetching patch version:", error);
+        setPatchVersion("14.14.1"); // Fallback
+      }
+      
+      const currentPatch = patchVersion || "14.14.1";
+      
       const response = await fetch(`/api/champion-stats?patch=${currentPatch}`)
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)
@@ -444,16 +458,16 @@ export default function TierList() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-zinc-950">
       <Navigation />
-
-      <main className="container py-6 px-4 lg:px-8">
+      
+      <main className="container mx-auto py-6 px-4 lg:px-8">
         <div className="max-w-screen-2xl mx-auto">
           <div className="flex flex-col space-y-4 mb-6">
-            <h1 className="text-4xl font-bold tracking-tight">League of Legends Champion Tier List</h1>
-            <div className="flex items-center">
+            <h1 className="text-4xl font-bold tracking-tight text-center">League of Legends Champion Tier List</h1>
+            <div className="flex items-center justify-center">
               <p className="text-lg text-zinc-400">
-                Patch <span className="font-semibold text-white">{patchVersion || "14.11.1"}</span>
+                Patch <span className="font-semibold text-white">{patchVersion || "Loading..."}</span>
               </p>
               <div className="ml-2 bg-blue-900/30 text-blue-300 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs">
                 Global Data
@@ -462,7 +476,7 @@ export default function TierList() {
           </div>
 
           {/* Top filter bar like in the image */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg mb-6 p-3 flex items-center justify-between flex-wrap gap-3">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg mb-6 p-3 flex items-center justify-center flex-wrap gap-3">
             {/* Role filter pills */}
             <div className="flex gap-2">
               {Object.entries(roleData).map(([roleKey, roleInfo]) => (
@@ -526,7 +540,7 @@ export default function TierList() {
             
             {/* Patch version */}
             <Button variant="outline" className="h-10 bg-zinc-800 border-0">
-              <span className="text-white">{patchVersion || "14.11.1"}</span>
+              <span className="text-white">{patchVersion || "Loading..."}</span>
               <ChevronDown className="ml-2 h-4 w-4 text-zinc-400" />
             </Button>
             
@@ -570,89 +584,34 @@ export default function TierList() {
                 {/* Champion Table - with updated header to match image */}
                 <div className="rounded-lg overflow-hidden border border-zinc-800">
                   {/* Table Header styled like image */}
-                  <div className="grid grid-cols-12 bg-zinc-900 border-b border-zinc-800 font-medium text-sm text-zinc-400">
-                    <div
-                      className="col-span-1 py-3 px-4 cursor-pointer hover:text-white flex items-center"
-                      onClick={() => handleHeaderClick("ranking")}
-                    >
-                      Rank
-                      {sortBy === "ranking" &&
-                        (sortOrder === "asc" ? (
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1" />
-                        ))}
-                    </div>
-                    <div className="col-span-3 py-3 px-4">Champion</div>
-                    <div
-                      className="col-span-2 py-3 px-4 cursor-pointer hover:text-white flex items-center"
-                      onClick={() => handleHeaderClick("role")}
-                    >
+                  <div className="grid grid-cols-12 bg-zinc-950 border-b border-zinc-800 font-medium text-sm text-zinc-400">
+                    <div className="col-span-1 py-3 px-4 text-center">
                       Lane
-                      {sortBy === "role" &&
-                        (sortOrder === "asc" ? (
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1" />
-                        ))}
                     </div>
-                    <div
-                      className="col-span-2 py-3 px-4 cursor-pointer hover:text-white flex items-center"
-                      onClick={() => handleHeaderClick("tier")}
-                    >
+                    <div className="col-span-3 py-3 px-4 text-center">
+                      Champion
+                    </div>
+                    <div className="col-span-2 py-3 px-4 text-center">
                       Tier
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
-                            <Info className="w-4 h-4 ml-1 text-zinc-500" />
+                            <Info className="w-4 h-4 ml-1 text-zinc-500 inline-block" />
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Champion performance tier based on win rate, pick rate, and ban rate</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      {sortBy === "tier" &&
-                        (sortOrder === "asc" ? (
-                          <ChevronUp className="w-4 h-4 ml-1" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1" />
-                        ))}
                     </div>
-                    <div
-                      className="col-span-1 py-3 px-4 text-right cursor-pointer hover:text-white"
-                      onClick={() => handleHeaderClick("winRate")}
-                    >
+                    <div className="col-span-2 py-3 px-4 text-center">
                       Winrate
-                      {sortBy === "winRate" &&
-                        (sortOrder === "asc" ? (
-                          <ChevronUp className="w-4 h-4 ml-1 inline" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1 inline" />
-                        ))}
                     </div>
-                    <div
-                      className="col-span-1 py-3 px-4 text-right cursor-pointer hover:text-white"
-                      onClick={() => handleHeaderClick("pickRate")}
-                    >
+                    <div className="col-span-2 py-3 px-4 text-center">
                       Pickrate
-                      {sortBy === "pickRate" &&
-                        (sortOrder === "asc" ? (
-                          <ChevronUp className="w-4 h-4 ml-1 inline" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1 inline" />
-                        ))}
                     </div>
-                    <div
-                      className="col-span-2 py-3 px-4 text-right cursor-pointer hover:text-white"
-                      onClick={() => handleHeaderClick("totalGames")}
-                    >
+                    <div className="col-span-2 py-3 px-4 text-center">
                       Games
-                      {sortBy === "totalGames" &&
-                        (sortOrder === "asc" ? (
-                          <ChevronUp className="w-4 h-4 ml-1 inline" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 ml-1 inline" />
-                        ))}
                     </div>
                   </div>
 
@@ -663,13 +622,21 @@ export default function TierList() {
                         key={champion.id}
                         className="grid grid-cols-12 border-b border-zinc-800 hover:bg-zinc-800/50 text-sm"
                       >
-                        {/* Rank */}
-                        <div className="col-span-1 py-3 px-4 font-semibold text-zinc-400">
-                          {index + 1}
+                        {/* Lane */}
+                        <div className="col-span-1 py-3 px-4 flex items-center justify-center">
+                          <div 
+                            className="w-8 h-8 flex items-center justify-center rounded-md bg-zinc-800"
+                            style={{ 
+                              color: roleData[champion.role]?.color || '#FFFFFF',
+                              border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
+                            }}
+                          >
+                            {roleData[champion.role]?.icon || roleData[""].icon}
+                          </div>
                         </div>
 
                         {/* Champion */}
-                        <div className="col-span-3 py-3 px-4">
+                        <div className="col-span-3 py-3 px-4 flex items-center justify-center">
                           <div className="flex items-center">
                             <div className="h-10 w-10 relative overflow-hidden rounded-md">
                               <Image
@@ -684,50 +651,33 @@ export default function TierList() {
                             <span className="ml-3 font-medium text-white">{champion.name}</span>
                           </div>
                         </div>
-
-                        {/* Lane */}
-                        <div className="col-span-2 py-3 px-4">
-                          <div className="flex items-center justify-center">
-                            <div 
-                              className="w-8 h-8 flex items-center justify-center rounded-md bg-zinc-800"
-                              style={{ 
-                                color: roleData[champion.role]?.color || '#FFFFFF',
-                                border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
-                              }}
-                            >
-                              {roleData[champion.role]?.icon || roleData[""].icon}
-                            </div>
-                          </div>
-                        </div>
                         
                         {/* Tier */}
-                        <div className="col-span-2 py-3 px-4">
-                          <div className="flex justify-center">
-                            <span
-                              className="inline-block px-3 py-1 rounded-full text-xs font-bold"
-                              style={{
-                                backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}20`,
-                                color: tierColors[champion.tier as keyof typeof tierColors],
-                                boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors]}30`
-                              }}
-                            >
-                              {champion.tier}
-                            </span>
-                          </div>
+                        <div className="col-span-2 py-3 px-4 flex items-center justify-center">
+                          <span
+                            className="inline-block w-8 h-8 flex items-center justify-center rounded-full text-center"
+                            style={{
+                              backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors]}40`,
+                              color: tierColors[champion.tier as keyof typeof tierColors],
+                              boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors]}30`
+                            }}
+                          >
+                            {champion.tier}
+                          </span>
                         </div>
                         
                         {/* Win Rate */}
-                        <div className="col-span-1 py-3 px-4 text-right font-medium">
+                        <div className="col-span-2 py-3 px-4 text-center font-medium">
                           {champion.winRate.toFixed(1)}%
                         </div>
                         
                         {/* Pick Rate */}
-                        <div className="col-span-1 py-3 px-4 text-right font-medium">
+                        <div className="col-span-2 py-3 px-4 text-center font-medium">
                           {champion.pickRate.toFixed(1)}%
                         </div>
                         
                         {/* Total Games */}
-                        <div className="col-span-2 py-3 px-4 text-right text-zinc-400">
+                        <div className="col-span-2 py-3 px-4 text-center text-zinc-400">
                           {champion.totalGames.toLocaleString()}
                         </div>
                       </div>
@@ -737,9 +687,6 @@ export default function TierList() {
                   )}
                 </div>
               </TabsContent>
-
-              {/* Grid view - Keep existing implementation */}
-              {/* ... */}
             </Tabs>
           )}
         </div>
