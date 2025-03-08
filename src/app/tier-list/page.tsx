@@ -94,13 +94,7 @@ const roleData: Record<string, { label: string; icon: React.ReactNode; color: st
     label: "JNG", 
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-        <g fillRule="evenodd">
-          <g fillRule="nonzero">
-            <g>
-              <path d="M5.14 2c1.58 1.21 5.58 5.023 6.976 9.953s0 10.047 0 10.047c-2.749-3.164-5.893-5.2-6.18-5.382l-.02-.013C5.45 13.814 3 8.79 3 8.79c3.536.867 4.93 4.279 4.93 4.279C7.558 8.698 5.14 2 5.14 2zm14.976 5.907s-1.243 2.471-1.814 4.604c-.235.878-.285 2.2-.29 3.058v.282c.003.347.01.568.01.568s-1.738 2.397-3.38 3.678c.088-1.601.062-3.435-.208-5.334.928-2.023 2.846-5.454 5.682-6.856zm-2.124-5.331s-2.325 3.052-2.836 6.029c-.11.636-.201 1.194-.284 1.695-.379.584-.73 1.166-1.05 1.733-.033-.125-.06-.25-.095-.375-.302-1.07-.704-2.095-1.16-3.08.053-.146.103-.29.17-.438 0 0 1.814-3.78 5.255-5.564z" />
-            </g>
-          </g>
-        </g>
+        <path d="M5.14 2c1.58 1.21 5.58 5.023 6.976 9.953s0 10.047 0 10.047c-2.749-3.164-5.893-5.2-6.18-5.382l-.02-.013C5.45 13.814 3 8.79 3 8.79c3.536.867 4.93 4.279 4.93 4.279C7.558 8.698 5.14 2 5.14 2zm14.976 5.907s-1.243 2.471-1.814 4.604c-.235.878-.285 2.2-.29 3.058v.282c.003.347.01.568.01.568s-1.738 2.397-3.38 3.678c.088-1.601.062-3.435-.208-5.334.928-2.023 2.846-5.454 5.682-6.856zm-2.124-5.331s-2.325 3.052-2.836 6.029c-.11.636-.201 1.194-.284 1.695-.379.584-.73 1.166-1.05 1.733-.033-.125-.06-.25-.095-.375-.302-1.07-.704-2.095-1.16-3.08.053-.146.103-.29.17-.438 0 0 1.814-3.78 5.255-5.564z" />
       </svg>
     ), 
     color: "#19B326" 
@@ -148,8 +142,8 @@ const tierColors: Record<string, string> = {
   "D": "#A855F7",  // Purple
 }
 
-// League of Legends division rank icons
-const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
+// League of Legends official rank images with colors
+const rankIcons: Record<string, { icon: React.ReactNode, color: string, imgUrl: string }> = {
   "CHALLENGER": {
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
@@ -157,7 +151,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M32,4.7c-5.9,0-10.8,4.3-10.8,9.5c0,3,2.1,6,5.8,8.1l-2.7,4.6c-0.8-0.2-1.7-0.3-2.5-0.3 c-2.5,0-4.8,0.9-6.3,2.4C14,27.8,12,26.6,9.5,27.3l-0.6-1.8c1.9-1.1,4.4-1.7,7.3-1.7c1.8,0,3.6,0.3,5.3,0.8l0.7-1.1 c-2.7-2.4-4.2-5.7-4.2-9.1c0-6.9,6-11.9,13.8-11.9V4.7z"/>
       </svg>
     ),
-    color: "#f4c874"
+    color: "#f4c874",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/challenger.png"
   },
   "GRANDMASTER": {
     icon: (
@@ -165,7 +160,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16,2L7.4,6.2v8.4c0,6.7,3.7,13,9.6,16.3l0,0l0,0c5.9-3.3,9.6-9.6,9.6-16.3V6.2L16,2z M23.7,14.6 c0,5.8-3.2,11.2-8.3,14c-5.1-2.8-8.3-8.2-8.3-14V7.6L16,4.1l8.9,3.5v7L23.7,14.6z M10.1,14.2l2.9,2.4l-0.9,3.8l3.4-2.2l3.4,2.2 l-0.9-3.8l2.9-2.4l-3.9-0.3l-1.5-3.6l-1.5,3.6L10.1,14.2z"/>
       </svg>
     ),
-    color: "#ce3f56"
+    color: "#ce3f56",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/grandmaster.png"
   },
   "MASTER": {
     icon: (
@@ -173,7 +169,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16,2L7.4,6.2v8.4c0,6.7,3.7,13,9.6,16.3l0,0l0,0c5.9-3.3,9.6-9.6,9.6-16.3V6.2L16,2z M23.7,14.6 c0,5.8-3.2,11.2-8.3,14c-5.1-2.8-8.3-8.2-8.3-14V7.6L16,4.1l8.9,3.5v7L23.7,14.6z M10.1,14.2l2.9,2.4l-0.9,3.8l3.4-2.2l3.4,2.2 l-0.9-3.8l2.9-2.4l-3.9-0.3l-1.5-3.6l-1.5,3.6L10.1,14.2z"/>
       </svg>
     ),
-    color: "#9d5ddd"
+    color: "#9d5ddd",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/master.png"
   },
   "DIAMOND": {
     icon: (
@@ -181,7 +178,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16,2L3,15l13,15l13-15L16,2z M16,25.7L5.6,15L16,4.3L26.4,15L16,25.7z"/>
       </svg>
     ),
-    color: "#76c9f0"
+    color: "#76c9f0",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/diamond.png"
   },
   "EMERALD": {
     icon: (
@@ -189,7 +187,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16,2L5,13v10l11,7l11-7V13L16,2z M24.3,21.7L16,27.2l-8.3-5.5v-7L16,7.2l8.3,7.5V21.7z"/>
       </svg>
     ),
-    color: "#3a9479"
+    color: "#3a9479",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/emerald.png"
   },
   "PLATINUM": {
     icon: (
@@ -197,7 +196,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M27,6H5L2,15l14,13l14-13L27,6z M16,24.7L4.7,14.1l2-6.1h18.6l2,6.1L16,24.7z"/>
       </svg>
     ),
-    color: "#39c4aa"
+    color: "#39c4aa",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/platinum.png"
   },
   "GOLD": {
     icon: (
@@ -205,7 +205,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16,4L4,16l12,12l12-12L16,4z M16,23.4L6.6,14l9.4-9.4l9.4,9.4L16,23.4z"/>
       </svg>
     ),
-    color: "#fdb148"
+    color: "#fdb148",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/gold.png"
   },
   "SILVER": {
     icon: (
@@ -213,7 +214,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16,4L8,16l8,12l8-12L16,4z M16,23.4L10.5,16l5.5-8.3l5.5,8.3L16,23.4z"/>
       </svg>
     ),
-    color: "#a5aab5"
+    color: "#a5aab5",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/silver.png"
   },
   "BRONZE": {
     icon: (
@@ -221,7 +223,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16,5L9,16l7,11l7-11L16,5z M16,22.2l-4.7-7.4l4.7-7.4l4.7,7.4L16,22.2z"/>
       </svg>
     ),
-    color: "#b9846c"
+    color: "#b9846c",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/bronze.png"
   },
   "IRON": {
     icon: (
@@ -229,7 +232,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16,5l-5,9l5,9l5-9L16,5z M16,18.9L13.4,14l2.6-4.7l2.6,4.7L16,18.9z"/>
       </svg>
     ),
-    color: "#747479"
+    color: "#747479",
+    imgUrl: "https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/images/challengers_and_ranks/iron.png"
   },
   "ALL": {
     icon: (
@@ -237,7 +241,8 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
         <path fill="currentColor" d="M16.293 17.03c.362.628.147 1.43-.48 1.793-.629.364-1.431.149-1.794-.479l-2.144-3.717-2.144 3.717c-.363.628-1.165.843-1.793.48-.628-.363-.843-1.166-.48-1.793l2.144-3.718h-4.29c-.724 0-1.312-.587-1.312-1.312 0-.727.588-1.314 1.313-1.314h4.289L7.457 6.969c-.362-.627-.147-1.43.48-1.792.629-.364 1.431-.149 1.794.479l2.144 3.717 2.144-3.717c.363-.628 1.165-.843 1.793-.48.628.363.843 1.166.48 1.793l-2.144 3.718h4.29c.725 0 1.312.587 1.312 1.312 0 .727-.587 1.314-1.312 1.314h-4.29l2.145 3.718z" />
       </svg>
     ),
-    color: "#FFFFFF"
+    color: "#FFFFFF",
+    imgUrl: "/images/allranks.svg"
   }
 };
 
@@ -254,6 +259,8 @@ export default function TierList() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [patchVersion, setPatchVersion] = useState("")
+  const [availablePatches, setAvailablePatches] = useState<string[]>([])
+  const [selectedPatch, setSelectedPatch] = useState("")
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sortBy, setSortBy] = useState("tier")
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -267,25 +274,36 @@ export default function TierList() {
       setLoading(true)
       setError("")
       
-      // Fetch current patch version from Data Dragon API
+      // Fetch available patches from Data Dragon API
       try {
         const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
         if (response.ok) {
           const versions = await response.json();
-          const currentPatch = versions[0]; // Get the latest patch
+          // Get the recent patches (top 10)
+          const recentPatches = versions.slice(0, 10);
+          setAvailablePatches(recentPatches);
+          
+          // Set the current patch
+          const currentPatch = recentPatches[0];
           setPatchVersion(currentPatch);
+          setSelectedPatch(currentPatch);
         } else {
           // Fallback to static version
           setPatchVersion("14.14.1");
+          setSelectedPatch("14.14.1");
+          setAvailablePatches(["14.14.1", "14.13.1", "14.12.1", "14.11.1"]);
         }
       } catch (error) {
         console.error("Error fetching patch version:", error);
-        setPatchVersion("14.14.1"); // Fallback
+        setPatchVersion("14.14.1");
+        setSelectedPatch("14.14.1");
+        setAvailablePatches(["14.14.1", "14.13.1", "14.12.1", "14.11.1"]);
       }
       
       const currentPatch = patchVersion || "14.14.1";
       
-      const response = await fetch(`/api/champion-stats?patch=${currentPatch}`)
+      // Now when fetching champion data, use the selected patch
+      const response = await fetch(`/api/champion-stats?patch=${selectedPatch || currentPatch}&rank=${selectedRank}`)
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)
       }
@@ -349,11 +367,13 @@ export default function TierList() {
       setError(`Failed to fetch champion data: ${(error as Error).message}`)
       setLoading(false)
     }
-  }, [patchVersion])
+  }, [patchVersion, selectedPatch, selectedRank])
 
   useEffect(() => {
-    fetchChampions()
-  }, [fetchChampions])
+    if (selectedPatch && selectedRank) {
+      fetchChampions();
+    }
+  }, [selectedPatch, selectedRank, fetchChampions]);
 
   // Filter and sort champions
   useEffect(() => {
@@ -554,233 +574,268 @@ export default function TierList() {
 
         {/* Improved Layout - Better spacing and organization */}
         <div className="bg-zinc-900/70 border border-zinc-800 rounded-lg p-5 mb-8">
-          {/* Top filter bar with better organization */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-            {/* Left section: Role selection */}
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
-              {Object.entries(roleData).map(([role, info]) => (
-                <button
-                  key={role}
-                  onClick={() => setSelectedRole(role)}
-                  className={`p-1.5 rounded-md transition-colors ${selectedRole === role ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-                  title={role === "" ? "All Lanes" : `${info.label} Lane`}
-                >
-                  <div 
-                    className="w-7 h-7 rounded-md flex items-center justify-center"
-                    style={{ color: info.color }}
-                  >
-                    {info.icon}
-                  </div>
-                  <span className="sr-only">{info.label}</span>
-                </button>
-              ))}
-              <div className="text-zinc-400 text-sm ml-2">
-                {selectedRole === "" ? "All Lanes" : `${roleData[selectedRole]?.label || ""} Lane`}
+          {/* Top filter bar with patch selector and role/division selectors */}
+          <div className="flex flex-col gap-6">
+            {/* Patch selector and title row */}
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <h2 className="font-semibold text-xl text-zinc-100">Champion Tier List</h2>
+              
+              {/* Patch Selector */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-zinc-400">Patch:</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm">
+                      <span>{selectedPatch || patchVersion}</span>
+                      <ChevronDown size={14} className="text-zinc-400" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-[200px] text-zinc-300">
+                    <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
+                      {availablePatches.map((patch) => (
+                        <button
+                          key={patch}
+                          onClick={() => {
+                            setSelectedPatch(patch);
+                            document.body.click(); // Close popover
+                          }}
+                          className={`p-2 text-left rounded-md text-sm ${
+                            selectedPatch === patch ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
+                          }`}
+                        >
+                          {patch}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
-
-            {/* Center section: Rank selector */}
-            <div className="flex justify-center">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm min-w-[160px]">
-                    {rankIcons[selectedRank.replace("+", "")]?.icon && (
+            
+            {/* Two-column layout for filters */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left side: Role selection */}
+              <div className="lg:col-span-3 bg-zinc-800/30 rounded-lg p-4">
+                <h3 className="font-medium text-sm text-zinc-400 mb-3">Lanes</h3>
+                <div className="flex flex-col gap-2">
+                  {Object.entries(roleData).map(([role, info]) => (
+                    <button
+                      key={role}
+                      onClick={() => setSelectedRole(role)}
+                      className={`flex items-center gap-3 p-2 rounded-md transition-colors ${
+                        selectedRole === role 
+                          ? "bg-zinc-700 text-white" 
+                          : "hover:bg-zinc-700/50 text-zinc-300"
+                      }`}
+                    >
                       <div 
-                        className="flex items-center justify-center" 
-                        style={{ color: rankIcons[selectedRank.replace("+", "")]?.color || "#FFFFFF" }}
+                        className="w-6 h-6 rounded-md flex items-center justify-center"
+                        style={{ color: info.color }}
                       >
-                        {rankIcons[selectedRank.replace("+", "")]?.icon}
+                        {info.icon}
                       </div>
+                      <span>{role === "" ? "All Lanes" : info.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Middle: Main content filters */}
+              <div className="lg:col-span-6 flex flex-col gap-4">
+                {/* Search bar - improved styling */}
+                <div className="relative w-full">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Search size={16} className="text-zinc-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search champions..."
+                    className="w-full bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-2 pl-10 pr-10 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-300 placeholder-zinc-500"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-200"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+                
+                {/* Secondary filter options */}
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                  {/* Difficulty filter */}
+                  <div className="flex items-center">
+                    <span className="text-sm text-zinc-400 mr-2">Difficulty:</span>
+                    <div className="flex gap-1">
+                      {["Easy", "Medium", "Hard"].map((difficulty) => (
+                        <button
+                          key={difficulty}
+                          onClick={() => toggleDifficultyFilter(difficulty)}
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            selectedDifficulty.includes(difficulty)
+                              ? "bg-blue-500/20 text-blue-400 border border-blue-500/40"
+                              : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
+                          }`}
+                        >
+                          {difficulty}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Damage Type filter */}
+                  <div className="flex items-center">
+                    <span className="text-sm text-zinc-400 mr-2">Damage:</span>
+                    <div className="flex gap-1">
+                      {["AP", "AD", "Hybrid"].map((damageType) => (
+                        <button
+                          key={damageType}
+                          onClick={() => toggleDamageTypeFilter(damageType)}
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            selectedDamageType.includes(damageType)
+                              ? "bg-purple-500/20 text-purple-400 border border-purple-500/40"
+                              : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
+                          }`}
+                        >
+                          {damageType}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Range filter */}
+                  <div className="flex items-center">
+                    <span className="text-sm text-zinc-400 mr-2">Range:</span>
+                    <div className="flex gap-1">
+                      {["Melee", "Ranged"].map((range) => (
+                        <button
+                          key={range}
+                          onClick={() => toggleRangeFilter(range)}
+                          className={`px-2 py-1 rounded text-xs font-medium ${
+                            selectedRange.includes(range)
+                              ? "bg-green-500/20 text-green-400 border border-green-500/40"
+                              : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
+                          }`}
+                        >
+                          {range}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Active filter tags */}
+                {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0 || searchQuery) && (
+                  <div className="flex flex-wrap items-center gap-2 mt-1 text-sm">
+                    {searchQuery && (
+                      <span className="bg-blue-900/20 border border-blue-800/40 px-2 py-1 rounded-md flex items-center gap-1 text-blue-300 text-xs">
+                        Search: {searchQuery}
+                        <button onClick={() => setSearchQuery("")} className="opacity-60 hover:opacity-100">
+                          <X size={12} />
+                        </button>
+                      </span>
                     )}
-                    <span className="text-zinc-200">{selectedRank}</span>
-                    <ChevronDown size={14} className="ml-auto text-zinc-400" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="bg-zinc-800 border border-zinc-700 p-3 w-[320px] text-zinc-300">
-                  <div className="grid grid-cols-4 gap-2">
-                    {["CHALLENGER", "GRANDMASTER", "MASTER+", "MASTER", "DIAMOND+", "DIAMOND", "EMERALD+", "EMERALD", "PLATINUM+", "PLATINUM", "GOLD+", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
-                      <button
-                        key={rank}
-                        onClick={() => {
-                          setSelectedRank(rank);
-                          document.body.click(); // Close popover
-                        }}
-                        className={`p-2 flex flex-col items-center justify-center gap-1 rounded-md text-xs transition-colors ${
-                          selectedRank === rank ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
-                        }`}
-                        style={{ 
-                          color: selectedRank === rank 
-                            ? rankIcons[rank.replace("+", "")]?.color || "#FFFFFF" 
-                            : "inherit" 
-                        }}
+                    {selectedDifficulty.map((difficulty) => (
+                      <span
+                        key={difficulty}
+                        className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
                       >
-                        {rankIcons[rank.replace("+", "")]?.icon && (
-                          <div className="flex items-center justify-center">
-                            {rankIcons[rank.replace("+", "")]?.icon}
-                          </div>
-                        )}
-                        <span>{rank}</span>
-                      </button>
+                        Difficulty: {difficulty}
+                        <button onClick={() => toggleDifficultyFilter(difficulty)} className="opacity-60 hover:opacity-100">
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                    {selectedDamageType.map((damageType) => (
+                      <span
+                        key={damageType}
+                        className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
+                      >
+                        Damage: {damageType}
+                        <button onClick={() => toggleDamageTypeFilter(damageType)} className="opacity-60 hover:opacity-100">
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                    {selectedRange.map((range) => (
+                      <span
+                        key={range}
+                        className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
+                      >
+                        Range: {range}
+                        <button onClick={() => toggleRangeFilter(range)} className="opacity-60 hover:opacity-100">
+                          <X size={12} />
+                        </button>
+                      </span>
                     ))}
                   </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Right section: Search bar */}
-            <div className="flex justify-center md:justify-end">
-              <div className="relative w-full max-w-md">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Search size={16} className="text-zinc-400" />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search champions..."
-                  className="w-full bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-2 pl-10 pr-10 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-300 placeholder-zinc-500"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-200"
-                  >
-                    <X size={16} />
-                  </button>
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Secondary filter options - displayed in a more compact form */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-3 border-t border-zinc-800">
-            {/* Difficulty filter */}
-            <div className="flex items-center">
-              <span className="text-sm text-zinc-400 mr-2">Difficulty:</span>
-              <div className="flex gap-1">
-                {["Easy", "Medium", "Hard"].map((difficulty) => (
-                  <button
-                    key={difficulty}
-                    onClick={() => toggleDifficultyFilter(difficulty)}
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      selectedDifficulty.includes(difficulty)
-                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/40"
-                        : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
-                    }`}
-                  >
-                    {difficulty}
-                  </button>
-                ))}
+              
+              {/* Right side: Rank selection */}
+              <div className="lg:col-span-3 bg-zinc-800/30 rounded-lg p-4">
+                <h3 className="font-medium text-sm text-zinc-400 mb-3">Division</h3>
+                <div className="flex flex-col gap-2">
+                  {["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "EMERALD", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
+                    <button
+                      key={rank}
+                      onClick={() => setSelectedRank(rank)}
+                      className={`flex items-center gap-3 p-2 rounded-md transition-colors ${
+                        selectedRank === rank 
+                          ? "bg-zinc-700" 
+                          : "hover:bg-zinc-700/50 text-zinc-300"
+                      }`}
+                      style={{ 
+                        color: selectedRank === rank 
+                          ? rankIcons[rank.replace("+", "")]?.color || "#FFFFFF" 
+                          : "inherit" 
+                      }}
+                    >
+                      <div className="w-6 h-6 relative overflow-hidden rounded-md">
+                        {rank !== "ALL" ? (
+                          <Image
+                            src={rankIcons[rank]?.imgUrl || ""}
+                            alt={rank}
+                            fill
+                            className="object-contain"
+                            unoptimized
+                          />
+                        ) : (
+                          rankIcons[rank]?.icon
+                        )}
+                      </div>
+                      <span>{rank}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-
-            {/* Damage Type filter */}
-            <div className="flex items-center">
-              <span className="text-sm text-zinc-400 mr-2">Damage:</span>
-              <div className="flex gap-1">
-                {["AP", "AD", "Hybrid"].map((damageType) => (
-                  <button
-                    key={damageType}
-                    onClick={() => toggleDamageTypeFilter(damageType)}
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      selectedDamageType.includes(damageType)
-                        ? "bg-purple-500/20 text-purple-400 border border-purple-500/40"
-                        : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
-                    }`}
-                  >
-                    {damageType}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Range filter */}
-            <div className="flex items-center">
-              <span className="text-sm text-zinc-400 mr-2">Range:</span>
-              <div className="flex gap-1">
-                {["Melee", "Ranged"].map((range) => (
-                  <button
-                    key={range}
-                    onClick={() => toggleRangeFilter(range)}
-                    className={`px-2 py-1 rounded text-xs font-medium ${
-                      selectedRange.includes(range)
-                        ? "bg-green-500/20 text-green-400 border border-green-500/40"
-                        : "bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700"
-                    }`}
-                  >
-                    {range}
-                  </button>
-                ))}
-              </div>
-            </div>
-
+            
             {/* Clear Filters button - Only show when some filters are active */}
             {(selectedRole !== "" || selectedTier !== "" || selectedRank !== "ALL" || 
               selectedDifficulty.length > 0 || selectedDamageType.length > 0 || 
               selectedRange.length > 0 || searchQuery) && (
-              <button
-                onClick={() => {
-                  setSelectedRole("");
-                  setSelectedTier("");
-                  setSelectedRank("ALL");
-                  setSelectedDifficulty([]);
-                  setSelectedDamageType([]);
-                  setSelectedRange([]);
-                  setSearchQuery("");
-                }}
-                className="ml-auto px-3 py-1 bg-red-800/40 hover:bg-red-800/60 text-red-300 rounded-md text-xs font-medium"
-              >
-                Clear All Filters
-              </button>
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={() => {
+                    setSelectedRole("");
+                    setSelectedTier("");
+                    setSelectedRank("ALL");
+                    setSelectedDifficulty([]);
+                    setSelectedDamageType([]);
+                    setSelectedRange([]);
+                    setSearchQuery("");
+                  }}
+                  className="px-4 py-2 bg-red-800/40 hover:bg-red-800/60 text-red-300 rounded-md text-sm font-medium"
+                >
+                  Clear All Filters
+                </button>
+              </div>
             )}
           </div>
-
-          {/* Active filter tags - optional display */}
-          {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0 || searchQuery) && (
-            <div className="flex flex-wrap items-center gap-2 mt-4 text-sm">
-              {searchQuery && (
-                <span className="bg-blue-900/20 border border-blue-800/40 px-2 py-1 rounded-md flex items-center gap-1 text-blue-300 text-xs">
-                  Search: {searchQuery}
-                  <button onClick={() => setSearchQuery("")} className="opacity-60 hover:opacity-100">
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-              {selectedDifficulty.map((difficulty) => (
-                <span
-                  key={difficulty}
-                  className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
-                >
-                  Difficulty: {difficulty}
-                  <button onClick={() => toggleDifficultyFilter(difficulty)} className="opacity-60 hover:opacity-100">
-                    <X size={12} />
-                  </button>
-                </span>
-              ))}
-              {selectedDamageType.map((damageType) => (
-                <span
-                  key={damageType}
-                  className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
-                >
-                  Damage: {damageType}
-                  <button onClick={() => toggleDamageTypeFilter(damageType)} className="opacity-60 hover:opacity-100">
-                    <X size={12} />
-                  </button>
-                </span>
-              ))}
-              {selectedRange.map((range) => (
-                <span
-                  key={range}
-                  className="bg-zinc-800/80 border border-zinc-700/40 px-2 py-1 rounded-md flex items-center gap-1 text-zinc-300 text-xs"
-                >
-                  Range: {range}
-                  <button onClick={() => toggleRangeFilter(range)} className="opacity-60 hover:opacity-100">
-                    <X size={12} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Champion Table */}

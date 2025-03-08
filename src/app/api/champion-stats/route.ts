@@ -181,7 +181,7 @@ function normalizeRoleName(role: string): string {
 }
 
 // Fetch champion stats from Riot API
-async function fetchChampionStats(): Promise<Record<string, Record<string, RoleStats>>> {
+async function fetchChampionStats(rank: string = 'ALL'): Promise<Record<string, Record<string, RoleStats>>> {
   try {
     // In a real implementation, you would fetch data from the Riot API endpoints shown in the images
     // For example:
@@ -308,15 +308,73 @@ async function fetchChampionStats(): Promise<Record<string, Record<string, RoleS
         const winRateAdjustment = isSecondaryRole ? -1.5 : 0;
         const pickRateAdjustment = isSecondaryRole ? -3.0 : 0;
         
+        // Base stats
+        let winRate = champion.winRate + winRateAdjustment;
+        let pickRate = champion.pickRate + pickRateAdjustment;
+        const banRate = champion.banRate; // Using const here since it's not reassigned
+        
+        // Adjust stats based on rank
+        if (rank !== 'ALL') {
+          // Champions perform differently at different ranks
+          const isMetaChampion = ['Irelia', 'Yasuo', 'LeeSin', 'Zed', 'Akali', 'Thresh'].includes(champion.id);
+          
+          // Determine if champion is typically easier to play
+          const isEasyChamp = ['Garen', 'Annie', 'Ashe', 'MasterYi', 'Soraka'].includes(champion.id);
+          
+          switch(rank) {
+            case 'CHALLENGER':
+            case 'GRANDMASTER':
+            case 'MASTER':
+              // Complex champions perform better in high ranks
+              if (isMetaChampion) {
+                winRate += 2;
+                pickRate += 4;
+              } else if (isEasyChamp) {
+                winRate -= 1.5;
+                pickRate -= 3;
+              }
+              break;
+              
+            case 'DIAMOND':
+            case 'EMERALD':
+              // Slightly favor skilled champions
+              if (isMetaChampion) {
+                winRate += 1;
+                pickRate += 2;
+              }
+              break;
+              
+            case 'GOLD':
+            case 'SILVER':
+              // No major adjustments in mid ranks
+              break;
+              
+            case 'BRONZE':
+            case 'IRON':
+              // Easy champions perform better in low ranks
+              if (isEasyChamp) {
+                winRate += 3;
+                pickRate += 5;
+              } else if (isMetaChampion) {
+                winRate -= 2;
+                pickRate -= 2;
+              }
+              break;
+          }
+        }
+        
+        // Ensure win rate stays in reasonable range
+        winRate = Math.max(45, Math.min(56, winRate));
+        
         champStats[champion.id][normalizedRole] = {
-          winRate: champion.winRate + winRateAdjustment,
-          pickRate: champion.pickRate + pickRateAdjustment,
-          banRate: champion.banRate,
+          winRate: parseFloat(winRate.toFixed(1)),
+          pickRate: parseFloat(pickRate.toFixed(1)),
+          banRate: parseFloat(banRate.toFixed(1)),
           totalGames: Math.floor((champion.pickRate + pickRateAdjustment) * 10000),
           tier: calculateTier(
-            champion.winRate + winRateAdjustment, 
-            champion.pickRate + pickRateAdjustment, 
-            champion.banRate
+            winRate, 
+            pickRate, 
+            banRate
           )
         };
       });
@@ -333,8 +391,9 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const patch = searchParams.get('patch') || await getCurrentPatch();
+    const rank = searchParams.get('rank') || 'ALL';
     
-    console.log(`Fetching champion data for patch ${patch}`);
+    console.log(`Fetching champion data for patch ${patch} and rank ${rank}`);
 
     // Get the list of all champions from Data Dragon (Riot's official CDN)
     const championsResponse = await axios.get<ChampionDataResponse>(
@@ -343,8 +402,8 @@ export async function GET(request: Request) {
     
     const champions = championsResponse.data.data;
     
-    // Fetch champion stats from Riot API
-    const riotChampionStats = await fetchChampionStats();
+    // Fetch champion stats from Riot API, with rank filter if specified
+    const riotChampionStats = await fetchChampionStats(rank);
     
     const champStats: Record<string, ChampionStats> = {};
     
@@ -409,14 +468,62 @@ export async function GET(request: Request) {
           // Primary role gets better stats than secondary roles
           const isPrimary = index === 0;
           
-          // Base win rate around 50% with some variation
-          const baseWinRate = 50 + (Math.random() * 6 - 3);
+          // Base stats that will be adjusted by rank
+          let baseWinRate = 50 + (Math.random() * 6 - 3);
+          let pickRate = isPrimary ? 5 + (Math.random() * 10) : 2 + (Math.random() * 5);
+          const banRate = baseWinRate > 52 ? 5 + (Math.random() * 15) : 1 + (Math.random() * 5); // Using const
           
-          // Pick rate is higher for primary role
-          const pickRate = isPrimary ? 5 + (Math.random() * 10) : 2 + (Math.random() * 5);
-          
-          // Ban rate depends on champion's perceived strength
-          const banRate = baseWinRate > 52 ? 5 + (Math.random() * 15) : 1 + (Math.random() * 5);
+          // Adjust stats by rank (champions perform differently at different ranks)
+          if (rank !== 'ALL') {
+            // In higher ranks, meta champions have better stats
+            const isMetaChampion = ['Irelia', 'Yasuo', 'LeeSin', 'Zed', 'Akali', 'Thresh'].includes(champion.id);
+            
+            // In lower ranks, easy champions have better stats
+            const isEasyChampion = difficulty === 'Easy';
+            
+            // Calculate rank-specific adjustments
+            switch(rank) {
+              case 'CHALLENGER':
+              case 'GRANDMASTER':
+              case 'MASTER':
+                // Higher skill champions perform better in high ranks
+                if (difficulty === 'Hard' || isMetaChampion) {
+                  baseWinRate += 2;
+                  pickRate += 5;
+                } else if (difficulty === 'Easy') {
+                  baseWinRate -= 1;
+                  pickRate -= 2;
+                }
+                break;
+                
+              case 'DIAMOND':
+              case 'EMERALD':
+                // Balanced distribution but still favoring skilled play
+                if (difficulty === 'Hard') {
+                  baseWinRate += 1;
+                  pickRate += 3;
+                } 
+                break;
+                
+              case 'PLATINUM':
+              case 'GOLD':
+                // Average distribution
+                break;
+                
+              case 'SILVER':
+              case 'BRONZE':
+              case 'IRON':
+                // Easy champions perform better in low ranks
+                if (isEasyChampion) {
+                  baseWinRate += 2;
+                  pickRate += 3;
+                } else if (difficulty === 'Hard') {
+                  baseWinRate -= 2;
+                  pickRate -= 1;
+                }
+                break;
+            }
+          }
           
           // Total games based on pick rate
           const totalGames = Math.floor(pickRate * 10000);
