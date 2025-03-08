@@ -230,18 +230,14 @@ export default function TierList() {
           tier: "C"
         }
         
-        // Ensure percentage values are handled correctly
-        const normalizedWinRate = primaryRoleStats.winRate > 1 ? primaryRoleStats.winRate / 100 : primaryRoleStats.winRate
-        const normalizedPickRate = primaryRoleStats.pickRate > 1 ? primaryRoleStats.pickRate / 100 : primaryRoleStats.pickRate
-        const normalizedBanRate = primaryRoleStats.banRate > 1 ? primaryRoleStats.banRate / 100 : primaryRoleStats.banRate
-        
+        // Values are already in percentage form from the API, no need to normalize
         return {
           id: champion.id,
           name: champion.name,
           image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champion.image.full}`,
-          winRate: normalizedWinRate,
-          pickRate: normalizedPickRate,
-          banRate: normalizedBanRate,
+          winRate: primaryRoleStats.winRate,
+          pickRate: primaryRoleStats.pickRate,
+          banRate: primaryRoleStats.banRate,
           totalGames: primaryRoleStats.totalGames || 0,
           role: primaryRole,
           tier: primaryRoleStats.tier || "C",
@@ -473,81 +469,79 @@ export default function TierList() {
                 key={role}
                 onClick={() => setSelectedRole(role)}
                 className={`p-1.5 rounded-md transition-colors ${selectedRole === role ? "bg-zinc-700" : "bg-zinc-800 hover:bg-zinc-700"}`}
-                title={info.label}
+                title={role === "" ? "All Lanes" : `${info.label} Lane`}
               >
                 <div 
-                  className="w-6 h-6 flex items-center justify-center"
+                  className="w-7 h-7 rounded-md flex items-center justify-center"
                   style={{ color: info.color }}
                 >
                   {info.icon}
                 </div>
+                <span className="sr-only">{info.label}</span>
               </button>
             ))}
 
-            {/* Divider */}
-            <div className="h-6 w-px bg-zinc-700 mx-1"></div>
-
-            {/* Rank Dropdown */}
-            <div className="relative">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    className="bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded-md flex items-center gap-2 text-sm text-zinc-300"
-                  >
-                    <span>{selectedRank || "ALL"}</span>
-                    <ChevronDown size={14} className="text-zinc-400" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-[300px] text-zinc-300">
-                  <div className="grid grid-cols-3 gap-2">
-                    {["CHALLENGER", "GRANDMASTER", "MASTER+", "MASTER", "DIAMOND+", "DIAMOND", "EMERALD+", "EMERALD", "PLATINUM+", "PLATINUM", "GOLD+", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
-                      <button
-                        key={rank}
-                        onClick={() => {
-                          setSelectedRank(rank);
-                          document.body.click(); // Close popover
-                        }}
-                        className={`p-2 flex items-center justify-center rounded-md text-xs ${
-                          selectedRank === rank ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
-                        }`}
-                      >
-                        <span>{rank}</span>
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
+            {/* Add a lane label to make it clearer what the icons represent */}
+            <div className="text-zinc-400 text-sm ml-2">
+              {selectedRole === "" ? "All Lanes" : `${roleData[selectedRole]?.label || ""} Lane`}
             </div>
+          </div>
 
-            {/* Divider */}
-            <div className="h-6 w-px bg-zinc-700 mx-1"></div>
-
-            {/* Search bar */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
-                <Search size={14} className="text-zinc-400" />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search champions..."
-                className="bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-1.5 pl-7 pr-7 rounded-md w-[200px] text-sm focus:outline-none text-zinc-300 placeholder-zinc-500"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-0 flex items-center pr-2"
-                >
-                  <X size={14} className="text-zinc-400" />
+          {/* Rank Dropdown */}
+          <div className="flex items-center">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm">
+                  <span>{selectedRank}</span>
+                  <ChevronDown size={14} />
                 </button>
-              )}
+              </PopoverTrigger>
+              <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-[300px] text-zinc-300">
+                <div className="grid grid-cols-3 gap-2">
+                  {["CHALLENGER", "GRANDMASTER", "MASTER+", "MASTER", "DIAMOND+", "DIAMOND", "EMERALD+", "EMERALD", "PLATINUM+", "PLATINUM", "GOLD+", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
+                    <button
+                      key={rank}
+                      onClick={() => {
+                        setSelectedRank(rank);
+                        document.body.click(); // Close popover
+                      }}
+                      className={`p-2 flex items-center justify-center rounded-md text-xs ${
+                        selectedRank === rank ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
+                      }`}
+                    >
+                      <span>{rank}</span>
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Search bar */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none">
+              <Search size={14} className="text-zinc-400" />
             </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search champions..."
+              className="bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-1.5 pl-7 pr-7 rounded-md w-[200px] text-sm focus:outline-none text-zinc-300 placeholder-zinc-500"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 flex items-center pr-2"
+              >
+                <X size={14} className="text-zinc-400" />
+              </button>
+            )}
           </div>
 
           {/* Additional filter options - optional display */}
           {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0) && (
-            <div className="flex flex-wrap items-center justify-center gap-2 text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-sm">
               {selectedDifficulty.map((difficulty) => (
                 <span
                   key={difficulty}
@@ -797,17 +791,17 @@ export default function TierList() {
                     
                     {/* Win Rate Cell - Centered Text */}
                     <td className="py-2 text-center font-medium">
-                      {(champion.winRate * 100).toFixed(1)}%
+                      {champion.winRate.toFixed(1)}%
                     </td>
                     
                     {/* Pick Rate Cell - Centered Text */}
                     <td className="py-2 text-center font-medium">
-                      {(champion.pickRate * 100).toFixed(1)}%
+                      {champion.pickRate.toFixed(1)}%
                     </td>
                     
                     {/* Ban Rate Cell - Centered Text */}
                     <td className="py-2 text-center font-medium">
-                      {(champion.banRate * 100).toFixed(1)}%
+                      {champion.banRate.toFixed(1)}%
                     </td>
                     
                     {/* Games Cell - Centered Text */}
