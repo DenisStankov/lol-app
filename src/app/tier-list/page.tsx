@@ -11,7 +11,8 @@ import {
 import { 
   Tooltip,
   TooltipContent,
-  TooltipTrigger
+  TooltipTrigger,
+  TooltipProvider
 } from "@/components/ui/tooltip"
 
 interface Champion {
@@ -567,21 +568,23 @@ export default function TierList() {
               <th className="px-3 py-2 text-sm">
                 <div className="flex items-center justify-center gap-1">
                   Tier
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info size={14} className="text-gray-500" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="w-[200px] text-xs">
-                        Champion tiers are calculated based on win rate, pick rate, and ban rate.
-                        S: Strongest (55%+ win rate)<br />
-                        A: Very Strong (53-55% win rate)<br />
-                        B: Strong (51-53% win rate)<br />
-                        C: Average (48-51% win rate)<br />
-                        D: Weak (below 48% win rate)
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info size={14} className="text-gray-500" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="w-[200px] text-xs">
+                          Champion tiers are calculated based on win rate, pick rate, and ban rate.
+                          S: Strongest (55%+ win rate)<br />
+                          A: Very Strong (53-55% win rate)<br />
+                          B: Strong (51-53% win rate)<br />
+                          C: Average (48-51% win rate)<br />
+                          D: Weak (below 48% win rate)
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </th>
               <th className="px-3 py-2 text-sm">Winrate</th>
