@@ -145,23 +145,6 @@ const tierColors: Record<string, string> = {
   "D": "#A855F7",  // Purple
 }
 
-// Define available regions
-// Replace the existing regions array with the imported one
-// When you find code like:
-// const regions = [
-//   { id: "global", name: "Global", code: "GLOBAL" },
-//   ...
-
-// Replace it with:
-// Use the regions imported from the API
-
-// Fix the eslint directives by removing unused ones
-// Find lines like:
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// const [sortBy, setSortBy] = useState("tier")
-
-// Replace with:
-// const [sortBy, setSortBy] = useState("tier")
 
 // Fix the useEffect hook by adding the missing dependencies
 // In the useEffect that has the fetchWithParams function, 
@@ -463,10 +446,9 @@ export default function TierList() {
     };
     
     initialFetch();
-  }, []); // Empty dependency array since this should only run once on mount
+  }, [patchVersion, selectedRank]); // Empty dependency array since this should only run once on mount
 
   // Watch for changes in selected filters
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Only fetch if patches are loaded and we have selected values
     if (availablePatches.length > 0 && selectedPatch && selectedRank) {

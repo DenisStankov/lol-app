@@ -179,22 +179,6 @@ function normalizeRoleName(role: string): string {
   return roleMapping[role] || role;
 }
 
-// Define regions available in the API
-const regions = [
-  { id: "global", name: "Global", code: "GLOBAL" },
-  { id: "na", name: "North America", code: "NA1" },
-  { id: "euw", name: "EU West", code: "EUW1" },
-  { id: "eune", name: "EU Nordic & East", code: "EUN1" },
-  { id: "kr", name: "Korea", code: "KR" },
-  { id: "br", name: "Brazil", code: "BR1" },
-  { id: "jp", name: "Japan", code: "JP1" },
-  { id: "lan", name: "Latin America North", code: "LA1" },
-  { id: "las", name: "Latin America South", code: "LA2" },
-  { id: "oce", name: "Oceania", code: "OC1" },
-  { id: "ru", name: "Russia", code: "RU" },
-  { id: "tr", name: "Turkey", code: "TR1" }
-];
-
 // Fetch champion stats from Riot API
 async function fetchChampionStats(rank: string = 'ALL', region: string = 'global'): Promise<Record<string, Record<string, RoleStats>>> {
   try {
@@ -411,8 +395,8 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
         
         champStats[champion.id][normalizedRole] = {
           winRate: parseFloat(winRate.toFixed(1)),
-          pickRate: parseFloat(pickRate.toFixed(1)),
-          banRate: parseFloat(banRate.toFixed(1)),
+      pickRate: parseFloat(pickRate.toFixed(1)),
+      banRate: parseFloat(banRate.toFixed(1)),
           totalGames: Math.floor((champion.pickRate + pickRateAdjustment) * 10000),
           tier: calculateTier(
             winRate, 
