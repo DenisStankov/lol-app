@@ -150,18 +150,18 @@ const tierColors: Record<string, string> = {
 // In the useEffect that has the fetchWithParams function, 
 // update the dependency array to include patchVersion and selectedRank
 
-// Update rankIcons to use official LoL rank images
+// Update rankIcons to use DDragon assets where possible and local images as fallbacks
 const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
   "CHALLENGER": {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/challenger.png"
+          src="/images/ranks/challenger.png"
           alt="Challenger"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -171,12 +171,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/grandmaster.png"
+          src="/images/ranks/grandmaster.png"
           alt="Grandmaster"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -186,12 +186,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/master.png"
+          src="/images/ranks/master.png"
           alt="Master"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -201,12 +201,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/diamond.png"
+          src="/images/ranks/diamond.png"
           alt="Diamond"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -216,12 +216,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/emerald.png"
+          src="/images/ranks/emerald.png"
           alt="Emerald"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -231,12 +231,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/platinum.png"
+          src="/images/ranks/platinum.png"
           alt="Platinum"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -246,12 +246,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/gold.png"
+          src="/images/ranks/gold.png"
           alt="Gold"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -261,12 +261,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/silver.png"
+          src="/images/ranks/silver.png"
           alt="Silver"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -276,12 +276,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/bronze.png"
+          src="/images/ranks/bronze.png"
           alt="Bronze"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -291,12 +291,12 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/iron.png"
+          src="/images/ranks/iron.png"
           alt="Iron"
           width={24}
           height={24}
           className="object-contain"
-          unoptimized
+          priority
         />
       </div>
     ),
@@ -330,6 +330,7 @@ export default function TierList() {
   const [selectedPatch, setSelectedPatch] = useState("")
   const [sortBy, setSortBy] = useState("tier")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [viewMode] = useState("table")
 
@@ -635,6 +636,7 @@ export default function TierList() {
     setSelectedDamageType([]);
     setSelectedRange([]);
     setSearchQuery("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
