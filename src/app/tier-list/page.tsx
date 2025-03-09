@@ -142,86 +142,171 @@ const tierColors: Record<string, string> = {
   "D": "#A855F7",  // Purple
 }
 
-// League of Legends rank SVG icons with colors
+// Define available regions
+const regions = [
+  { id: "global", name: "Global", code: "GLOBAL" },
+  { id: "na", name: "North America", code: "NA1" },
+  { id: "euw", name: "EU West", code: "EUW1" },
+  { id: "eune", name: "EU Nordic & East", code: "EUN1" },
+  { id: "kr", name: "Korea", code: "KR" },
+  { id: "br", name: "Brazil", code: "BR1" },
+  { id: "jp", name: "Japan", code: "JP1" },
+  { id: "lan", name: "Latin America North", code: "LA1" },
+  { id: "las", name: "Latin America South", code: "LA2" },
+  { id: "oce", name: "Oceania", code: "OC1" },
+  { id: "ru", name: "Russia", code: "RU" },
+  { id: "tr", name: "Turkey", code: "TR1" }
+];
+
+// Update rankIcons to use official LoL rank images
 const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
   "CHALLENGER": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,29.5c-1.5-1.5-3.8-2.4-6.3-2.4c-0.9,0-1.7,0.1-2.5,0.3l-2.7-4.6c3.7-2.1,5.8-5.1,5.8-8.1 c0-5.2-4.9-9.5-10.8-9.5v-2.5c7.8,0,13.8,5.1,13.8,11.9c0,3.4-1.6,6.7-4.2,9.1l0.7,1.1c1.7-0.5,3.5-0.8,5.3-0.8 c2.8,0,5.4,0.6,7.3,1.7l-0.6,1.8C19.4,26.6,17.3,27.8,16,29.5z"/>
-        <path fill="currentColor" d="M32,4.7c-5.9,0-10.8,4.3-10.8,9.5c0,3,2.1,6,5.8,8.1l-2.7,4.6c-0.8-0.2-1.7-0.3-2.5-0.3 c-2.5,0-4.8,0.9-6.3,2.4C14,27.8,12,26.6,9.5,27.3l-0.6-1.8c1.9-1.1,4.4-1.7,7.3-1.7c1.8,0,3.6,0.3,5.3,0.8l0.7-1.1 c-2.7-2.4-4.2-5.7-4.2-9.1c0-6.9,6-11.9,13.8-11.9V4.7z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/challenger.png"
+          alt="Challenger"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#f4c874"
   },
   "GRANDMASTER": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,2L7.4,6.2v8.4c0,6.7,3.7,13,9.6,16.3l0,0l0,0c5.9-3.3,9.6-9.6,9.6-16.3V6.2L16,2z M23.7,14.6 c0,5.8-3.2,11.2-8.3,14c-5.1-2.8-8.3-8.2-8.3-14V7.6L16,4.1l8.9,3.5v7L23.7,14.6z M10.1,14.2l2.9,2.4l-0.9,3.8l3.4-2.2l3.4,2.2 l-0.9-3.8l2.9-2.4l-3.9-0.3l-1.5-3.6l-1.5,3.6L10.1,14.2z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/grandmaster.png"
+          alt="Grandmaster"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#ce3f56"
   },
   "MASTER": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,2L7.4,6.2v8.4c0,6.7,3.7,13,9.6,16.3l0,0l0,0c5.9-3.3,9.6-9.6,9.6-16.3V6.2L16,2z M23.7,14.6 c0,5.8-3.2,11.2-8.3,14c-5.1-2.8-8.3-8.2-8.3-14V7.6L16,4.1l8.9,3.5v7L23.7,14.6z M10.1,14.2l2.9,2.4l-0.9,3.8l3.4-2.2l3.4,2.2 l-0.9-3.8l2.9-2.4l-3.9-0.3l-1.5-3.6l-1.5,3.6L10.1,14.2z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/master.png"
+          alt="Master"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#9d5ddd"
   },
   "DIAMOND": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,2L3,15l13,15l13-15L16,2z M16,25.7L5.6,15L16,4.3L26.4,15L16,25.7z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/diamond.png"
+          alt="Diamond"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#76c9f0"
   },
   "EMERALD": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,2L5,13v10l11,7l11-7V13L16,2z M24.3,21.7L16,27.2l-8.3-5.5v-7L16,7.2l8.3,7.5V21.7z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/emerald.png"
+          alt="Emerald"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#3a9479"
   },
   "PLATINUM": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M27,6H5L2,15l14,13l14-13L27,6z M16,24.7L4.7,14.1l2-6.1h18.6l2,6.1L16,24.7z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/platinum.png"
+          alt="Platinum"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#39c4aa"
   },
   "GOLD": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,4L4,16l12,12l12-12L16,4z M16,23.4L6.6,14l9.4-9.4l9.4,9.4L16,23.4z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/gold.png"
+          alt="Gold"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#fdb148"
   },
   "SILVER": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,4L8,16l8,12l8-12L16,4z M16,23.4L10.5,16l5.5-8.3l5.5,8.3L16,23.4z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/silver.png"
+          alt="Silver"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#a5aab5"
   },
   "BRONZE": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,5L9,16l7,11l7-11L16,5z M16,22.2l-4.7-7.4l4.7-7.4l4.7,7.4L16,22.2z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/bronze.png"
+          alt="Bronze"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#b9846c"
   },
   "IRON": {
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="h-5 w-5">
-        <path fill="currentColor" d="M16,5l-5,9l5,9l5-9L16,5z M16,18.9L13.4,14l2.6-4.7l2.6,4.7L16,18.9z"/>
-      </svg>
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image 
+          src="https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-mini-regalia/iron.png"
+          alt="Iron"
+          width={24}
+          height={24}
+          className="object-contain"
+          unoptimized
+        />
+      </div>
     ),
     color: "#747479"
   },
@@ -239,6 +324,7 @@ export default function TierList() {
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedTier, setSelectedTier] = useState("")
   const [selectedRank, setSelectedRank] = useState("ALL")
+  const [selectedRegion, setSelectedRegion] = useState("global")
   const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([])
   const [selectedDamageType, setSelectedDamageType] = useState<string[]>([])
   const [selectedRange, setSelectedRange] = useState<string[]>([])
@@ -370,7 +456,7 @@ export default function TierList() {
     initialFetch();
   }, []);
 
-  // Fetch when patch or rank changes
+  // Watch for changes in selected filters
   useEffect(() => {
     // Only fetch if patches are loaded and we have selected values
     if (availablePatches.length > 0 && selectedPatch && selectedRank) {
@@ -379,8 +465,8 @@ export default function TierList() {
           setLoading(true);
           setError("");
           
-          // Make API request with current selected patch and rank
-          const apiUrl = `/api/champion-stats?patch=${selectedPatch}&rank=${selectedRank}`;
+          // Make API request with current selected patch, rank and region
+          const apiUrl = `/api/champion-stats?patch=${selectedPatch}&rank=${selectedRank}&region=${selectedRegion}`;
           console.log(`Making API request with params to: ${apiUrl}`);
       
           const response = await fetch(apiUrl);
@@ -454,7 +540,7 @@ export default function TierList() {
       
       fetchWithParams();
     }
-  }, [selectedPatch, selectedRank, availablePatches]);
+  }, [selectedRank, selectedPatch, selectedRegion, availablePatches.length]);
 
   // Filter and sort champions
   useEffect(() => {
@@ -552,6 +638,7 @@ export default function TierList() {
     setSelectedRole("");
     setSelectedTier("");
     setSelectedRank("ALL");
+    setSelectedRegion("global");
     setSelectedDifficulty([]);
     setSelectedDamageType([]);
     setSelectedRange([]);
@@ -731,9 +818,11 @@ export default function TierList() {
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 md:py-8">
         <div className="text-center mb-4 md:mb-6">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-white">League of Legends Champion Tier List</h1>
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <span className="text-sm sm:text-base text-zinc-400">Patch {patchVersion || "14.14.1"}</span>
-            <span className="bg-blue-900/30 text-blue-300 px-2 py-0.5 rounded-full text-xs">Global Data</span>
+            <span className="bg-blue-900/30 text-blue-300 px-2 py-0.5 rounded-full text-xs">
+              {regions.find(r => r.id === selectedRegion)?.name || "Global"} Data
+            </span>
           </div>
         </div>
 
@@ -745,36 +834,70 @@ export default function TierList() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800 pb-3 md:pb-4 gap-2 sm:gap-3">
               <h2 className="font-semibold text-base sm:text-lg md:text-xl text-zinc-100">Champion Tier List</h2>
               
-              {/* Patch Selector */}
-              <div className="flex items-center gap-2 md:gap-3">
-                <span className="text-xs md:text-sm text-zinc-400">Patch:</span>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm">
-                      <span>{selectedPatch || patchVersion}</span>
-                      <ChevronDown size={14} className="text-zinc-400" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300">
-                    <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
-                      {availablePatches.map((patch) => (
-                        <button
-                          key={patch}
-                          onClick={() => {
-                            const newPatch = patch;
-                            setSelectedPatch(newPatch);
-                            document.body.click(); // Close popover
-                          }}
-                          className={`p-2 text-left rounded-md text-sm ${
-                            selectedPatch === patch ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
-                          }`}
-                        >
-                          {patch}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
+              {/* Patch and Region Selectors */}
+              <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                {/* Patch Selector */}
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <span className="text-xs md:text-sm text-zinc-400">Patch:</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm">
+                        <span>{selectedPatch || patchVersion}</span>
+                        <ChevronDown size={14} className="text-zinc-400" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300">
+                      <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
+                        {availablePatches.map((patch) => (
+                          <button
+                            key={patch}
+                            onClick={() => {
+                              const newPatch = patch;
+                              setSelectedPatch(newPatch);
+                              document.body.click(); // Close popover
+                            }}
+                            className={`p-2 text-left rounded-md text-sm ${
+                              selectedPatch === patch ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
+                            }`}
+                          >
+                            {patch}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                {/* Region Selector */}
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <span className="text-xs md:text-sm text-zinc-400">Region:</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm">
+                        <span>{regions.find(r => r.id === selectedRegion)?.name || "Global"}</span>
+                        <ChevronDown size={14} className="text-zinc-400" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300">
+                      <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
+                        {regions.map((region) => (
+                          <button
+                            key={region.id}
+                            onClick={() => {
+                              setSelectedRegion(region.id);
+                              document.body.click(); // Close popover
+                            }}
+                            className={`p-2 text-left rounded-md text-sm ${
+                              selectedRegion === region.id ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
+                            }`}
+                          >
+                            {region.name}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             </div>
             

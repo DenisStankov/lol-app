@@ -180,23 +180,67 @@ function normalizeRoleName(role: string): string {
   return roleMapping[role] || role;
 }
 
+// Define regions available in the API
+const regions = [
+  { id: "global", name: "Global", code: "GLOBAL" },
+  { id: "na", name: "North America", code: "NA1" },
+  { id: "euw", name: "EU West", code: "EUW1" },
+  { id: "eune", name: "EU Nordic & East", code: "EUN1" },
+  { id: "kr", name: "Korea", code: "KR" },
+  { id: "br", name: "Brazil", code: "BR1" },
+  { id: "jp", name: "Japan", code: "JP1" },
+  { id: "lan", name: "Latin America North", code: "LA1" },
+  { id: "las", name: "Latin America South", code: "LA2" },
+  { id: "oce", name: "Oceania", code: "OC1" },
+  { id: "ru", name: "Russia", code: "RU" },
+  { id: "tr", name: "Turkey", code: "TR1" }
+];
+
 // Fetch champion stats from Riot API
-async function fetchChampionStats(rank: string = 'ALL'): Promise<Record<string, Record<string, RoleStats>>> {
+async function fetchChampionStats(rank: string = 'ALL', region: string = 'global'): Promise<Record<string, Record<string, RoleStats>>> {
   try {
-    // In a real implementation, you would fetch data from the Riot API endpoints shown in the images
-    // For example:
-    // const championRotations = await fetch('/lol/platform/v3/champion-rotations');
-    // We'll simulate the response for this exercise
-    
     // This would be the actual implementation using the endpoints you have access to
-    // const response = await fetch('https://your-proxy-server.com/lol/league/v4/entries/by-summoner/{encryptedSummonerId}', {
-    //   headers: { 'X-Riot-Token': process.env.RIOT_API_KEY as string }
-    // });
+    // Different regions could be accessed via different endpoints
     
     // Mock data for demonstration - this would be replaced with real API calls
     const champStats: Record<string, Record<string, RoleStats>> = {};
     
-    // Popular champions in their respective roles with realistic stats based on actual meta from dpm.lol
+    // Apply region-specific adjustments
+    const regionMultiplier = {
+      winRateAdjustment: 0,
+      pickRateAdjustment: 0,
+      banRateAdjustment: 0
+    };
+    
+    // Different regions have different metas
+    // These are mock adjustments that would be replaced with real data
+    switch(region) {
+      case 'kr':
+        // Korea tends to have more aggressive meta with higher mechanical champions
+        regionMultiplier.winRateAdjustment = 1.2;
+        regionMultiplier.pickRateAdjustment = 1.5;
+        regionMultiplier.banRateAdjustment = 2.0;
+        break;
+      case 'euw':
+      case 'eune':
+        // EU tends to follow pro-play meta more closely
+        regionMultiplier.winRateAdjustment = 0.7;
+        regionMultiplier.pickRateAdjustment = 1.2;
+        regionMultiplier.banRateAdjustment = 1.0;
+        break;
+      case 'na':
+        // NA tends to have more varied meta
+        regionMultiplier.winRateAdjustment = 0.5;
+        regionMultiplier.pickRateAdjustment = 0.8;
+        regionMultiplier.banRateAdjustment = 0.5;
+        break;
+      // Add other regions as needed
+      default:
+        // Global is the base case
+        break;
+    }
+    
+    // Popular champions in their respective roles with realistic stats based on actual meta
     const popularChampions = [
       // TOP LANE
       { id: 'Aatrox', roles: ['TOP'], winRate: 49.5, pickRate: 6.7, banRate: 3.9 },
@@ -392,8 +436,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const patch = searchParams.get('patch') || await getCurrentPatch();
     const rank = searchParams.get('rank') || 'ALL';
+    const region = searchParams.get('region') || 'global';
     
-    console.log(`Fetching champion data for patch ${patch} and rank ${rank}`);
+    console.log(`Fetching champion data for patch ${patch}, rank ${rank}, and region ${region}`);
 
     // Get the list of all champions from Data Dragon (Riot's official CDN)
     const championsResponse = await axios.get<ChampionDataResponse>(
@@ -402,8 +447,8 @@ export async function GET(request: Request) {
     
     const champions = championsResponse.data.data;
     
-    // Fetch champion stats from Riot API, with rank filter if specified
-    const riotChampionStats = await fetchChampionStats(rank);
+    // Fetch champion stats from Riot API, with rank and region filters
+    const riotChampionStats = await fetchChampionStats(rank, region);
     
     const champStats: Record<string, ChampionStats> = {};
     
