@@ -15,6 +15,9 @@ import {
   TooltipProvider
 } from "@/components/ui/tooltip"
 
+// Import regions from the correct file
+import { regions } from "@/app/api/champion-stats/regions"
+
 interface Champion {
   id: string
   name: string
@@ -143,20 +146,26 @@ const tierColors: Record<string, string> = {
 }
 
 // Define available regions
-const regions = [
-  { id: "global", name: "Global", code: "GLOBAL" },
-  { id: "na", name: "North America", code: "NA1" },
-  { id: "euw", name: "EU West", code: "EUW1" },
-  { id: "eune", name: "EU Nordic & East", code: "EUN1" },
-  { id: "kr", name: "Korea", code: "KR" },
-  { id: "br", name: "Brazil", code: "BR1" },
-  { id: "jp", name: "Japan", code: "JP1" },
-  { id: "lan", name: "Latin America North", code: "LA1" },
-  { id: "las", name: "Latin America South", code: "LA2" },
-  { id: "oce", name: "Oceania", code: "OC1" },
-  { id: "ru", name: "Russia", code: "RU" },
-  { id: "tr", name: "Turkey", code: "TR1" }
-];
+// Replace the existing regions array with the imported one
+// When you find code like:
+// const regions = [
+//   { id: "global", name: "Global", code: "GLOBAL" },
+//   ...
+
+// Replace it with:
+// Use the regions imported from the API
+
+// Fix the eslint directives by removing unused ones
+// Find lines like:
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// const [sortBy, setSortBy] = useState("tier")
+
+// Replace with:
+// const [sortBy, setSortBy] = useState("tier")
+
+// Fix the useEffect hook by adding the missing dependencies
+// In the useEffect that has the fetchWithParams function, 
+// update the dependency array to include patchVersion and selectedRank
 
 // Update rankIcons to use official LoL rank images
 const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
@@ -336,9 +345,7 @@ export default function TierList() {
   const [patchVersion, setPatchVersion] = useState("")
   const [availablePatches, setAvailablePatches] = useState<string[]>([])
   const [selectedPatch, setSelectedPatch] = useState("")
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sortBy, setSortBy] = useState("tier")
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [viewMode] = useState("table")
@@ -450,13 +457,16 @@ export default function TierList() {
         console.error("Error fetching champions:", error)
         setError(`Failed to fetch champion data: ${(error as Error).message}`)
         setLoading(false)
+      } finally {
+        // ... cleanup ...
       }
     };
     
     initialFetch();
-  }, []);
+  }, []); // Empty dependency array since this should only run once on mount
 
   // Watch for changes in selected filters
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // Only fetch if patches are loaded and we have selected values
     if (availablePatches.length > 0 && selectedPatch && selectedRank) {

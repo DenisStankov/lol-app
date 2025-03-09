@@ -39,7 +39,6 @@ interface ChampionDataResponse {
 }
 
 // Role mapping for consistent naming
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const roleMapping: Record<string, string> = {
   "TOP": "TOP",
   "JUNGLE": "JUNGLE",
