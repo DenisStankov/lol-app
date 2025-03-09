@@ -567,7 +567,7 @@ export default function TierList() {
 
     // Filter by tier
     if (selectedTier !== "") {
-      filtered = filtered.filter((champ) => champ.tier === selectedTier)
+      filtered = filtered.filter((champ) => champ.tier === selectedTier) 
     }
 
     // Filter by difficulty
