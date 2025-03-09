@@ -156,7 +156,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Challenger.png"
+          src="/images/ranks/Rank=Challenger.png"
           alt="Challenger"
           width={24}
           height={24}
@@ -171,7 +171,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Grandmaster.png"
+          src="/images/ranks/Rank=Grandmaster.png"
           alt="Grandmaster"
           width={24}
           height={24}
@@ -186,7 +186,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Master.png"
+          src="/images/ranks/Rank=Master.png"
           alt="Master"
           width={24}
           height={24}
@@ -201,7 +201,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Diamond.png"
+          src="/images/ranks/Rank=Diamond.png"
           alt="Diamond"
           width={24}
           height={24}
@@ -216,7 +216,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Emerald.png"
+          src="/images/ranks/Rank=Emerald.png"
           alt="Emerald"
           width={24}
           height={24}
@@ -231,7 +231,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Platinum.png"
+          src="/images/ranks/Rank=Platinum.png"
           alt="Platinum"
           width={24}
           height={24}
@@ -246,7 +246,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Gold.png"
+          src="/images/ranks/Rank=Gold.png"
           alt="Gold"
           width={24}
           height={24}
@@ -261,7 +261,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Silver.png"
+          src="/images/ranks/Rank=Silver.png"
           alt="Silver"
           width={24}
           height={24}
@@ -276,7 +276,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Bronze.png"
+          src="/images/ranks/Rank=Bronze.png"
           alt="Bronze"
           width={24}
           height={24}
@@ -291,7 +291,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
     icon: (
       <div className="relative w-full h-full flex items-center justify-center">
         <Image 
-          src="/images/ranks/Emblem_Iron.png"
+          src="/images/ranks/Rank=Iron.png"
           alt="Iron"
           width={24}
           height={24}
