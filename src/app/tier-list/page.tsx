@@ -820,372 +820,319 @@ export default function TierList() {
           </div>
         </div>
 
-        {/* Improved Layout with better responsiveness */}
-        <div className="bg-zinc-900/70 border border-zinc-800 rounded-lg p-2 sm:p-3 md:p-5 mb-4 sm:mb-6 md:mb-8">
-          {/* Top filter bar with patch selector and title */}
-          <div className="flex flex-col gap-3 sm:gap-4 md:gap-6">
-            {/* Patch selector and title row */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-zinc-800 pb-3 md:pb-4 gap-2 sm:gap-3">
-              <h2 className="font-semibold text-base sm:text-lg md:text-xl text-zinc-100">Champion Tier List</h2>
-              
-              {/* Patch and Region Selectors */}
-              <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                {/* Patch Selector */}
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <span className="text-xs md:text-sm text-zinc-400">Patch:</span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm">
-                        <span>{selectedPatch || patchVersion}</span>
-                        <ChevronDown size={14} className="text-zinc-400" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300">
-                      <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
-                        {availablePatches.map((patch) => (
-                          <button
-                            key={patch}
-                            onClick={() => {
-                              const newPatch = patch;
-                              setSelectedPatch(newPatch);
-                              document.body.click(); // Close popover
-                            }}
-                            className={`p-2 text-left rounded-md text-sm ${
-                              selectedPatch === patch ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
-                            }`}
-                          >
-                            {patch}
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
+        {/* New DPM-style layout */}
+        <div className="bg-zinc-900/70 border border-zinc-800 rounded-lg p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 md:mb-8">
+          {/* Top filter bar with all controls in horizontal layout */}
+          <div className="flex flex-col gap-3 sm:gap-4 md:gap-5">
+            
+            {/* Role selection and search bar row */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {/* Role selection buttons - horizontal layout */}
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <button 
+                  onClick={() => setSelectedRole("")}
+                  className={`p-2 sm:p-2.5 rounded-md ${selectedRole === "" ? "bg-zinc-800" : "bg-zinc-900 hover:bg-zinc-800/50"}`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-zinc-300">
+                    <g fillRule="evenodd">
+                      <g fillRule="nonzero">
+                        <g>
+                          <path d="M16.293 17.03c.362.628.147 1.43-.48 1.793-.629.364-1.431.149-1.794-.479l-2.144-3.717-2.144 3.717c-.363.628-1.165.843-1.793.48-.628-.363-.843-1.166-.48-1.793l2.144-3.718h-4.29c-.724 0-1.312-.587-1.312-1.312 0-.727.588-1.313 1.313-1.314h4.289L7.457 6.969c-.362-.627-.147-1.43.48-1.792.629-.364 1.431-.149 1.794.479l2.144 3.717 2.144-3.717c.363-.628 1.165-.843 1.793-.48.628.363.843 1.166.48 1.793l-2.144 3.718h4.29c.725 0 1.312.587 1.312 1.312 0 .727-.587 1.314-1.312 1.314h-4.29l2.145 3.718z" />
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </button>
                 
-                {/* Region Selector */}
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <span className="text-xs md:text-sm text-zinc-400">Region:</span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm">
-                        <span>{regions.find(r => r.id === selectedRegion)?.name || "Global"}</span>
-                        <ChevronDown size={14} className="text-zinc-400" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300">
-                      <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
-                        {regions.map((region) => (
-                          <button
-                            key={region.id}
-                            onClick={() => {
-                              setSelectedRegion(region.id);
-                              document.body.click(); // Close popover
-                            }}
-                            className={`p-2 text-left rounded-md text-sm ${
-                              selectedRegion === region.id ? "bg-zinc-700 text-white" : "hover:bg-zinc-700 text-zinc-300"
-                            }`}
-                          >
-                            {region.name}
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                {Object.entries(roleData).filter(([role]) => role !== "").map(([role, info]) => (
+                  <button
+                    key={role}
+                    onClick={() => setSelectedRole(role)}
+                    className={`p-2 sm:p-2.5 rounded-md ${selectedRole === role ? "bg-zinc-800" : "bg-zinc-900 hover:bg-zinc-800/50"}`}
+                    style={{ color: info.color }}
+                  >
+                    {info.icon}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Search bar */}
+              <div className="relative w-full max-w-xs">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-2 sm:pl-3 pointer-events-none">
+                  <Search size={16} className="text-zinc-400" />
                 </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search champions..."
+                  className="w-full bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-1.5 sm:py-2 pl-8 sm:pl-10 pr-8 sm:pr-10 rounded-md text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-300 placeholder-zinc-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3 text-zinc-400 hover:text-zinc-200"
+                  >
+                    <X className="h-4 w-4 md:h-5 md:w-5" />
+                  </button>
+                )}
               </div>
             </div>
             
-            {/* Two-column layout for filters - responsive grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 md:gap-6">
-              {/* Left side: Role selection - takes full width on mobile, 1/4 on desktop */}
-              <div className="lg:col-span-3 bg-zinc-800/30 rounded-lg p-2 sm:p-3 md:p-4">
-                <h3 className="font-medium text-xs md:text-sm text-zinc-400 mb-2 md:mb-3">Lanes</h3>
-                <div className="flex flex-row flex-wrap lg:flex-col gap-1 sm:gap-2">
-                  {Object.entries(roleData).map(([role, info]) => (
-                    <button
-                      key={role}
-                      onClick={() => setSelectedRole(role)}
-                      className={`flex items-center gap-1 sm:gap-2 md:gap-3 p-1 sm:p-1.5 md:p-2 rounded-md transition-colors w-auto lg:w-full ${
-                        selectedRole === role 
-                          ? "bg-zinc-700 text-white" 
-                          : "hover:bg-zinc-700/50 text-zinc-300"
-                      }`}
-                    >
-                      <div 
-                        className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-md flex items-center justify-center"
-                        style={{ color: info.color }}
-                      >
-                        {info.icon}
+            {/* Filters row */}
+            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+              {/* Difficulty, Damage, Range dropdowns in a row */}
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
+                {/* Difficulty filter - using a proper dropdown */}
+                <div className="flex items-center">
+                  <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Difficulty:</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
+                        <span>
+                          {selectedDifficulty.length === 0 
+                            ? 'Any' 
+                            : selectedDifficulty.length === 1 
+                              ? selectedDifficulty[0] 
+                              : `${selectedDifficulty.length} selected`}
+                        </span>
+                        <ChevronDown size={14} className="text-zinc-400" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
+                      <div className="flex flex-col gap-1">
+                        {["Easy", "Medium", "Hard"].map((difficulty) => (
+                          <div key={difficulty} className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                toggleDifficultyFilter(difficulty);
+                              }}
+                              className={`flex items-center justify-center w-4 h-4 rounded border ${
+                                selectedDifficulty.includes(difficulty)
+                                  ? "bg-blue-500 border-blue-600"
+                                  : "bg-zinc-700 border-zinc-600"
+                              }`}
+                            >
+                              {selectedDifficulty.includes(difficulty) && (
+                                <div className="w-2 h-2 bg-white rounded-sm" />
+                              )}
+                            </button>
+                            <span className="text-sm text-zinc-300">{difficulty}</span>
+                          </div>
+                        ))}
                       </div>
-                      <span className="text-[10px] sm:text-xs md:text-sm">{role === "" ? "All Lanes" : info.label}</span>
-                    </button>
-                  ))}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Damage Type filter - using a proper dropdown */}
+                <div className="flex items-center">
+                  <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Damage:</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
+                        <span>
+                          {selectedDamageType.length === 0 
+                            ? 'Any' 
+                            : selectedDamageType.length === 1 
+                              ? selectedDamageType[0] 
+                              : `${selectedDamageType.length} selected`}
+                        </span>
+                        <ChevronDown size={14} className="text-zinc-400" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
+                      <div className="flex flex-col gap-1">
+                        {["AP", "AD", "Hybrid"].map((damageType) => (
+                          <div key={damageType} className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                toggleDamageTypeFilter(damageType);
+                              }}
+                              className={`flex items-center justify-center w-4 h-4 rounded border ${
+                                selectedDamageType.includes(damageType)
+                                  ? "bg-purple-500 border-purple-600"
+                                  : "bg-zinc-700 border-zinc-600"
+                              }`}
+                            >
+                              {selectedDamageType.includes(damageType) && (
+                                <div className="w-2 h-2 bg-white rounded-sm" />
+                              )}
+                            </button>
+                            <span className="text-sm text-zinc-300">{damageType}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Range filter - using a proper dropdown */}
+                <div className="flex items-center">
+                  <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Range:</span>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
+                        <span>
+                          {selectedRange.length === 0 
+                            ? 'Any' 
+                            : selectedRange.length === 1 
+                              ? selectedRange[0] 
+                              : `${selectedRange.length} selected`}
+                        </span>
+                        <ChevronDown size={14} className="text-zinc-400" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
+                      <div className="flex flex-col gap-1">
+                        {["Melee", "Ranged"].map((range) => (
+                          <div key={range} className="flex items-center gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                toggleRangeFilter(range);
+                              }}
+                              className={`flex items-center justify-center w-4 h-4 rounded border ${
+                                selectedRange.includes(range)
+                                  ? "bg-green-500 border-green-600"
+                                  : "bg-zinc-700 border-zinc-600"
+                              }`}
+                            >
+                              {selectedRange.includes(range) && (
+                                <div className="w-2 h-2 bg-white rounded-sm" />
+                              )}
+                            </button>
+                            <span className="text-sm text-zinc-300">{range}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               
-              {/* Middle: Main content filters - takes full width on mobile, 1/2 on desktop */}
-              <div className="lg:col-span-6 flex flex-col gap-2 sm:gap-3 md:gap-4">
-                {/* Search bar - improved styling with responsive size */}
-                <div className="relative w-full">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-2 sm:pl-3 pointer-events-none">
-                    <Search size={16} className="text-zinc-400" />
-                  </div>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search champions..."
-                    className="w-full bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-1.5 sm:py-2 pl-8 sm:pl-10 pr-8 sm:pr-10 rounded-md text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-300 placeholder-zinc-500"
-                  />
-                  {searchQuery && (
+              {/* Rank dropdown - converted from buttons to dropdown */}
+              <div className="flex items-center">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm md:text-base text-zinc-300">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center mr-1">
+                        {rankIcons[selectedRank]?.icon}
+                      </div>
+                      <span style={{ color: rankIcons[selectedRank]?.color || "#FFFFFF" }}>
+                        {selectedRank === "ALL" ? "All Divisions" : selectedRank.charAt(0) + selectedRank.slice(1).toLowerCase()}
+                      </span>
+                      <ChevronDown size={14} className="text-zinc-400 ml-1" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300 z-50">
+                    <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
+                      {["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "EMERALD", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
+                        <button
+                          key={rank}
+                          onClick={() => setSelectedRank(rank)}
+                          className={`flex items-center gap-2 p-1.5 rounded-md transition-colors ${
+                            selectedRank === rank 
+                              ? "bg-zinc-700" 
+                              : "hover:bg-zinc-700/50 text-zinc-300"
+                          }`}
+                          style={{ 
+                            color: selectedRank === rank 
+                              ? rankIcons[rank]?.color || "#FFFFFF" 
+                              : "inherit" 
+                          }}
+                        >
+                          <div className="w-5 h-5 flex items-center justify-center">
+                            {rankIcons[rank]?.icon}
+                          </div>
+                          <span className="text-sm">{rank === "ALL" ? "All Divisions" : rank.charAt(0) + rank.slice(1).toLowerCase()}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            {/* Active filter tags */}
+            {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0 || searchQuery) && (
+              <div className="flex flex-wrap items-center gap-1 md:gap-2 mt-1 text-[10px] md:text-xs">
+                {searchQuery && (
+                  <span className="bg-blue-900/20 border border-blue-800/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-blue-300">
+                    Search: {searchQuery}
                     <button
-                      onClick={() => setSearchQuery("")}
-                      className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3 text-zinc-400 hover:text-zinc-200"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSearchQuery("");
+                      }}
+                      className="opacity-60 hover:opacity-100"
                     >
                       <X className="h-4 w-4 md:h-5 md:w-5" />
                     </button>
-                  )}
-                </div>
-                
-                {/* Secondary filter options with better responsiveness */}
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 pt-1 sm:pt-2 md:pt-3">
-                  {/* Difficulty filter - using a proper dropdown */}
-                  <div className="flex flex-wrap items-center">
-                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Difficulty:</span>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
-                          <span>
-                            {selectedDifficulty.length === 0 
-                              ? 'Any' 
-                              : selectedDifficulty.length === 1 
-                                ? selectedDifficulty[0] 
-                                : `${selectedDifficulty.length} selected`}
-                          </span>
-                          <ChevronDown size={14} className="text-zinc-400" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
-                        <div className="flex flex-col gap-1">
-                          {["Easy", "Medium", "Hard"].map((difficulty) => (
-                            <div key={difficulty} className="flex items-center gap-2">
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  toggleDifficultyFilter(difficulty);
-                                }}
-                                className={`flex items-center justify-center w-4 h-4 rounded border ${
-                                  selectedDifficulty.includes(difficulty)
-                                    ? "bg-blue-500 border-blue-600"
-                                    : "bg-zinc-700 border-zinc-600"
-                                }`}
-                              >
-                                {selectedDifficulty.includes(difficulty) && (
-                                  <div className="w-2 h-2 bg-white rounded-sm" />
-                                )}
-                              </button>
-                              <span className="text-sm text-zinc-300">{difficulty}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* Damage Type filter - using a proper dropdown */}
-                  <div className="flex flex-wrap items-center">
-                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Damage:</span>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
-                          <span>
-                            {selectedDamageType.length === 0 
-                              ? 'Any' 
-                              : selectedDamageType.length === 1 
-                                ? selectedDamageType[0] 
-                                : `${selectedDamageType.length} selected`}
-                          </span>
-                          <ChevronDown size={14} className="text-zinc-400" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
-                        <div className="flex flex-col gap-1">
-                          {["AP", "AD", "Hybrid"].map((damageType) => (
-                            <div key={damageType} className="flex items-center gap-2">
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  toggleDamageTypeFilter(damageType);
-                                }}
-                                className={`flex items-center justify-center w-4 h-4 rounded border ${
-                                  selectedDamageType.includes(damageType)
-                                    ? "bg-purple-500 border-purple-600"
-                                    : "bg-zinc-700 border-zinc-600"
-                                }`}
-                              >
-                                {selectedDamageType.includes(damageType) && (
-                                  <div className="w-2 h-2 bg-white rounded-sm" />
-                                )}
-                              </button>
-                              <span className="text-sm text-zinc-300">{damageType}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* Range filter - using a proper dropdown */}
-                  <div className="flex flex-wrap items-center">
-                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Range:</span>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
-                          <span>
-                            {selectedRange.length === 0 
-                              ? 'Any' 
-                              : selectedRange.length === 1 
-                                ? selectedRange[0] 
-                                : `${selectedRange.length} selected`}
-                          </span>
-                          <ChevronDown size={14} className="text-zinc-400" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
-                        <div className="flex flex-col gap-1">
-                          {["Melee", "Ranged"].map((range) => (
-                            <div key={range} className="flex items-center gap-2">
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  toggleRangeFilter(range);
-                                }}
-                                className={`flex items-center justify-center w-4 h-4 rounded border ${
-                                  selectedRange.includes(range)
-                                    ? "bg-green-500 border-green-600"
-                                    : "bg-zinc-700 border-zinc-600"
-                                }`}
-                              >
-                                {selectedRange.includes(range) && (
-                                  <div className="w-2 h-2 bg-white rounded-sm" />
-                                )}
-                              </button>
-                              <span className="text-sm text-zinc-300">{range}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-                
-                {/* Active filter tags - more compact on mobile */}
-                {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0 || searchQuery) && (
-                  <div className="flex flex-wrap items-center gap-1 md:gap-2 mt-1 text-[10px] md:text-xs">
-                    {searchQuery && (
-                      <span className="bg-blue-900/20 border border-blue-800/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-blue-300">
-                        Search: {searchQuery}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSearchQuery("");
-                          }}
-                          className="opacity-60 hover:opacity-100"
-                        >
-                          <X className="h-4 w-4 md:h-5 md:w-5" />
-                        </button>
-                      </span>
-                    )}
-                    
-                    {/* Difficulty tags */}
-                    {selectedDifficulty.map((difficulty) => (
-                      <span
-                        key={difficulty}
-                        className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
-                      >
-                        Difficulty: {difficulty}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleDifficultyFilter(difficulty);
-                          }}
-                          className="opacity-60 hover:opacity-100"
-                        >
-                          <X className="h-4 w-4 md:h-5 md:w-5" />
-                        </button>
-                      </span>
-                    ))}
-                    
-                    {/* Damage type tags */}
-                    {selectedDamageType.map((damageType) => (
-                      <span
-                        key={damageType}
-                        className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
-                      >
-                        Damage: {damageType}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleDamageTypeFilter(damageType);
-                          }}
-                          className="opacity-60 hover:opacity-100"
-                        >
-                          <X className="h-4 w-4 md:h-5 md:w-5" />
-                        </button>
-                      </span>
-                    ))}
-                    
-                    {/* Range tags */}
-                    {selectedRange.map((range) => (
-                      <span
-                        key={range}
-                        className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
-                      >
-                        Range: {range}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleRangeFilter(range);
-                          }}
-                          className="opacity-60 hover:opacity-100"
-                        >
-                          <X className="h-4 w-4 md:h-5 md:w-5" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
+                  </span>
                 )}
-              </div>
-              
-              {/* Right side: Rank selection - takes full width on mobile, 1/4 on desktop */}
-              <div className="lg:col-span-3 bg-zinc-800/30 rounded-lg p-2 sm:p-3 md:p-4">
-                <h3 className="font-medium text-xs md:text-sm text-zinc-400 mb-2 md:mb-3">Division</h3>
-                <div className="flex flex-row flex-wrap lg:flex-col gap-1 sm:gap-2">
-                  {["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "EMERALD", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
+                
+                {/* Difficulty tags */}
+                {selectedDifficulty.map((difficulty) => (
+                  <span
+                    key={difficulty}
+                    className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
+                  >
+                    Difficulty: {difficulty}
                     <button
-                      key={rank}
-                      onClick={() => setSelectedRank(rank)}
-                      className={`flex items-center gap-1 sm:gap-2 md:gap-3 p-1 sm:p-1.5 md:p-2 rounded-md transition-colors w-auto lg:w-full ${
-                        selectedRank === rank 
-                          ? "bg-zinc-700" 
-                          : "hover:bg-zinc-700/50 text-zinc-300"
-                      }`}
-                      style={{ 
-                        color: selectedRank === rank 
-                          ? rankIcons[rank]?.color || "#FFFFFF" 
-                          : "inherit" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleDifficultyFilter(difficulty);
                       }}
+                      className="opacity-60 hover:opacity-100"
                     >
-                      <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 flex items-center justify-center">
-                        {rankIcons[rank]?.icon}
-                      </div>
-                      <span className="text-[10px] sm:text-xs md:text-sm">{rank === "ALL" ? "All Divisions" : rank.charAt(0) + rank.slice(1).toLowerCase()}</span>
+                      <X className="h-4 w-4 md:h-5 md:w-5" />
                     </button>
-                  ))}
-                </div>
+                  </span>
+                ))}
+                
+                {/* Damage type tags */}
+                {selectedDamageType.map((damageType) => (
+                  <span
+                    key={damageType}
+                    className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
+                  >
+                    Damage: {damageType}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleDamageTypeFilter(damageType);
+                      }}
+                      className="opacity-60 hover:opacity-100"
+                    >
+                      <X className="h-4 w-4 md:h-5 md:w-5" />
+                    </button>
+                  </span>
+                ))}
+                
+                {/* Range tags */}
+                {selectedRange.map((range) => (
+                  <span
+                    key={range}
+                    className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
+                  >
+                    Range: {range}
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleRangeFilter(range);
+                      }}
+                      className="opacity-60 hover:opacity-100"
+                    >
+                      <X className="h-4 w-4 md:h-5 md:w-5" />
+                    </button>
+                  </span>
+                ))}
               </div>
-            </div>
-            
+            )}
+              
             {/* Clear Filters button - Only show when some filters are active */}
             {(selectedRole !== "" || selectedTier !== "" || selectedRank !== "ALL" || 
               selectedDifficulty.length > 0 || selectedDamageType.length > 0 || 
