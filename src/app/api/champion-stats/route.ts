@@ -78,6 +78,19 @@ interface ChampionStats {
   range: 'Melee' | 'Ranged';
 }
 
+// Add this interface after the other interfaces at the top of the file
+interface CommunityDragonRoleStats {
+  winRate: number;
+  pickRate: number;
+  banRate: number;
+  totalGames: number;
+}
+
+interface CommunityDragonChampionStats {
+  id: string;
+  roles: Record<string, CommunityDragonRoleStats>;
+}
+
 // Calculate tier based on win rate, pick rate, and ban rate
 function calculateTier(winRate: number, pickRate: number, banRate: number): TierType {
   // More accurate formula based on dpm.lol's approach
@@ -194,10 +207,10 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
       
       // Get champion roles and stats from Community Dragon if available
       let roles: string[] = [];
-      let realStats: any = null;
+      let realStats: CommunityDragonChampionStats | null = null;
       
       if (statsResponse.data && statsResponse.data[champId]) {
-        realStats = statsResponse.data[champId];
+        realStats = statsResponse.data[champId] as CommunityDragonChampionStats;
         roles = Object.keys(realStats.roles || {});
       }
       
