@@ -80,31 +80,30 @@ interface ChampionStats {
 
 // Calculate tier based on win rate, pick rate, and ban rate
 function calculateTier(winRate: number, pickRate: number, banRate: number): TierType {
-  // Formula inspired by dpm.lol and common competitive metrics
-  // Calculate presence (pick + ban rate)
+  // More accurate formula based on dpm.lol's approach
+  // First, calculate adjusted win rate (more weight to win rate when it deviates from 50%)
+  const winRateDeviation = Math.abs(winRate - 50);
+  const adjustedWinRate = winRate + (winRateDeviation * 0.4);
+  
+  // Calculate presence - this is pick rate + ban rate
   const presence = pickRate + banRate;
   
-  // Calculate strength score
-  // Formula: (win rate * 2.5) + (presence * 0.8)
-  // Win rate is weighted more heavily compared to presence
-  const baseScore = (winRate * 2.5) + (presence * 0.8);
-
-  // Popular champions get slight boost
-  const popularityBonus = pickRate > 10 ? 5 : pickRate > 5 ? 2 : 0;
+  // Calculate champion strength score
+  // Higher win rates are exponentially more important
+  // Higher presence also means more reliability in data
+  const winRateScore = (adjustedWinRate - 45) * 3; // Win rates below 45% score 0
+  const presenceScore = Math.min(20, presence) * 1.2; // Cap presence bonus at 20%
   
-  // Heavily banned champions get slight boost
-  const banBonus = banRate > 20 ? 5 : banRate > 10 ? 2 : 0;
+  // Calculate final score
+  const score = winRateScore + presenceScore;
   
-  // Final score
-  const score = baseScore + popularityBonus + banBonus;
-  
-  // Determine tier based on score
-  if (score >= 155) return 'S+';  // Exceptional champions (approx 54%+ WR with high presence)
-  if (score >= 140) return 'S';   // Very strong champions (approx 52%+ WR with decent presence)
-  if (score >= 130) return 'A';   // Strong champions (approx 51%+ WR)
-  if (score >= 120) return 'B';   // Balanced champions (around 49-51% WR)
-  if (score >= 110) return 'C';   // Below average champions
-  return 'D';                    // Weak champions
+  // Apply tier thresholds
+  if (winRate >= 53.5 && presence >= 10) return 'S+';  // Exceptional champions need both high win rate and reasonable presence
+  if (winRate >= 52.5 || (winRate >= 51 && presence >= 20)) return 'S';  // Very strong - high win rate or good win rate with high presence
+  if (winRate >= 51 || (winRate >= 50 && presence >= 15)) return 'A';  // Strong champions
+  if (winRate >= 49 && winRate < 51) return 'B';  // Balanced champions - close to 50% win rate
+  if (winRate >= 47) return 'C';  // Below average champions
+  return 'D';  // Weak champions - win rate below 47%
 }
 
 // Function to get the current patch version

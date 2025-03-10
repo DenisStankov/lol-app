@@ -137,12 +137,12 @@ const roleData: Record<string, { label: string; icon: React.ReactNode; color: st
 
 // Improved tier color mapping to match dpm.lol
 const tierColors: Record<string, string> = {
-  "S+": "#FF4E50", // Red
-  "S": "#FF9500",  // Orange
-  "A": "#FFCC00",  // Yellow
-  "B": "#00CC88",  // Teal
-  "C": "#4F8EFF",  // Blue
-  "D": "#A855F7",  // Purple
+  "S+": "#FF2D55", // Bright red - for extremely strong champions
+  "S": "#FF9500",  // Orange - for very strong champions
+  "A": "#FFCC00",  // Yellow - for strong champions
+  "B": "#34C759",  // Green - for balanced champions
+  "C": "#5AC8FA",  // Light blue - for below average champions
+  "D": "#AF52DE",  // Purple - for weak champions
 }
 
 
@@ -1158,7 +1158,10 @@ export default function TierList() {
             <table className="w-full border-collapse min-w-[600px]">
               <thead>
                 <tr className="bg-zinc-900/80 text-zinc-400 border-b border-zinc-800">
-                  <th className="w-12 sm:w-16 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm font-medium">Lane</th>
+                  {/* Rank column */}
+                  <th className="w-14 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm font-medium text-left">
+                    <span className="ml-2">Rank</span>
+                  </th>
                   <th className="min-w-[180px] px-2 md:px-3 py-2 md:py-3 text-left text-xs md:text-sm font-medium">
                     <button 
                       onClick={() => {
@@ -1174,6 +1177,9 @@ export default function TierList() {
                     </button>
                   </th>
                   <th className="w-12 sm:w-16 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium">
+                    Lane
+                  </th>
+                  <th className="w-14 sm:w-16 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium">
                     <div className="flex items-center justify-center gap-1">
                       <button 
                         onClick={() => {
@@ -1237,21 +1243,6 @@ export default function TierList() {
                       )}
                     </button>
                   </th>
-                  <th className="w-16 sm:w-20 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium">
-                    <button 
-                      onClick={() => {
-                        setSortBy("banRate")
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                      }}
-                      className="flex items-center justify-center hover:text-blue-400 transition-colors w-full"
-                    >
-                      Ban
-                      <span className="hidden md:inline">rate</span>
-                      {sortBy === "banRate" && (
-                        <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </button>
-                  </th>
                   <th className="w-16 sm:w-20 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium hidden md:table-cell">
                     <button 
                       onClick={() => {
@@ -1303,22 +1294,14 @@ export default function TierList() {
                     </td>
                   </tr>
                 ) : (
-                  filteredChampions.map((champion) => (
+                  filteredChampions.map((champion, index) => (
                     <tr
                       key={`${champion.id}-${champion.role}`}
                       className="hover:bg-zinc-900/50 transition-colors"
                     >
-                      {/* Lane Cell with SVG */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
-                        <div 
-                          className="w-6 h-6 sm:w-8 sm:h-8 rounded-md flex items-center justify-center bg-zinc-800/80 mx-auto"
-                          style={{ 
-                            color: roleData[champion.role]?.color || '#FFFFFF',
-                            border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
-                          }}
-                        >
-                          {roleData[champion.role]?.icon}
-                        </div>
+                      {/* Rank number */}
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-left">
+                        <span className="text-xs sm:text-sm text-zinc-500 font-medium ml-2">{index + 1}</span>
                       </td>
                       
                       {/* Champion Cell - Better Alignment */}
@@ -1336,28 +1319,37 @@ export default function TierList() {
                           </div>
                           <div>
                             <div className="font-medium text-sm sm:text-base">{champion.name}</div>
-                            <div className="text-[10px] sm:text-xs text-zinc-500 flex flex-wrap gap-1 sm:gap-2 mt-0.5 sm:mt-1">
-                              <span>{champion.damageType}</span>
-                              <span className="hidden xs:inline">•</span>
-                              <span>{champion.difficulty}</span>
-                              <span className="hidden xs:inline">•</span>
-                              <span>{champion.range}</span>
+                            <div className="text-[10px] sm:text-xs text-zinc-500">
+                              {champion.damageType} • {champion.range}
                             </div>
                           </div>
                         </div>
                       </td>
                       
-                      {/* Tier Cell - Centered Badge with Colored Background */}
+                      {/* Lane Cell with SVG */}
                       <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
                         <div 
-                          className="w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm mx-auto"
+                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center bg-zinc-800/80 mx-auto"
+                          style={{ 
+                            color: roleData[champion.role]?.color || '#FFFFFF',
+                            border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
+                          }}
+                        >
+                          {roleData[champion.role]?.icon}
+                        </div>
+                      </td>
+                      
+                      {/* Tier Cell - Changed to match dpm.lol style */}
+                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
+                        <div 
+                          className="px-2 py-1 rounded-md inline-block font-bold text-xs sm:text-sm mx-auto"
                           style={{
                             backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}20`,
                             color: tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF',
-                            boxShadow: `0 0 10px ${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}15`
+                            minWidth: '2.5rem'
                           }}
                         >
-                          <span>{champion.tier}</span>
+                          {champion.tier}
                         </div>
                       </td>
                       
@@ -1371,11 +1363,6 @@ export default function TierList() {
                       {/* Pick Rate Cell - Centered Text */}
                       <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
                         {champion.pickRate.toFixed(1)}%
-                      </td>
-                      
-                      {/* Ban Rate Cell - Centered Text */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
-                        {champion.banRate.toFixed(1)}%
                       </td>
                       
                       {/* Games Cell - Centered Text */}
