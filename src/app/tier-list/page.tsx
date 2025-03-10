@@ -949,12 +949,12 @@ export default function TierList() {
                 
                 {/* Secondary filter options with better responsiveness */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 pt-1 sm:pt-2 md:pt-3">
-                  {/* Difficulty filter - converted to dropdown */}
+                  {/* Difficulty filter - using a proper dropdown */}
                   <div className="flex flex-wrap items-center">
-                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-400 mr-1 md:mr-2">Difficulty:</span>
+                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Difficulty:</span>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm">
+                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
                           <span>
                             {selectedDifficulty.length === 0 
                               ? 'Any' 
@@ -965,7 +965,7 @@ export default function TierList() {
                           <ChevronDown size={14} className="text-zinc-400" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300">
+                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
                         <div className="flex flex-col gap-1">
                           {["Easy", "Medium", "Hard"].map((difficulty) => (
                             <div key={difficulty} className="flex items-center gap-2">
@@ -984,7 +984,7 @@ export default function TierList() {
                                   <div className="w-2 h-2 bg-white rounded-sm" />
                                 )}
                               </button>
-                              <span className="text-sm">{difficulty}</span>
+                              <span className="text-sm text-zinc-300">{difficulty}</span>
                             </div>
                           ))}
                         </div>
@@ -992,12 +992,12 @@ export default function TierList() {
                     </Popover>
                   </div>
 
-                  {/* Damage Type filter - converted to dropdown */}
+                  {/* Damage Type filter - using a proper dropdown */}
                   <div className="flex flex-wrap items-center">
-                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-400 mr-1 md:mr-2">Damage:</span>
+                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Damage:</span>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm">
+                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
                           <span>
                             {selectedDamageType.length === 0 
                               ? 'Any' 
@@ -1008,7 +1008,7 @@ export default function TierList() {
                           <ChevronDown size={14} className="text-zinc-400" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300">
+                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
                         <div className="flex flex-col gap-1">
                           {["AP", "AD", "Hybrid"].map((damageType) => (
                             <div key={damageType} className="flex items-center gap-2">
@@ -1027,7 +1027,7 @@ export default function TierList() {
                                   <div className="w-2 h-2 bg-white rounded-sm" />
                                 )}
                               </button>
-                              <span className="text-sm">{damageType}</span>
+                              <span className="text-sm text-zinc-300">{damageType}</span>
                             </div>
                           ))}
                         </div>
@@ -1035,12 +1035,12 @@ export default function TierList() {
                     </Popover>
                   </div>
 
-                  {/* Range filter - converted to dropdown */}
+                  {/* Range filter - using a proper dropdown */}
                   <div className="flex flex-wrap items-center">
-                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-400 mr-1 md:mr-2">Range:</span>
+                    <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Range:</span>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm">
+                        <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
                           <span>
                             {selectedRange.length === 0 
                               ? 'Any' 
@@ -1051,7 +1051,7 @@ export default function TierList() {
                           <ChevronDown size={14} className="text-zinc-400" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300">
+                      <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
                         <div className="flex flex-col gap-1">
                           {["Melee", "Ranged"].map((range) => (
                             <div key={range} className="flex items-center gap-2">
@@ -1070,7 +1070,7 @@ export default function TierList() {
                                   <div className="w-2 h-2 bg-white rounded-sm" />
                                 )}
                               </button>
-                              <span className="text-sm">{range}</span>
+                              <span className="text-sm text-zinc-300">{range}</span>
                             </div>
                           ))}
                         </div>
