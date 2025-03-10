@@ -311,72 +311,136 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
         
         // Adjust stats slightly for secondary roles
         const isSecondaryRole = role !== champion.roles[0];
-        const winRateAdjustment = isSecondaryRole ? -1.5 : 0;
-        const pickRateAdjustment = isSecondaryRole ? -3.0 : 0;
+        const roleWinRateAdjustment = isSecondaryRole ? -1.5 : 0;
+        const rolePickRateAdjustment = isSecondaryRole ? -3.0 : 0;
         
-        // Base stats
-        let winRate = champion.winRate + winRateAdjustment;
-        let pickRate = champion.pickRate + pickRateAdjustment;
-        const banRate = champion.banRate; // Using const here since it's not reassigned
+        // Base stats - these will be modified based on rank
+        let baseWinRate = champion.winRate + roleWinRateAdjustment;
+        let basePickRate = champion.pickRate + rolePickRateAdjustment;
+        let baseBanRate = champion.banRate;
         
-        // Adjust stats based on rank
+        // Champion archetype classification for rank-based adjustments
+        const highSkillChampions = ['Akali', 'Aphelios', 'Azir', 'Camille', 'Fiora', 'Irelia', 'Jayce', 'Kalista', 'LeBlanc', 'LeeSin', 'Nidalee', 'Qiyana', 'Riven', 'Ryze', 'Sylas', 'Thresh', 'TwistedFate', 'Vayne', 'Yasuo', 'Yone', 'Zed', 'Zoe'];
+        const easyToPlayChampions = ['Amumu', 'Annie', 'Ashe', 'Garen', 'Janna', 'Leona', 'Lux', 'Malphite', 'MasterYi', 'MissFortune', 'Morgana', 'Nasus', 'Nautilus', 'Sona', 'Soraka', 'Volibear', 'Warwick'];
+        const lateGameScalingChampions = ['Kayle', 'Kassadin', 'Nasus', 'Veigar', 'Vladimir', 'Vayne', 'Jinx', 'Kog\'Maw', 'Twitch', 'Senna'];
+        const earlyGameChampions = ['Draven', 'Elise', 'LeeSin', 'Pantheon', 'Renekton', 'Talon', 'Udyr', 'Xin\'Zhao'];
+        
+        const isHighSkill = highSkillChampions.includes(champion.id);
+        const isEasyToPlay = easyToPlayChampions.includes(champion.id);
+        const isLateGameScaling = lateGameScalingChampions.includes(champion.id);
+        const isEarlyGame = earlyGameChampions.includes(champion.id);
+        
+        // Significant rank-based adjustments
+        let rankWinRateAdjustment = 0;
+        let rankPickRateAdjustment = 0;
+        let rankBanRateAdjustment = 0;
+        let rankGamesMultiplier = 1;
+        
+        // Apply much more significant rank-based adjustments
         if (rank !== 'ALL') {
-          // Champions perform differently at different ranks
-          const isMetaChampion = ['Irelia', 'Yasuo', 'LeeSin', 'Zed', 'Akali', 'Thresh'].includes(champion.id);
-          
-          // Determine if champion is typically easier to play
-          const isEasyChamp = ['Garen', 'Annie', 'Ashe', 'MasterYi', 'Soraka'].includes(champion.id);
-          
           switch(rank) {
             case 'CHALLENGER':
             case 'GRANDMASTER':
             case 'MASTER':
-              // Complex champions perform better in high ranks
-              if (isMetaChampion) {
-                winRate += 2;
-                pickRate += 4;
-              } else if (isEasyChamp) {
-                winRate -= 1.5;
-                pickRate -= 3;
+              // High ELO
+              if (isHighSkill) {
+                // High skill champions perform much better in high ELO
+                rankWinRateAdjustment = 3.5;
+                rankPickRateAdjustment = 8.0;
+                rankBanRateAdjustment = 6.0;
+                rankGamesMultiplier = 1.6;
+              } else if (isEasyToPlay) {
+                // Easy champions are less effective in high ELO
+                rankWinRateAdjustment = -3.0;
+                rankPickRateAdjustment = -6.0;
+                rankBanRateAdjustment = -3.0;
+                rankGamesMultiplier = 0.4;
+              }
+              
+              // Early/late game dynamics in high ELO
+              if (isLateGameScaling) {
+                rankWinRateAdjustment += -1.0; // Games end faster in high ELO
+              } else if (isEarlyGame) {
+                rankWinRateAdjustment += 1.5; // Early game advantage is better utilized
               }
               break;
               
             case 'DIAMOND':
             case 'EMERALD':
-              // Slightly favor skilled champions
-              if (isMetaChampion) {
-                winRate += 1;
-                pickRate += 2;
+              // Upper-mid ELO
+              if (isHighSkill) {
+                rankWinRateAdjustment = 2.0;
+                rankPickRateAdjustment = 5.0;
+                rankBanRateAdjustment = 4.0;
+                rankGamesMultiplier = 1.4;
+              } else if (isEasyToPlay) {
+                rankWinRateAdjustment = -1.5;
+                rankPickRateAdjustment = -3.0;
+                rankBanRateAdjustment = -1.5;
+                rankGamesMultiplier = 0.6;
               }
               break;
               
+            case 'PLATINUM':
             case 'GOLD':
-            case 'SILVER':
-              // No major adjustments in mid ranks
+              // Mid ELO - baseline with slight adjustments
+              if (isHighSkill) {
+                rankWinRateAdjustment = 0.5;
+                rankPickRateAdjustment = 2.0;
+                rankBanRateAdjustment = 1.0;
+                rankGamesMultiplier = 1.2;
+              } else if (isEasyToPlay) {
+                rankWinRateAdjustment = 0.5;
+                rankPickRateAdjustment = 1.0;
+                rankBanRateAdjustment = 0.0;
+                rankGamesMultiplier = 1.0;
+              }
               break;
               
+            case 'SILVER':
             case 'BRONZE':
             case 'IRON':
-              // Easy champions perform better in low ranks
-              if (isEasyChamp) {
-                winRate += 3;
-                pickRate += 5;
-              } else if (isMetaChampion) {
-                winRate -= 2;
-                pickRate -= 2;
+              // Low ELO
+              if (isHighSkill) {
+                // High skill champions perform worse in low ELO
+                rankWinRateAdjustment = -4.0;
+                rankPickRateAdjustment = -1.0; // Still popular despite lower win rates
+                rankBanRateAdjustment = 2.0; // Often banned from perception rather than effectiveness
+                rankGamesMultiplier = 0.9;
+              } else if (isEasyToPlay) {
+                // Easy champions dominate low ELO
+                rankWinRateAdjustment = 4.5;
+                rankPickRateAdjustment = 7.0;
+                rankBanRateAdjustment = 5.0;
+                rankGamesMultiplier = 1.5;
+              }
+              
+              // Early/late game dynamics in low ELO
+              if (isLateGameScaling) {
+                rankWinRateAdjustment += 3.0; // Games drag out in low ELO
+              } else if (isEarlyGame) {
+                rankWinRateAdjustment += -1.0; // Early advantages often thrown
               }
               break;
           }
         }
         
-        // Ensure win rate stays in reasonable range
-        winRate = Math.max(45, Math.min(56, winRate));
+        // Apply all adjustments
+        let winRate = baseWinRate + rankWinRateAdjustment + regionMultiplier.winRateAdjustment;
+        let pickRate = basePickRate + rankPickRateAdjustment + regionMultiplier.pickRateAdjustment;
+        let banRate = baseBanRate + rankBanRateAdjustment + regionMultiplier.banRateAdjustment;
+        let totalGames = Math.floor(basePickRate * 10000 * rankGamesMultiplier);
+        
+        // Ensure rates stay within reasonable bounds
+        winRate = Math.max(40, Math.min(62, winRate));
+        pickRate = Math.max(0.1, Math.min(30, pickRate));
+        banRate = Math.max(0, Math.min(40, banRate));
         
         champStats[champion.id][normalizedRole] = {
           winRate: parseFloat(winRate.toFixed(1)),
-      pickRate: parseFloat(pickRate.toFixed(1)),
-      banRate: parseFloat(banRate.toFixed(1)),
-          totalGames: Math.floor((champion.pickRate + pickRateAdjustment) * 10000),
+          pickRate: parseFloat(pickRate.toFixed(1)),
+          banRate: parseFloat(banRate.toFixed(1)),
+          totalGames: totalGames,
           tier: calculateTier(
             winRate, 
             pickRate, 
