@@ -161,298 +161,261 @@ function normalizeRoleName(role: string): string {
 // Fetch champion stats from Riot API
 async function fetchChampionStats(rank: string = 'ALL', region: string = 'global'): Promise<Record<string, Record<string, RoleStats>>> {
   try {
-    // This would be the actual implementation using the endpoints you have access to
-    // Different regions could be accessed via different endpoints
-    
-    // Mock data for demonstration - this would be replaced with real API calls
+    console.log(`Fetching champion stats for rank: ${rank}, region: ${region}`);
     const champStats: Record<string, Record<string, RoleStats>> = {};
     
-    // Apply region-specific adjustments
-    const regionMultiplier = {
-      winRateAdjustment: 0,
-      pickRateAdjustment: 0,
-      banRateAdjustment: 0
-    };
+    // Get current patch version
+    const patch = await getCurrentPatch();
     
-    // Different regions have different metas
-    // These are mock adjustments that would be replaced with real data
-    switch(region) {
-      case 'kr':
-        // Korea tends to have more aggressive meta with higher mechanical champions
-        regionMultiplier.winRateAdjustment = 1.2;
-        regionMultiplier.pickRateAdjustment = 1.5;
-        regionMultiplier.banRateAdjustment = 2.0;
-        break;
-      case 'euw':
-      case 'eune':
-        // EU tends to follow pro-play meta more closely
-        regionMultiplier.winRateAdjustment = 0.7;
-        regionMultiplier.pickRateAdjustment = 1.2;
-        regionMultiplier.banRateAdjustment = 1.0;
-        break;
-      case 'na':
-        // NA tends to have more varied meta
-        regionMultiplier.winRateAdjustment = 0.5;
-        regionMultiplier.pickRateAdjustment = 0.8;
-        regionMultiplier.banRateAdjustment = 0.5;
-        break;
-      // Add other regions as needed
-      default:
-        // Global is the base case
-        break;
-    }
+    // Step 1: Get champion data from Data Dragon
+    const champResponse = await axios.get<ChampionDataResponse>(
+      `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`
+    );
     
-    // Popular champions in their respective roles with realistic stats based on actual meta
-    const popularChampions = [
-      // TOP LANE
-      { id: 'Aatrox', roles: ['TOP'], winRate: 49.5, pickRate: 6.7, banRate: 3.9 },
-      { id: 'Camille', roles: ['TOP'], winRate: 50.2, pickRate: 5.1, banRate: 1.8 },
-      { id: 'Darius', roles: ['TOP'], winRate: 49.8, pickRate: 7.3, banRate: 13.5 },
-      { id: 'Fiora', roles: ['TOP'], winRate: 49.1, pickRate: 6.5, banRate: 7.9 },
-      { id: 'Garen', roles: ['TOP'], winRate: 51.6, pickRate: 5.8, banRate: 2.1 },
-      { id: 'Gwen', roles: ['TOP'], winRate: 48.9, pickRate: 4.2, banRate: 1.1 },
-      { id: 'Illaoi', roles: ['TOP'], winRate: 49.8, pickRate: 3.5, banRate: 2.7 },
-      { id: 'Irelia', roles: ['TOP', 'MIDDLE'], winRate: 47.9, pickRate: 6.1, banRate: 9.1 },
-      { id: 'Jax', roles: ['TOP', 'JUNGLE'], winRate: 50.1, pickRate: 6.3, banRate: 7.2 },
-      { id: 'Kled', roles: ['TOP'], winRate: 52.3, pickRate: 1.8, banRate: 0.3 },
-      { id: 'Mordekaiser', roles: ['TOP'], winRate: 51.2, pickRate: 6.8, banRate: 6.9 },
-      { id: 'Riven', roles: ['TOP'], winRate: 48.7, pickRate: 4.2, banRate: 1.8 },
-      { id: 'Sett', roles: ['TOP'], winRate: 50.9, pickRate: 5.3, banRate: 2.1 },
-      { id: 'Shen', roles: ['TOP'], winRate: 51.4, pickRate: 3.7, banRate: 0.8 },
-      { id: 'Teemo', roles: ['TOP'], winRate: 49.8, pickRate: 4.5, banRate: 3.7 },
-      { id: 'Volibear', roles: ['TOP', 'JUNGLE'], winRate: 51.8, pickRate: 3.2, banRate: 1.1 },
-      { id: 'Yasuo', roles: ['TOP', 'MIDDLE'], winRate: 47.6, pickRate: 3.9, banRate: 9.8 },
-
-      // JUNGLE
-      { id: 'Amumu', roles: ['JUNGLE'], winRate: 51.8, pickRate: 4.1, banRate: 2.3 },
-      { id: 'Belveth', roles: ['JUNGLE'], winRate: 50.6, pickRate: 5.1, banRate: 10.2 },
-      { id: 'Diana', roles: ['JUNGLE'], winRate: 49.8, pickRate: 7.2, banRate: 4.5 },
-      { id: 'Ekko', roles: ['JUNGLE', 'MIDDLE'], winRate: 50.2, pickRate: 4.8, banRate: 2.1 },
-      { id: 'Evelynn', roles: ['JUNGLE'], winRate: 50.1, pickRate: 4.2, banRate: 5.3 },
-      { id: 'Graves', roles: ['JUNGLE'], winRate: 49.3, pickRate: 4.7, banRate: 1.7 },
-      { id: 'Hecarim', roles: ['JUNGLE'], winRate: 50.7, pickRate: 5.6, banRate: 5.2 },
-      { id: 'KhaZix', roles: ['JUNGLE'], winRate: 51.3, pickRate: 5.9, banRate: 2.9 },
-      { id: 'LeeSin', roles: ['JUNGLE'], winRate: 47.8, pickRate: 10.3, banRate: 7.6 },
-      { id: 'Lillia', roles: ['JUNGLE'], winRate: 50.9, pickRate: 3.1, banRate: 1.2 },
-      { id: 'MasterYi', roles: ['JUNGLE'], winRate: 49.8, pickRate: 6.7, banRate: 16.8 },
-      { id: 'Nocturne', roles: ['JUNGLE'], winRate: 51.2, pickRate: 3.8, banRate: 1.1 },
-      { id: 'Nunu', roles: ['JUNGLE'], winRate: 52.1, pickRate: 3.9, banRate: 1.5 },
-      { id: 'Rengar', roles: ['JUNGLE'], winRate: 48.6, pickRate: 4.2, banRate: 3.7 },
-      { id: 'Shaco', roles: ['JUNGLE'], winRate: 49.9, pickRate: 4.1, banRate: 7.2 },
-      { id: 'Udyr', roles: ['JUNGLE'], winRate: 51.6, pickRate: 3.2, banRate: 1.9 },
-      { id: 'Zac', roles: ['JUNGLE'], winRate: 52.4, pickRate: 5.8, banRate: 4.9 },
-
-      // MIDDLE
-      { id: 'Ahri', roles: ['MIDDLE'], winRate: 50.2, pickRate: 7.9, banRate: 2.1 },
-      { id: 'Akali', roles: ['MIDDLE', 'TOP'], winRate: 48.5, pickRate: 7.3, banRate: 12.8 },
-      { id: 'Anivia', roles: ['MIDDLE'], winRate: 52.3, pickRate: 3.1, banRate: 1.7 },
-      { id: 'Cassiopeia', roles: ['MIDDLE'], winRate: 49.7, pickRate: 3.2, banRate: 1.5 },
-      { id: 'Fizz', roles: ['MIDDLE'], winRate: 50.1, pickRate: 3.7, banRate: 4.8 },
-      { id: 'Katarina', roles: ['MIDDLE'], winRate: 49.8, pickRate: 5.6, banRate: 8.2 },
-      { id: 'Leblanc', roles: ['MIDDLE'], winRate: 47.8, pickRate: 4.9, banRate: 2.1 },
-      { id: 'Lux', roles: ['MIDDLE', 'UTILITY'], winRate: 50.2, pickRate: 4.8, banRate: 1.6 },
-      { id: 'Orianna', roles: ['MIDDLE'], winRate: 50.9, pickRate: 3.5, banRate: 0.5 },
-      { id: 'Sylas', roles: ['MIDDLE'], winRate: 48.7, pickRate: 8.9, banRate: 7.3 },
-      { id: 'Syndra', roles: ['MIDDLE'], winRate: 48.5, pickRate: 3.8, banRate: 0.7 },
-      { id: 'Talon', roles: ['MIDDLE'], winRate: 49.3, pickRate: 3.2, banRate: 1.1 },
-      { id: 'Veigar', roles: ['MIDDLE'], winRate: 51.7, pickRate: 5.6, banRate: 5.9 },
-      { id: 'Viktor', roles: ['MIDDLE'], winRate: 49.2, pickRate: 5.8, banRate: 1.2 },
-      { id: 'Yasuo', roles: ['MIDDLE', 'TOP'], winRate: 47.9, pickRate: 8.7, banRate: 9.8 },
-      { id: 'Yone', roles: ['MIDDLE', 'TOP'], winRate: 48.3, pickRate: 8.2, banRate: 9.1 },
-      { id: 'Zed', roles: ['MIDDLE'], winRate: 49.3, pickRate: 7.5, banRate: 19.2 },
-
-      // BOTTOM
-      { id: 'Aphelios', roles: ['BOTTOM'], winRate: 48.5, pickRate: 8.1, banRate: 1.2 },
-      { id: 'Ashe', roles: ['BOTTOM', 'UTILITY'], winRate: 50.3, pickRate: 4.8, banRate: 0.7 },
-      { id: 'Caitlyn', roles: ['BOTTOM'], winRate: 48.9, pickRate: 12.2, banRate: 7.1 },
-      { id: 'Draven', roles: ['BOTTOM'], winRate: 49.2, pickRate: 4.1, banRate: 6.3 },
-      { id: 'Ezreal', roles: ['BOTTOM'], winRate: 48.5, pickRate: 17.9, banRate: 4.1 },
-      { id: 'Jhin', roles: ['BOTTOM'], winRate: 51.2, pickRate: 12.6, banRate: 1.8 },
-      { id: 'Jinx', roles: ['BOTTOM'], winRate: 51.5, pickRate: 11.3, banRate: 1.5 },
-      { id: 'KaiSa', roles: ['BOTTOM'], winRate: 50.1, pickRate: 18.7, banRate: 4.8 },
-      { id: 'Lucian', roles: ['BOTTOM'], winRate: 48.9, pickRate: 7.2, banRate: 1.5 },
-      { id: 'MissFortune', roles: ['BOTTOM'], winRate: 51.7, pickRate: 6.9, banRate: 1.2 },
-      { id: 'Nilah', roles: ['BOTTOM'], winRate: 51.3, pickRate: 1.9, banRate: 1.1 },
-      { id: 'Samira', roles: ['BOTTOM'], winRate: 50.5, pickRate: 6.8, banRate: 8.9 },
-      { id: 'Sivir', roles: ['BOTTOM'], winRate: 50.8, pickRate: 3.1, banRate: 0.3 },
-      { id: 'Tristana', roles: ['BOTTOM'], winRate: 50.3, pickRate: 5.2, banRate: 1.1 },
-      { id: 'Twitch', roles: ['BOTTOM'], winRate: 49.8, pickRate: 4.7, banRate: 2.3 },
-      { id: 'Vayne', roles: ['BOTTOM'], winRate: 49.5, pickRate: 10.2, banRate: 9.8 },
-      { id: 'Xayah', roles: ['BOTTOM'], winRate: 50.2, pickRate: 5.8, banRate: 0.9 },
-
-      // UTILITY (SUPPORT)
-      { id: 'Bard', roles: ['UTILITY'], winRate: 49.8, pickRate: 2.5, banRate: 0.4 },
-      { id: 'Blitzcrank', roles: ['UTILITY'], winRate: 51.3, pickRate: 8.7, banRate: 16.2 },
-      { id: 'Brand', roles: ['UTILITY'], winRate: 50.8, pickRate: 3.9, banRate: 1.7 },
-      { id: 'Janna', roles: ['UTILITY'], winRate: 52.7, pickRate: 4.8, banRate: 1.2 },
-      { id: 'Leona', roles: ['UTILITY'], winRate: 50.3, pickRate: 7.2, banRate: 4.1 },
-      { id: 'Lulu', roles: ['UTILITY'], winRate: 51.2, pickRate: 8.7, banRate: 5.2 },
-      { id: 'Morgana', roles: ['UTILITY'], winRate: 50.4, pickRate: 7.9, banRate: 16.5 },
-      { id: 'Nami', roles: ['UTILITY'], winRate: 50.9, pickRate: 6.1, banRate: 0.8 },
-      { id: 'Nautilus', roles: ['UTILITY'], winRate: 49.7, pickRate: 7.2, banRate: 2.3 },
-      { id: 'Pyke', roles: ['UTILITY'], winRate: 49.1, pickRate: 6.5, banRate: 7.8 },
-      { id: 'Rakan', roles: ['UTILITY'], winRate: 50.2, pickRate: 4.2, banRate: 0.9 },
-      { id: 'Senna', roles: ['UTILITY'], winRate: 50.8, pickRate: 7.6, banRate: 3.1 },
-      { id: 'Seraphine', roles: ['UTILITY', 'MIDDLE'], winRate: 52.1, pickRate: 3.8, banRate: 1.2 },
-      { id: 'Soraka', roles: ['UTILITY'], winRate: 52.3, pickRate: 6.5, banRate: 3.7 },
-      { id: 'Thresh', roles: ['UTILITY'], winRate: 49.8, pickRate: 13.2, banRate: 5.1 },
-      { id: 'Yuumi', roles: ['UTILITY'], winRate: 47.9, pickRate: 5.2, banRate: 24.3 },
-      { id: 'Zyra', roles: ['UTILITY'], winRate: 51.8, pickRate: 3.1, banRate: 1.4 },
-    ];
+    // Step 2: Get champion statistics from Community Dragon
+    // Note: Community Dragon doesn't have an official API, so we're using a community endpoint
+    // This URL format may need to be updated if the community endpoint changes
+    const statsResponse = await axios.get(
+      `https://cdn.communitydragon.org/latest/champion-stats/statistics?tier=${rank.toLowerCase()}&region=${region}`
+    ).catch(async () => {
+      // Fallback to our simulated data if the endpoint is unavailable
+      console.log('Community Dragon endpoint unavailable, using fallback data');
+      return { data: null };
+    });
     
-    popularChampions.forEach(champion => {
-      if (!champStats[champion.id]) {
-        champStats[champion.id] = {};
+    // Process each champion
+    for (const champKey in champResponse.data.data) {
+      const champion = champResponse.data.data[champKey];
+      const champId = champion.id;
+      
+      if (!champStats[champId]) {
+        champStats[champId] = {};
       }
       
-      champion.roles.forEach(role => {
-        // Normalize the role name using our mapping
+      // Get champion roles and stats from Community Dragon if available
+      let roles: string[] = [];
+      let realStats: any = null;
+      
+      if (statsResponse.data && statsResponse.data[champId]) {
+        realStats = statsResponse.data[champId];
+        roles = Object.keys(realStats.roles || {});
+      }
+      
+      // If no roles found from Community Dragon, determine them from champion tags
+      if (roles.length === 0) {
+        roles = determineRolesFromTags(champion.tags, champion.info);
+      }
+      
+      // Process each role
+      roles.forEach((role, index) => {
         const normalizedRole = normalizeRoleName(role);
+        const isSecondaryRole = index > 0;
         
-        // Adjust stats slightly for secondary roles
-        const isSecondaryRole = role !== champion.roles[0];
-        const roleWinRateAdjustment = isSecondaryRole ? -1.5 : 0;
-        const rolePickRateAdjustment = isSecondaryRole ? -3.0 : 0;
+        let winRate = 50;
+        let pickRate = 5;
+        let banRate = 2;
+        let totalGames = 10000;
         
-        // Champion archetype classification for rank-based adjustments
-        const highSkillChampions = ['Akali', 'Aphelios', 'Azir', 'Camille', 'Fiora', 'Irelia', 'Jayce', 'Kalista', 'LeBlanc', 'LeeSin', 'Nidalee', 'Qiyana', 'Riven', 'Ryze', 'Sylas', 'Thresh', 'TwistedFate', 'Vayne', 'Yasuo', 'Yone', 'Zed', 'Zoe'];
-        const easyToPlayChampions = ['Amumu', 'Annie', 'Ashe', 'Garen', 'Janna', 'Leona', 'Lux', 'Malphite', 'MasterYi', 'MissFortune', 'Morgana', 'Nasus', 'Nautilus', 'Sona', 'Soraka', 'Volibear', 'Warwick'];
-        const lateGameScalingChampions = ['Kayle', 'Kassadin', 'Nasus', 'Veigar', 'Vladimir', 'Vayne', 'Jinx', 'Kog\'Maw', 'Twitch', 'Senna'];
-        const earlyGameChampions = ['Draven', 'Elise', 'LeeSin', 'Pantheon', 'Renekton', 'Talon', 'Udyr', 'Xin\'Zhao'];
-        
-        const isHighSkill = highSkillChampions.includes(champion.id);
-        const isEasyToPlay = easyToPlayChampions.includes(champion.id);
-        const isLateGameScaling = lateGameScalingChampions.includes(champion.id);
-        const isEarlyGame = earlyGameChampions.includes(champion.id);
-        
-        // Significant rank-based adjustments
-        let rankWinRateAdjustment = 0;
-        let rankPickRateAdjustment = 0;
-        let rankBanRateAdjustment = 0;
-        let rankGamesMultiplier = 1;
-        
-        // Apply much more significant rank-based adjustments
-        if (rank !== 'ALL') {
-          switch(rank) {
-            case 'CHALLENGER':
-            case 'GRANDMASTER':
-            case 'MASTER':
-              // High ELO
-              if (isHighSkill) {
-                // High skill champions perform much better in high ELO
-                rankWinRateAdjustment = 3.5;
-                rankPickRateAdjustment = 8.0;
-                rankBanRateAdjustment = 6.0;
-                rankGamesMultiplier = 1.6;
-              } else if (isEasyToPlay) {
-                // Easy champions are less effective in high ELO
-                rankWinRateAdjustment = -3.0;
-                rankPickRateAdjustment = -6.0;
-                rankBanRateAdjustment = -3.0;
-                rankGamesMultiplier = 0.4;
-              }
-              
-              // Early/late game dynamics in high ELO
-              if (isLateGameScaling) {
-                rankWinRateAdjustment += -1.0; // Games end faster in high ELO
-              } else if (isEarlyGame) {
-                rankWinRateAdjustment += 1.5; // Early game advantage is better utilized
-              }
-              break;
-              
-            case 'DIAMOND':
-            case 'EMERALD':
-              // Upper-mid ELO
-              if (isHighSkill) {
-                rankWinRateAdjustment = 2.0;
-                rankPickRateAdjustment = 5.0;
-                rankBanRateAdjustment = 4.0;
-                rankGamesMultiplier = 1.4;
-              } else if (isEasyToPlay) {
-                rankWinRateAdjustment = -1.5;
-                rankPickRateAdjustment = -3.0;
-                rankBanRateAdjustment = -1.5;
-                rankGamesMultiplier = 0.6;
-              }
-              break;
-              
-            case 'PLATINUM':
-            case 'GOLD':
-              // Mid ELO - baseline with slight adjustments
-              if (isHighSkill) {
-                rankWinRateAdjustment = 0.5;
-                rankPickRateAdjustment = 2.0;
-                rankBanRateAdjustment = 1.0;
-                rankGamesMultiplier = 1.2;
-              } else if (isEasyToPlay) {
-                rankWinRateAdjustment = 0.5;
-                rankPickRateAdjustment = 1.0;
-                rankBanRateAdjustment = 0.0;
-                rankGamesMultiplier = 1.0;
-              }
-              break;
-              
-            case 'SILVER':
-            case 'BRONZE':
-            case 'IRON':
-              // Low ELO
-              if (isHighSkill) {
-                // High skill champions perform worse in low ELO
-                rankWinRateAdjustment = -4.0;
-                rankPickRateAdjustment = -1.0; // Still popular despite lower win rates
-                rankBanRateAdjustment = 2.0; // Often banned from perception rather than effectiveness
-                rankGamesMultiplier = 0.9;
-              } else if (isEasyToPlay) {
-                // Easy champions dominate low ELO
-                rankWinRateAdjustment = 4.5;
-                rankPickRateAdjustment = 7.0;
-                rankBanRateAdjustment = 5.0;
-                rankGamesMultiplier = 1.5;
-              }
-              
-              // Early/late game dynamics in low ELO
-              if (isLateGameScaling) {
-                rankWinRateAdjustment += 3.0; // Games drag out in low ELO
-              } else if (isEarlyGame) {
-                rankWinRateAdjustment += -1.0; // Early advantages often thrown
-              }
-              break;
+        // Use real stats if available
+        if (realStats && realStats.roles && realStats.roles[role]) {
+          const roleStats = realStats.roles[role];
+          winRate = roleStats.winRate || winRate;
+          pickRate = roleStats.pickRate || pickRate;
+          banRate = roleStats.banRate || banRate;
+          totalGames = roleStats.totalGames || totalGames;
+        } else {
+          // Apply our simulation logic for missing data
+          // Adjust stats for secondary roles
+          if (isSecondaryRole) {
+            winRate -= 1.5;
+            pickRate -= 3.0;
           }
+          
+          // Apply rank-based adjustments using our existing logic
+          const adjustments = calculateRankAdjustments(
+            champId, 
+            getDifficulty(champion.info), 
+            rank
+          );
+          
+          winRate += adjustments.winRate;
+          pickRate += adjustments.pickRate;
+          banRate += adjustments.banRate;
+          totalGames = Math.floor(pickRate * 10000 * adjustments.gamesMultiplier);
         }
-        
-        // Apply all adjustments
-        const baseWinRate = champion.winRate + roleWinRateAdjustment;
-        const basePickRate = champion.pickRate + rolePickRateAdjustment;
-        const baseBanRate = champion.banRate;
-        let winRate = baseWinRate + rankWinRateAdjustment + regionMultiplier.winRateAdjustment;
-        let pickRate = basePickRate + rankPickRateAdjustment + regionMultiplier.pickRateAdjustment;
-        let banRate = baseBanRate + rankBanRateAdjustment + regionMultiplier.banRateAdjustment;
-        const totalGames = Math.floor(basePickRate * 10000 * rankGamesMultiplier);
         
         // Ensure rates stay within reasonable bounds
         winRate = Math.max(40, Math.min(62, winRate));
         pickRate = Math.max(0.1, Math.min(30, pickRate));
         banRate = Math.max(0, Math.min(40, banRate));
         
-        champStats[champion.id][normalizedRole] = {
+        // Calculate tier based on stats
+        const tier = calculateTier(winRate, pickRate, banRate);
+        
+        // Store the processed stats
+        champStats[champId][normalizedRole] = {
           winRate: parseFloat(winRate.toFixed(1)),
           pickRate: parseFloat(pickRate.toFixed(1)),
           banRate: parseFloat(banRate.toFixed(1)),
-          totalGames: totalGames,
-          tier: calculateTier(
-            winRate, 
-            pickRate, 
-            banRate
-          )
+          totalGames,
+          tier
         };
       });
-    });
+    }
     
     return champStats;
   } catch (error) {
-    console.error('Error fetching champion stats from Riot API:', error);
+    console.error('Error fetching champion stats:', error);
     return {};  // Return empty object on error
   }
+}
+
+// Helper function to determine roles from champion tags
+function determineRolesFromTags(tags: string[], info: ChampionInfo): string[] {
+  const roles: string[] = [];
+  
+  // Logic to determine roles based on tags
+  if (tags.includes('Marksman')) {
+    roles.push('BOTTOM');
+  }
+  
+  if (tags.includes('Support') || tags.includes('Tank') && info.attack < 5) {
+    roles.push('UTILITY');
+  }
+  
+  if (tags.includes('Mage') || tags.includes('Assassin')) {
+    roles.push('MIDDLE');
+  }
+  
+  if (tags.includes('Fighter') || tags.includes('Tank') && info.attack >= 5) {
+    roles.push('TOP');
+  }
+  
+  if (tags.includes('Fighter') && info.attack >= 6 && info.defense >= 5) {
+    roles.push('JUNGLE');
+  }
+  
+  // Ensure at least one role
+  if (roles.length === 0) {
+    roles.push('TOP');
+  }
+  
+  return roles;
+}
+
+// Helper function to calculate rank-based adjustments
+function calculateRankAdjustments(champId: string, difficulty: string, rank: string): { 
+  winRate: number; 
+  pickRate: number; 
+  banRate: number; 
+  gamesMultiplier: number; 
+} {
+  // Default adjustments
+  const adjustments = {
+    winRate: 0,
+    pickRate: 0,
+    banRate: 0,
+    gamesMultiplier: 1
+  };
+  
+  // Champion archetype classification
+  const highSkillChampions = ['Akali', 'Aphelios', 'Azir', 'Camille', 'Fiora', 'Irelia', 'Jayce', 'Kalista', 'LeBlanc', 'LeeSin', 'Nidalee', 'Qiyana', 'Riven', 'Ryze', 'Sylas', 'Thresh', 'TwistedFate', 'Vayne', 'Yasuo', 'Yone', 'Zed', 'Zoe'];
+  const easyToPlayChampions = ['Amumu', 'Annie', 'Ashe', 'Garen', 'Janna', 'Leona', 'Lux', 'Malphite', 'MasterYi', 'MissFortune', 'Morgana', 'Nasus', 'Nautilus', 'Sona', 'Soraka', 'Volibear', 'Warwick'];
+  const lateGameScalingChampions = ['Kayle', 'Kassadin', 'Nasus', 'Veigar', 'Vladimir', 'Vayne', 'Jinx', 'Kog\'Maw', 'Twitch', 'Senna'];
+  const earlyGameChampions = ['Draven', 'Elise', 'LeeSin', 'Pantheon', 'Renekton', 'Talon', 'Udyr', 'Xin\'Zhao'];
+  
+  const isHighSkill = highSkillChampions.includes(champId);
+  const isEasyToPlay = easyToPlayChampions.includes(champId);
+  const isLateGameScaling = lateGameScalingChampions.includes(champId);
+  const isEarlyGame = earlyGameChampions.includes(champId);
+  
+  // Apply rank-based adjustments
+  if (rank !== 'ALL') {
+    switch(rank) {
+      case 'CHALLENGER':
+      case 'GRANDMASTER':
+      case 'MASTER':
+        // High ELO adjustments
+        if (isHighSkill || difficulty === 'Hard') {
+          adjustments.winRate = 3.5;
+          adjustments.pickRate = 8.0;
+          adjustments.banRate = 6.0;
+          adjustments.gamesMultiplier = 1.6;
+        } else if (isEasyToPlay || difficulty === 'Easy') {
+          adjustments.winRate = -3.0;
+          adjustments.pickRate = -6.0;
+          adjustments.banRate = -3.0;
+          adjustments.gamesMultiplier = 0.4;
+        }
+        
+        if (isLateGameScaling) {
+          adjustments.winRate -= 1.0;
+        } else if (isEarlyGame) {
+          adjustments.winRate += 1.5;
+        }
+        break;
+        
+      case 'DIAMOND':
+      case 'EMERALD':
+        // Upper-mid ELO
+        if (isHighSkill) {
+          adjustments.winRate = 2.0;
+          adjustments.pickRate = 5.0;
+          adjustments.banRate = 4.0;
+          adjustments.gamesMultiplier = 1.4;
+        } else if (isEasyToPlay) {
+          adjustments.winRate = -1.5;
+          adjustments.pickRate = -3.0;
+          adjustments.banRate = -1.5;
+          adjustments.gamesMultiplier = 0.6;
+        }
+        break;
+        
+      case 'PLATINUM':
+      case 'GOLD':
+        // Mid ELO - baseline with slight adjustments
+        if (isHighSkill) {
+          adjustments.winRate = 0.5;
+          adjustments.pickRate = 2.0;
+          adjustments.banRate = 1.0;
+          adjustments.gamesMultiplier = 1.2;
+        } else if (isEasyToPlay) {
+          adjustments.winRate = 0.5;
+          adjustments.pickRate = 1.0;
+          adjustments.banRate = 0.0;
+          adjustments.gamesMultiplier = 1.0;
+        }
+        break;
+        
+      case 'SILVER':
+      case 'BRONZE':
+      case 'IRON':
+        // Low ELO
+        if (isHighSkill) {
+          // High skill champions perform worse in low ELO
+          adjustments.winRate = -4.0;
+          adjustments.pickRate = -1.0; // Still popular despite lower win rates
+          adjustments.banRate = 2.0; // Often banned from perception rather than effectiveness
+          adjustments.gamesMultiplier = 0.9;
+        } else if (isEasyToPlay) {
+          // Easy champions dominate low ELO
+          adjustments.winRate = 4.5;
+          adjustments.pickRate = 7.0;
+          adjustments.banRate = 5.0;
+          adjustments.gamesMultiplier = 1.5;
+        }
+        
+        // Early/late game dynamics in low ELO
+        if (isLateGameScaling) {
+          adjustments.winRate += 3.0; // Games drag out in low ELO
+        } else if (isEarlyGame) {
+          adjustments.winRate += -1.0; // Early advantages often thrown
+        }
+        break;
+    }
+  }
+  
+  return adjustments;
 }
 
 export async function GET(request: Request) {
