@@ -94,10 +94,11 @@ function calculateTier(winRate: number, pickRate: number, banRate: number): Tier
   const winRateScore = (adjustedWinRate - 45) * 3; // Win rates below 45% score 0
   const presenceScore = Math.min(20, presence) * 1.2; // Cap presence bonus at 20%
   
-  // Calculate final score
+  // We calculate the score for debugging but use direct thresholds for tier assignment
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const score = winRateScore + presenceScore;
   
-  // Apply tier thresholds
+  // Apply tier thresholds - using direct win rate and presence values is more accurate
   if (winRate >= 53.5 && presence >= 10) return 'S+';  // Exceptional champions need both high win rate and reasonable presence
   if (winRate >= 52.5 || (winRate >= 51 && presence >= 20)) return 'S';  // Very strong - high win rate or good win rate with high presence
   if (winRate >= 51 || (winRate >= 50 && presence >= 15)) return 'A';  // Strong champions

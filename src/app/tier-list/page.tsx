@@ -330,9 +330,6 @@ export default function TierList() {
   const [selectedPatch, setSelectedPatch] = useState("")
   const [sortBy, setSortBy] = useState("tier")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [viewMode] = useState("table")
 
   // Initial data load
   useEffect(() => {
@@ -636,7 +633,6 @@ export default function TierList() {
     setSelectedDamageType([]);
     setSelectedRange([]);
     setSearchQuery("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
