@@ -80,51 +80,30 @@ interface ChampionStats {
 
 // Calculate tier based on win rate, pick rate, and ban rate
 function calculateTier(winRate: number, pickRate: number, banRate: number): TierType {
-  // Calculate score based on win rate, presence, and champion popularity
-  // This is a simplified version of common tier calculation methods
+  // Formula inspired by dpm.lol and common competitive metrics
+  // Calculate presence (pick + ban rate)
+  const presence = pickRate + banRate;
   
-  // Win rate has the most impact on tier
-  let score = 0;
+  // Calculate strength score
+  // Formula: (win rate * 2.5) + (presence * 0.8)
+  // Win rate is weighted more heavily compared to presence
+  const baseScore = (winRate * 2.5) + (presence * 0.8);
+
+  // Popular champions get slight boost
+  const popularityBonus = pickRate > 10 ? 5 : pickRate > 5 ? 2 : 0;
   
-  // Win rate component (center around 50%)
-  if (winRate >= 53) {
-    score += 15;
-  } else if (winRate >= 51.5) {
-    score += 10;
-  } else if (winRate >= 50) {
-    score += 5;
-  } else if (winRate >= 48) {
-    score += 0;
-  } else if (winRate >= 46) {
-    score -= 5;
-  } else {
-    score -= 10;
-  }
+  // Heavily banned champions get slight boost
+  const banBonus = banRate > 20 ? 5 : banRate > 10 ? 2 : 0;
   
-  // Pick rate component - champions with very high pick rates are stronger in meta
-  if (pickRate >= 15) {
-    score += 5;
-  } else if (pickRate >= 10) {
-    score += 3;
-  } else if (pickRate >= 5) {
-    score += 1;
-  }
+  // Final score
+  const score = baseScore + popularityBonus + banBonus;
   
-  // Ban rate component - high ban rates indicate perceived strength
-  if (banRate >= 15) {
-    score += 5;
-  } else if (banRate >= 10) {
-    score += 3;
-  } else if (banRate >= 5) {
-    score += 1;
-  }
-  
-  // Determine tier based on overall score
-  if (score >= 15) return 'S+';  // Overpowered champions
-  if (score >= 10) return 'S';   // Very strong champions
-  if (score >= 5) return 'A';    // Strong champions
-  if (score >= 0) return 'B';    // Balanced champions
-  if (score >= -5) return 'C';   // Below average champions
+  // Determine tier based on score
+  if (score >= 155) return 'S+';  // Exceptional champions (approx 54%+ WR with high presence)
+  if (score >= 140) return 'S';   // Very strong champions (approx 52%+ WR with decent presence)
+  if (score >= 130) return 'A';   // Strong champions (approx 51%+ WR)
+  if (score >= 120) return 'B';   // Balanced champions (around 49-51% WR)
+  if (score >= 110) return 'C';   // Below average champions
   return 'D';                    // Weak champions
 }
 
