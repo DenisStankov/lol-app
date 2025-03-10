@@ -314,11 +314,6 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
         const roleWinRateAdjustment = isSecondaryRole ? -1.5 : 0;
         const rolePickRateAdjustment = isSecondaryRole ? -3.0 : 0;
         
-        // Base stats - these will be modified based on rank
-        let baseWinRate = champion.winRate + roleWinRateAdjustment;
-        let basePickRate = champion.pickRate + rolePickRateAdjustment;
-        let baseBanRate = champion.banRate;
-        
         // Champion archetype classification for rank-based adjustments
         const highSkillChampions = ['Akali', 'Aphelios', 'Azir', 'Camille', 'Fiora', 'Irelia', 'Jayce', 'Kalista', 'LeBlanc', 'LeeSin', 'Nidalee', 'Qiyana', 'Riven', 'Ryze', 'Sylas', 'Thresh', 'TwistedFate', 'Vayne', 'Yasuo', 'Yone', 'Zed', 'Zoe'];
         const easyToPlayChampions = ['Amumu', 'Annie', 'Ashe', 'Garen', 'Janna', 'Leona', 'Lux', 'Malphite', 'MasterYi', 'MissFortune', 'Morgana', 'Nasus', 'Nautilus', 'Sona', 'Soraka', 'Volibear', 'Warwick'];
@@ -426,10 +421,13 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
         }
         
         // Apply all adjustments
+        const baseWinRate = champion.winRate + roleWinRateAdjustment;
+        const basePickRate = champion.pickRate + rolePickRateAdjustment;
+        const baseBanRate = champion.banRate;
         let winRate = baseWinRate + rankWinRateAdjustment + regionMultiplier.winRateAdjustment;
         let pickRate = basePickRate + rankPickRateAdjustment + regionMultiplier.pickRateAdjustment;
         let banRate = baseBanRate + rankBanRateAdjustment + regionMultiplier.banRateAdjustment;
-        let totalGames = Math.floor(basePickRate * 10000 * rankGamesMultiplier);
+        const totalGames = Math.floor(basePickRate * 10000 * rankGamesMultiplier);
         
         // Ensure rates stay within reasonable bounds
         winRate = Math.max(40, Math.min(62, winRate));
