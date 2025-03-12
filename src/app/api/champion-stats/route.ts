@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // Debug logging for API key (safely)
 console.log("API KEY AVAILABLE:", process.env.RIOT_API_KEY ? "YES (Key exists)" : "NO (Key not found)");
@@ -142,6 +142,14 @@ interface LeagueEntry {
   hotStreak: boolean;
 }
 
+// Add this type for error responses from Riot API
+interface RiotApiErrorResponse {
+  status?: {
+    message?: string;
+    status_code?: number;
+  }
+}
+
 // Add a function to get match IDs for a specific region and rank
 async function getMatchIds(region: string, rank: string, count: number = 100): Promise<string[]> {
   console.log(`🔍 [getMatchIds] Starting with region=${region}, rank=${rank}`);
@@ -185,9 +193,10 @@ async function getMatchIds(region: string, rank: string, count: number = 100): P
           );
           puuids.push(summonerResponse.data.puuid);
           console.log(`✅ [getMatchIds] Got PUUID for summoner ${summonerId}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const axiosError = error as AxiosError<RiotApiErrorResponse>;
           console.error(`❌ [getMatchIds] Error fetching summoner data for ${summonerId}:`, 
-            error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
+            axiosError.response ? `Status: ${axiosError.response.status}, Data: ${JSON.stringify(axiosError.response.data)}` : axiosError.message);
         }
       }
       
@@ -214,9 +223,10 @@ async function getMatchIds(region: string, rank: string, count: number = 100): P
           );
           matchIds.push(...matchResponse.data);
           console.log(`✅ [getMatchIds] Got ${matchResponse.data.length} matches for PUUID ${puuid.substring(0, 6)}...`);
-        } catch (error: any) {
+        } catch (error: unknown) {
+          const axiosError = error as AxiosError<RiotApiErrorResponse>;
           console.error(`❌ [getMatchIds] Error fetching match IDs for PUUID ${puuid.substring(0, 6)}...`,
-            error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
+            axiosError.response ? `Status: ${axiosError.response.status}, Data: ${JSON.stringify(axiosError.response.data)}` : axiosError.message);
         }
       }
       
@@ -225,13 +235,18 @@ async function getMatchIds(region: string, rank: string, count: number = 100): P
       console.log(`✅ [getMatchIds] Returning ${uniqueMatchIds.length} unique match IDs`);
       return uniqueMatchIds;
       
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<RiotApiErrorResponse>;
       console.error(`❌ [getMatchIds] Error fetching league entries:`, 
-        error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
+        axiosError.response ? `Status: ${axiosError.response.status}, Data: ${JSON.stringify(axiosError.response.data)}` : axiosError.message);
       throw error;
     }
-  } catch (error: any) {
-    console.error(`❌ [getMatchIds] Error:`, error.message);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error(`❌ [getMatchIds] Error:`, error.message);
+    } else {
+      console.error(`❌ [getMatchIds] Unknown error:`, error);
+    }
     return [];
   }
 }
@@ -449,8 +464,12 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           
           console.log(`✅ [fetchChampionStats] Processed ${processedMatches} matches, ${successfulMatches} successful`);
         }
-      } catch (error: any) {
-        console.error(`❌ [fetchChampionStats] Error processing match data:`, error.message);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error(`❌ [fetchChampionStats] Error processing match data:`, error.message);
+        } else {
+          console.error(`❌ [fetchChampionStats] Unknown error processing match data:`, error);
+        }
         console.log(`⚠️ [fetchChampionStats] Falling back to simulation due to error`);
         totalGames = 0;
       }
@@ -873,9 +892,10 @@ async function getMatchData(matchId: string, region: string): Promise<RiotMatch 
     
     console.log(`✅ [getMatchData] Successfully fetched data for match ${matchId}`);
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<RiotApiErrorResponse>;
     console.error(`❌ [getMatchData] Error fetching match ${matchId}:`, 
-      error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
+      axiosError.response ? `Status: ${axiosError.response.status}, Data: ${JSON.stringify(axiosError.response.data)}` : axiosError.message);
     return null;
   }
 }

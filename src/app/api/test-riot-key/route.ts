@@ -1,5 +1,20 @@
 import { NextResponse } from 'next/server';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
+
+// Interface for champion rotation data
+interface ChampionRotationsResponse {
+  freeChampionIds: number[];
+  freeChampionIdsForNewPlayers: number[];
+  maxNewPlayerLevel: number;
+}
+
+// Interface for Riot API error responses
+interface RiotErrorData {
+  status?: {
+    message?: string;
+    status_code?: number;
+  };
+}
 
 export async function GET() {
   try {
@@ -21,7 +36,7 @@ export async function GET() {
     // Test the API key with a simple request to get platform status
     try {
       // We'll use NA1 for testing, but this could be any valid region
-      const response = await axios.get(
+      const response = await axios.get<ChampionRotationsResponse>(
         'https://na1.api.riotgames.com/lol/platform/v3/champion-rotations',
         { headers: { 'X-Riot-Token': apiKey } }
       );
@@ -36,10 +51,23 @@ export async function GET() {
           maxNewPlayerLevel: response.data.maxNewPlayerLevel
         }
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // API key didn't work, get detailed error info
-      const statusCode = error.response?.status || 'unknown';
-      const errorMessage = error.response?.data?.status?.message || error.message || 'Unknown error';
+      let statusCode: number | string = 'unknown';
+      let errorMessage = 'Unknown error';
+      
+      if (error instanceof AxiosError) {
+        statusCode = error.response?.status || 'unknown';
+        // Access error data in a type-safe way
+        if (error.response?.data) {
+          const errorData = error.response.data as RiotErrorData;
+          errorMessage = errorData.status?.message || error.message || 'Unknown error';
+        } else {
+          errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       
       let problemType = 'Unknown error';
       if (statusCode === 401 || statusCode === 403) {
@@ -58,11 +86,12 @@ export async function GET() {
         }
       }, { status: 500 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ 
       status: 'error',
       message: 'Server error testing API key',
-      error: error.message
+      error: errorMessage
     }, { status: 500 });
   }
 } 
