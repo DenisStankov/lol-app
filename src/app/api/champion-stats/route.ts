@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
+// Debug logging for API key (safely)
+console.log("API KEY AVAILABLE:", process.env.RIOT_API_KEY ? "YES (Key exists)" : "NO (Key not found)");
+console.log("API KEY LOOKS VALID:", process.env.RIOT_API_KEY && !process.env.RIOT_API_KEY.includes('your-api-key-here') ? "YES" : "NO");
+
 // Uncomment the RIOT_API_KEY constant for actual implementation
 const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-your-api-key-here';
 
@@ -140,67 +144,94 @@ interface LeagueEntry {
 
 // Add a function to get match IDs for a specific region and rank
 async function getMatchIds(region: string, rank: string, count: number = 100): Promise<string[]> {
+  console.log(`🔍 [getMatchIds] Starting with region=${region}, rank=${rank}`);
   try {
     const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
     const rankValue = rankToApiValue[rank] || 'PLATINUM';
     
-    // This endpoint doesn't exist directly in Riot's API
-    // You would need to fetch summoner IDs for the rank, then get their match history
-    // This is a simplified example - in a real implementation, you would:
-    // 1. Get league entries for the rank tier
-    // 2. Get puuids for those summoners
-    // 3. Get match IDs for those puuids
+    console.log(`🔍 [getMatchIds] Using routing=${routingValue}, rank=${rankValue}`);
     
     // Step 1: Get league entries
-    const leagueResponse = await axios.get(
-      `https://${region}.api.riotgames.com/lol/league/v4/entries/RANKED_SOLO_5x5/${rankValue}/I`,
-      { 
-        headers: { 'X-Riot-Token': RIOT_API_KEY },
-        params: { page: 1 }
+    console.log(`🔍 [getMatchIds] Getting league entries for ${rankValue} in ${region}`);
+    const leagueUrl = `https://${region}.api.riotgames.com/lol/league/v4/entries/RANKED_SOLO_5x5/${rankValue}/I`;
+    console.log(`🔍 [getMatchIds] League API URL: ${leagueUrl}`);
+    
+    try {
+      const leagueResponse = await axios.get(
+        leagueUrl,
+        { 
+          headers: { 'X-Riot-Token': RIOT_API_KEY },
+          params: { page: 1 }
+        }
+      );
+      
+      console.log(`✅ [getMatchIds] League entries fetched successfully. Found ${leagueResponse.data.length} entries.`);
+      
+      // Step 2: Get puuids for summoners (limited to 10 for API efficiency)
+      const summonerIds = leagueResponse.data.slice(0, 10).map((entry: LeagueEntry) => entry.summonerId);
+      console.log(`🔍 [getMatchIds] Processing ${summonerIds.length} summoner IDs: ${summonerIds.join(', ')}`);
+      
+      const puuids: string[] = [];
+      
+      for (const summonerId of summonerIds) {
+        try {
+          console.log(`🔍 [getMatchIds] Getting summoner data for ID: ${summonerId}`);
+          const summonerUrl = `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`;
+          console.log(`🔍 [getMatchIds] Summoner API URL: ${summonerUrl}`);
+          
+          const summonerResponse = await axios.get(
+            summonerUrl,
+            { headers: { 'X-Riot-Token': RIOT_API_KEY } }
+          );
+          puuids.push(summonerResponse.data.puuid);
+          console.log(`✅ [getMatchIds] Got PUUID for summoner ${summonerId}`);
+        } catch (error: any) {
+          console.error(`❌ [getMatchIds] Error fetching summoner data for ${summonerId}:`, 
+            error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
+        }
       }
-    );
-    
-    // Step 2: Get puuids for summoners (limited to 10 for API efficiency)
-    const summonerIds = leagueResponse.data.slice(0, 10).map((entry: LeagueEntry) => entry.summonerId);
-    const puuids: string[] = [];
-    
-    for (const summonerId of summonerIds) {
-      try {
-        const summonerResponse = await axios.get(
-          `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`,
-          { headers: { 'X-Riot-Token': RIOT_API_KEY } }
-        );
-        puuids.push(summonerResponse.data.puuid);
-      } catch (error) {
-        console.error(`Error fetching summoner data for ${summonerId}:`, error);
-      }
-    }
-    
-    // Step 3: Get match IDs for puuids
-    const matchIds: string[] = [];
-    
-    for (const puuid of puuids) {
-      try {
-        const matchResponse = await axios.get(
-          `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids`,
-          { 
-            headers: { 'X-Riot-Token': RIOT_API_KEY },
-            params: { 
-              count: 10,  // Get 10 matches per player
-              queue: 420  // Ranked solo queue
+      
+      console.log(`🔍 [getMatchIds] Found ${puuids.length} valid PUUIDs`);
+      
+      // Step 3: Get match IDs for puuids
+      const matchIds: string[] = [];
+      
+      for (const puuid of puuids) {
+        try {
+          console.log(`🔍 [getMatchIds] Getting matches for PUUID: ${puuid.substring(0, 6)}...`);
+          const matchUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids`;
+          console.log(`🔍 [getMatchIds] Match API URL: ${matchUrl}`);
+          
+          const matchResponse = await axios.get(
+            matchUrl,
+            { 
+              headers: { 'X-Riot-Token': RIOT_API_KEY },
+              params: { 
+                count: 10,  // Get 10 matches per player
+                queue: 420  // Ranked solo queue
+              }
             }
-          }
-        );
-        matchIds.push(...matchResponse.data);
-      } catch (error) {
-        console.error(`Error fetching match IDs for ${puuid}:`, error);
+          );
+          matchIds.push(...matchResponse.data);
+          console.log(`✅ [getMatchIds] Got ${matchResponse.data.length} matches for PUUID ${puuid.substring(0, 6)}...`);
+        } catch (error: any) {
+          console.error(`❌ [getMatchIds] Error fetching match IDs for PUUID ${puuid.substring(0, 6)}...`,
+            error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
+        }
       }
+      
+      // Remove duplicates and limit to the requested count
+      const uniqueMatchIds = [...new Set(matchIds)].slice(0, count);
+      console.log(`✅ [getMatchIds] Returning ${uniqueMatchIds.length} unique match IDs`);
+      return uniqueMatchIds;
+      
+    } catch (error: any) {
+      console.error(`❌ [getMatchIds] Error fetching league entries:`, 
+        error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
+      throw error;
     }
-    
-    // Remove duplicates and limit to the requested count
-    return [...new Set(matchIds)].slice(0, count);
-  } catch (error) {
-    console.error('Error fetching match IDs:', error);
+  } catch (error: any) {
+    console.error(`❌ [getMatchIds] Error:`, error.message);
     return [];
   }
 }
@@ -302,9 +333,8 @@ function normalizeRoleName(role: string): string {
 
 // Main function to fetch and calculate champion statistics
 async function fetchChampionStats(rank: string = 'ALL', region: string = 'global'): Promise<Record<string, Record<string, RoleStats>>> {
+  console.log(`🔄 [fetchChampionStats] Starting for rank=${rank}, region=${region}`);
   try {
-    console.log(`Fetching champion stats for rank: ${rank}, region: ${region}`);
-    
     // Check if we have cached data
     if (
       statsCache.timestamp > 0 && 
@@ -312,11 +342,11 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
       statsCache.data[rank] && 
       statsCache.data[rank][region]
     ) {
-      console.log(`Using cached data for rank: ${rank}, region: ${region}`);
+      console.log(`📦 [fetchChampionStats] Using cached data for rank=${rank}, region=${region}`);
       return statsCache.data[rank][region];
     }
     
-    console.log(`Generating fresh data for rank: ${rank}, region: ${region}`);
+    console.log(`🔄 [fetchChampionStats] Generating fresh data for rank=${rank}, region=${region}`);
     
     // Initialize champion stats object
     const champStats: Record<string, Record<string, RoleStats>> = {};
@@ -358,18 +388,24 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     
     // Only try to fetch match data if we have an API key
     if (RIOT_API_KEY && RIOT_API_KEY !== 'RGAPI-your-api-key-here') {
+      console.log(`🔑 [fetchChampionStats] Valid API key found, attempting to fetch real data`);
       try {
-        console.log('Attempting to fetch real match data...');
         matchIds = await getMatchIds(region, rank);
         totalGames = matchIds.length;
-        console.log(`Fetched ${totalGames} match IDs`);
+        console.log(`📊 [fetchChampionStats] Fetched ${totalGames} match IDs`);
         
         // Step 4: Process the match data
         if (totalGames > 0) {
+          console.log(`🔄 [fetchChampionStats] Processing ${totalGames} matches`);
+          let processedMatches = 0;
+          let successfulMatches = 0;
+          
           for (const matchId of matchIds) {
             const match = await getMatchData(matchId, region);
+            processedMatches++;
             
             if (match) {
+              successfulMatches++;
               // Process bans
               match.info.teams.forEach((team: RiotTeam) => {
                 team.bans.forEach((ban: {championId: number; pickTurn: number}) => {
@@ -410,14 +446,17 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
               });
             }
           }
+          
+          console.log(`✅ [fetchChampionStats] Processed ${processedMatches} matches, ${successfulMatches} successful`);
         }
-      } catch (error) {
-        console.error('Error processing match data:', error);
-        // Fall back to simulation if real data processing fails
+      } catch (error: any) {
+        console.error(`❌ [fetchChampionStats] Error processing match data:`, error.message);
+        console.log(`⚠️ [fetchChampionStats] Falling back to simulation due to error`);
         totalGames = 0;
       }
     } else {
-      console.log('No valid Riot API key provided, using simulation data');
+      const keyStatus = RIOT_API_KEY ? "default placeholder value" : "missing entirely";
+      console.log(`⚠️ [fetchChampionStats] No valid Riot API key provided (${keyStatus}), using simulation data`);
       totalGames = 0;
     }
     
@@ -821,17 +860,22 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
 
 // Function to get match data from Riot API
 async function getMatchData(matchId: string, region: string): Promise<RiotMatch | null> {
+  console.log(`🔍 [getMatchData] Getting data for matchId=${matchId}, region=${region}`);
   try {
     const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
+    const matchUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
+    console.log(`🔍 [getMatchData] Match data URL: ${matchUrl}`);
     
     const response = await axios.get(
-      `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`,
+      matchUrl,
       { headers: { 'X-Riot-Token': RIOT_API_KEY } }
     );
     
+    console.log(`✅ [getMatchData] Successfully fetched data for match ${matchId}`);
     return response.data;
-  } catch (error) {
-    console.error(`Error fetching match data for ${matchId}:`, error);
+  } catch (error: any) {
+    console.error(`❌ [getMatchData] Error fetching match ${matchId}:`, 
+      error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
     return null;
   }
 }
