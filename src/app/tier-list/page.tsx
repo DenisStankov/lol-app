@@ -1362,7 +1362,7 @@ export default function TierList() {
                       
                       {/* Pick Rate Cell - Centered Text */}
                       <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
-                        {champion.pickRate.toFixed(1)}%
+                        {champion.pickRate.toFixed(1)}% 
                       </td>
                       
                       {/* Games Cell - Centered Text */}
