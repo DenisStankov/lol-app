@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/card";
 import { Crown, Swords, Target, Trophy } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
+import Navigation from "@/components/navigation";
 
 export default function SummonerProfile() {
   const { region, name } = useParams(); // ✅ Get dynamic params from URL
@@ -62,6 +63,9 @@ export default function SummonerProfile() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Navigation Bar */}
+      <Navigation />
+      
       {/* Header Section */}
       <header className="border-b border-zinc-800/50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">

@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
   TooltipProvider
 } from "@/components/ui/tooltip"
+import Navigation from "@/components/navigation"
 
 // Import regions from the correct file
 import { regions } from "@/app/api/champion-stats/regions"
@@ -805,6 +806,9 @@ export default function TierList() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      {/* Navigation Bar */}
+      <Navigation />
+      
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 md:py-8">
         <div className="text-center mb-4 md:mb-6">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-white">League of Legends Champion Tier List</h1>
