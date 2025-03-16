@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import axios from 'axios';
 
 // Constants
-const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-your-api-key-here';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 // Type definitions
@@ -101,6 +100,103 @@ interface ChampionDetails {
   };
 }
 
+// Data Dragon types
+interface DDragonPassiveImage {
+  full: string;
+  sprite: string;
+  group: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface DDragonPassive {
+  name: string;
+  description: string;
+  image: DDragonPassiveImage;
+}
+
+interface DDragonSpellImage {
+  full: string;
+  sprite: string;
+  group: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface DDragonSpell {
+  id: string;
+  name: string;
+  description: string;
+  tooltip: string;
+  maxrank: number;
+  cooldown: number[];
+  cost: number[];
+  range: number[];
+  image: DDragonSpellImage;
+}
+
+interface DDragonChampionImage {
+  full: string;
+  sprite: string;
+  group: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+interface DDragonChampionInfo {
+  attack: number;
+  defense: number;
+  magic: number;
+  difficulty: number;
+}
+
+interface DDragonChampionStats {
+  hp: number;
+  hpperlevel: number;
+  mp: number;
+  mpperlevel: number;
+  movespeed: number;
+  armor: number;
+  armorperlevel: number;
+  spellblock: number;
+  spellblockperlevel: number;
+  attackrange: number;
+  hpregen: number;
+  hpregenperlevel: number;
+  mpregen: number;
+  mpregenperlevel: number;
+  crit: number;
+  critperlevel: number;
+  attackdamage: number;
+  attackdamageperlevel: number;
+  attackspeedperlevel: number;
+  attackspeed: number;
+}
+
+interface DDragonChampionData {
+  id: string;
+  key: string;
+  name: string;
+  title: string;
+  image: DDragonChampionImage;
+  lore: string;
+  blurb: string;
+  allytips: string[];
+  enemytips: string[];
+  tags: string[];
+  partype: string;
+  info: DDragonChampionInfo;
+  stats: DDragonChampionStats;
+  spells: DDragonSpell[];
+  passive: DDragonPassive;
+}
+
 // Cache for storing champion details data
 type ChampionDetailsCache = {
   [id: string]: {
@@ -123,7 +219,7 @@ async function fetchCurrentPatch(): Promise<string> {
   }
 }
 
-async function fetchChampionData(champId: string, patch: string): Promise<any> {
+async function fetchChampionData(champId: string, patch: string): Promise<DDragonChampionData> {
   try {
     // Fetch basic champion data
     const champResponse = await axios.get(
@@ -137,31 +233,7 @@ async function fetchChampionData(champId: string, patch: string): Promise<any> {
   }
 }
 
-async function fetchItems(patch: string): Promise<any> {
-  try {
-    const response = await axios.get(
-      `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/item.json`
-    );
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching items:', error);
-    throw new Error('Failed to fetch items data');
-  }
-}
-
-async function fetchRunes(patch: string): Promise<any> {
-  try {
-    const response = await axios.get(
-      `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/runesReforged.json`
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching runes:', error);
-    throw new Error('Failed to fetch runes data');
-  }
-}
-
-function getDamageType(tags: string[], info: any): 'AP' | 'AD' | 'Hybrid' {
+function getDamageType(tags: string[], info: DDragonChampionInfo): 'AP' | 'AD' | 'Hybrid' {
   // Logic to determine damage type based on champion tags and info
   if (tags.includes('Mage') || tags.includes('Assassin') && info.magic > info.attack) {
     return 'AP';
@@ -172,7 +244,7 @@ function getDamageType(tags: string[], info: any): 'AP' | 'AD' | 'Hybrid' {
   }
 }
 
-function getDifficulty(info: any): 'Easy' | 'Medium' | 'Hard' {
+function getDifficulty(info: DDragonChampionInfo): 'Easy' | 'Medium' | 'Hard' {
   const difficultyValue = info.difficulty;
   if (difficultyValue <= 3) return 'Easy';
   if (difficultyValue <= 7) return 'Medium';
@@ -184,7 +256,7 @@ function getRange(attackRange: number): 'Melee' | 'Ranged' {
 }
 
 // Transform champion data from Data Dragon format to our ChampionDetails format
-async function transformChampionData(champData: any, role: string, patch: string): Promise<ChampionDetails> {
+async function transformChampionData(champData: DDragonChampionData, role: string, patch: string): Promise<ChampionDetails> {
   // Extract abilities
   const passive = {
     id: 'passive',
@@ -197,7 +269,7 @@ async function transformChampionData(champData: any, role: string, patch: string
     key: 'P'
   };
   
-  const abilities = champData.spells.map((spell: any, index: number) => ({
+  const abilities = champData.spells.map((spell, index) => ({
     id: spell.id,
     name: spell.name,
     description: spell.description,
