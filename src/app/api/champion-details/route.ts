@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
+import { fetchHighEloMatches, analyzeMatchData, MatchAnalysisResult } from '@/lib/match-analyzer';
 
 // Constants
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-your-api-key-here';
+
+// Debug logging
+console.log("API KEY AVAILABLE:", process.env.RIOT_API_KEY ? "YES (Key exists)" : "NO (Key not found)");
+console.log("API KEY LOOKS VALID:", process.env.RIOT_API_KEY && !process.env.RIOT_API_KEY.includes('your-api-key-here') ? "YES" : "NO");
 
 // Type definitions
 interface ChampionAbility {
@@ -209,13 +215,14 @@ type ChampionDetailsCache = {
 
 const championDetailsCache: ChampionDetailsCache = {};
 
+// Get current patch version
 async function fetchCurrentPatch(): Promise<string> {
   try {
     const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
-    return response.data[0]; // Return the latest patch version
+    return response.data[0]; // First element is the latest version
   } catch (error) {
     console.error('Error fetching current patch:', error);
-    return '14.5.1'; // Fallback version
+    return '14.13.1'; // Fallback to a recent patch if API fails
   }
 }
 
@@ -255,7 +262,7 @@ function getRange(attackRange: number): 'Melee' | 'Ranged' {
   return attackRange <= 175 ? 'Melee' : 'Ranged';
 }
 
-// Transform champion data from Data Dragon format to our ChampionDetails format
+// Update the transformChampionData function
 async function transformChampionData(champData: DDragonChampionData, role: string, patch: string): Promise<ChampionDetails> {
   // Extract abilities
   const passive = {
@@ -555,6 +562,39 @@ async function transformChampionData(champData: DDragonChampionData, role: strin
     }
   ] : undefined;
   
+  // Try to fetch real match data if API key is available
+  let matchIds: string[] = [];
+  let analysisResult: MatchAnalysisResult = {
+    itemBuilds: null,
+    runeBuilds: null,
+    winRate: 51.5,
+    pickRate: 12.3,
+    banRate: 5.8,
+    skillOrder: ['Q', 'W', 'E', 'Q', 'Q', 'R', 'Q', 'W', 'Q', 'W', 'R', 'W', 'W', 'E', 'E', 'R', 'E', 'E'],
+    counters: [],
+    synergies: []
+  };
+  
+  if (RIOT_API_KEY && RIOT_API_KEY !== 'RGAPI-your-api-key-here') {
+    console.log(`Attempting to fetch real match data for ${champData.id} in ${role}`);
+    matchIds = await fetchHighEloMatches(champData.id, role, 'na1', RIOT_API_KEY);
+    if (matchIds.length > 0) {
+      analysisResult = await analyzeMatchData(matchIds, champData.id, role, 'na1', RIOT_API_KEY, patch);
+    }
+  }
+  
+  // Use the mock data as fallback
+  // ... keep existing mock item builds definition ...
+  // ... keep existing mock rune builds definition ...
+  // ... keep existing mock counters definition ...
+  
+  // Keep using the mock item builds as fallback
+  const itemBuilds = analysisResult.itemBuilds || mockItemBuilds;
+  const runeBuilds = analysisResult.runeBuilds || mockRuneBuilds;
+  const counters = analysisResult.counters.length > 0 ? analysisResult.counters : mockCounters;
+  const synergies = analysisResult.synergies.length > 0 ? analysisResult.synergies : mockSynergies;
+  
+  // Return with real data where available, mock data as fallback
   return {
     id: champData.id,
     name: champData.name,
@@ -567,15 +607,15 @@ async function transformChampionData(champData: DDragonChampionData, role: strin
     damageType: getDamageType(champData.tags, champData.info),
     difficulty: getDifficulty(champData.info),
     range: getRange(champData.stats.attackrange),
-    winRate: 51.5, // Mock data
-    pickRate: 12.3, // Mock data
-    banRate: 5.8,   // Mock data
+    winRate: analysisResult.winRate,
+    pickRate: analysisResult.pickRate,
+    banRate: analysisResult.banRate,
     abilities: [passive, ...abilities],
-    itemBuilds: mockItemBuilds,
-    runeBuilds: mockRuneBuilds,
-    counters: mockCounters,
-    synergies: mockSynergies,
-    skillOrder: ['Q', 'W', 'E', 'Q', 'Q', 'R', 'Q', 'W', 'Q', 'W', 'R', 'W', 'W', 'E', 'E', 'R', 'E', 'E'],
+    itemBuilds: itemBuilds,
+    runeBuilds: runeBuilds,
+    counters: counters,
+    synergies: synergies,
+    skillOrder: analysisResult.skillOrder,
     tips: {
       allies: champData.allytips,
       enemies: champData.enemytips

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
-import Link from "next/link"
+ import Link from "next/link"
 import { ChevronDown, Search, X, Info } from "lucide-react"
 import { 
   Popover,
