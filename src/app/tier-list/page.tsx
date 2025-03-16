@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { ChevronDown, Search, X, Info } from "lucide-react"
 import { 
   Popover,
@@ -1297,78 +1298,84 @@ export default function TierList() {
                   filteredChampions.map((champion, index) => (
                     <tr
                       key={`${champion.id}-${champion.role}`}
-                      className="hover:bg-zinc-900/50 transition-colors"
+                      className="hover:bg-zinc-900/50 transition-colors group cursor-pointer"
                     >
-                      {/* Rank number */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-left">
-                        <span className="text-xs sm:text-sm text-zinc-500 font-medium ml-2">{index + 1}</span>
-                      </td>
-                      
-                      {/* Champion Cell - Better Alignment */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3">
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-full bg-zinc-800 border border-zinc-700">
-                            <Image
-                              src={champion.image}
-                              alt={champion.name}
-                              width={40}
-                              height={40}
-                              className="object-cover w-full h-full"
-                              unoptimized
-                            />
-                          </div>
-                          <div>
-                            <div className="font-medium text-sm sm:text-base">{champion.name}</div>
-                            <div className="text-[10px] sm:text-xs text-zinc-500">
-                              {champion.damageType} • {champion.range}
+                      {/* Using Link to wrap entire row contents */}
+                      <Link 
+                        href={`/champion/${champion.id}?role=${champion.role}`}
+                        className="contents"
+                      >
+                        {/* Rank number */}
+                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-left">
+                          <span className="text-xs sm:text-sm text-zinc-500 font-medium ml-2">{index + 1}</span>
+                        </td>
+                        
+                        {/* Champion Cell - Better Alignment */}
+                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3">
+                          <div className="flex items-center space-x-2 sm:space-x-3">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-full bg-zinc-800 border border-zinc-700 group-hover:border-blue-500 transition-colors">
+                              <Image
+                                src={champion.image}
+                                alt={champion.name}
+                                width={40}
+                                height={40}
+                                className="object-cover w-full h-full"
+                                unoptimized
+                              />
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm sm:text-base group-hover:text-blue-400 transition-colors">{champion.name}</div>
+                              <div className="text-[10px] sm:text-xs text-zinc-500">
+                                {champion.damageType} • {champion.range}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      
-                      {/* Lane Cell with SVG */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
-                        <div 
-                          className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center bg-zinc-800/80 mx-auto"
-                          style={{ 
-                            color: roleData[champion.role]?.color || '#FFFFFF',
-                            border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
-                          }}
-                        >
-                          {roleData[champion.role]?.icon}
-                        </div>
-                      </td>
-                      
-                      {/* Tier Cell - Changed to match dpm.lol style */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
-                        <div 
-                          className="px-2 py-1 rounded-md inline-block font-bold text-xs sm:text-sm mx-auto"
-                          style={{
-                            backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}20`,
-                            color: tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF',
-                            minWidth: '2.5rem'
-                          }}
-                        >
-                          {champion.tier}
-                        </div>
-                      </td>
-                      
-                      {/* Win Rate Cell - Centered Text with color */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
-                        <span className={`${champion.winRate >= 51.5 ? 'text-green-400' : champion.winRate < 49 ? 'text-red-400' : 'text-zinc-300'}`}>
-                          {champion.winRate.toFixed(1)}%
-                        </span>
-                      </td>
-                      
-                      {/* Pick Rate Cell - Centered Text */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
-                        {champion.pickRate.toFixed(1)}% 
-                      </td>
-                      
-                      {/* Games Cell - Centered Text */}
-                      <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center text-zinc-500 text-xs sm:text-sm hidden md:table-cell">
-                        {champion.totalGames.toLocaleString()}
-                      </td>
+                        </td>
+                        
+                        {/* Lane Cell with SVG */}
+                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
+                          <div 
+                            className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center bg-zinc-800/80 mx-auto"
+                            style={{ 
+                              color: roleData[champion.role]?.color || '#FFFFFF',
+                              border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
+                            }}
+                          >
+                            {roleData[champion.role]?.icon}
+                          </div>
+                        </td>
+                        
+                        {/* Tier Cell - Changed to match dpm.lol style */}
+                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
+                          <div 
+                            className="px-2 py-1 rounded-md inline-block font-bold text-xs sm:text-sm mx-auto"
+                            style={{
+                              backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}20`,
+                              color: tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF',
+                              minWidth: '2.5rem'
+                            }}
+                          >
+                            {champion.tier}
+                          </div>
+                        </td>
+                        
+                        {/* Win Rate Cell - Centered Text with color */}
+                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
+                          <span className={`${champion.winRate >= 51.5 ? 'text-green-400' : champion.winRate < 49 ? 'text-red-400' : 'text-zinc-300'}`}>
+                            {champion.winRate.toFixed(1)}%
+                          </span>
+                        </td>
+                        
+                        {/* Pick Rate Cell - Centered Text */}
+                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
+                          {champion.pickRate.toFixed(1)}% 
+                        </td>
+                        
+                        {/* Games Cell - Centered Text */}
+                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center text-zinc-500 text-xs sm:text-sm hidden md:table-cell">
+                          {champion.totalGames.toLocaleString()}
+                        </td>
+                      </Link>
                     </tr>
                   ))
                 )}
