@@ -566,7 +566,7 @@ async function transformChampionData(champData: DDragonChampionData, role: strin
     role: role,
     damageType: getDamageType(champData.tags, champData.info),
     difficulty: getDifficulty(champData.info),
-    range: getRange(parseInt(champData.stats.attackrange)),
+    range: getRange(champData.stats.attackrange),
     winRate: 51.5, // Mock data
     pickRate: 12.3, // Mock data
     banRate: 5.8,   // Mock data
