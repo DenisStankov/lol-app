@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, ArrowLeft, Info } from "lucide-react"
@@ -133,7 +133,10 @@ const roleData: Record<string, { label: string; color: string }> = {
   "UTILITY": { label: "SUP", color: "#CC66FF" }
 }
 
-export default function ChampionPage({ params }: { params: { id: string } }) {
+export default function ChampionPage() {
+  // Get params from useParams hook instead of props
+  const params = useParams()
+  const champId = params?.id as string
   const searchParams = useSearchParams()
   const role = searchParams.get('role') || 'MIDDLE'
   const [championData, setChampionData] = useState<ChampionDetails | null>(null)
@@ -146,7 +149,7 @@ export default function ChampionPage({ params }: { params: { id: string } }) {
     async function fetchChampionData() {
       try {
         setLoading(true)
-        const response = await fetch(`/api/champion-details?id=${params.id}&role=${role}`)
+        const response = await fetch(`/api/champion-details?id=${champId}&role=${role}`)
         
         if (!response.ok) {
           throw new Error(`Error fetching champion data: ${response.status}`)
@@ -162,8 +165,10 @@ export default function ChampionPage({ params }: { params: { id: string } }) {
       }
     }
     
-    fetchChampionData()
-  }, [params.id, role])
+    if (champId) {
+      fetchChampionData()
+    }
+  }, [champId, role])
   
   if (loading) {
     return (
