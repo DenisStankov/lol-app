@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 export async function GET() {
   try {
@@ -44,27 +44,29 @@ export async function GET() {
           level: response.data.summonerLevel
         }
       });
-    } catch (error: any) {
-      console.error("API request failed:", error.message);
-      console.error("Status:", error.response?.status);
-      console.error("Data:", error.response?.data);
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError;
+      console.error("API request failed:", axiosError.message);
+      console.error("Status:", axiosError.response?.status);
+      console.error("Data:", axiosError.response?.data);
       
       return NextResponse.json({
         success: false,
-        error: error.response?.status === 403 ? "API key unauthorized" : 
-               error.response?.status === 429 ? "Rate limit exceeded" :
+        error: axiosError.response?.status === 403 ? "API key unauthorized" : 
+               axiosError.response?.status === 429 ? "Rate limit exceeded" :
                "API request failed",
-        status: error.response?.status,
-        details: error.response?.data
+        status: axiosError.response?.status,
+        details: axiosError.response?.data
       });
     }
-  } catch (error: any) {
-    console.error("Unexpected error:", error);
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Unexpected error:", err);
     
     return NextResponse.json({
       success: false,
       error: "Error testing Riot API key",
-      message: error.message
+      message: err.message
     });
   }
 } 
