@@ -123,7 +123,7 @@ export async function fetchHighEloMatches(
   region: string = 'na',
   apiKey: string
 ): Promise<string[]> {
-  if (!apiKey || apiKey === 'RGAPI-your-api-key-here' || apiKey.includes('xxxxxxxx')) {
+  if (!apiKey || apiKey === 'RGAPI-your-api-key-here' || apiKey.includes('xxxxxxxx') || !apiKey.startsWith('RGAPI-')) {
     console.log('Skipping match fetch: No valid API key');
     return [];
   }
@@ -183,7 +183,7 @@ export async function analyzeMatchData(
   apiKey: string,
   patch: string
 ): Promise<MatchAnalysisResult> {
-  if (matchIds.length === 0 || !apiKey || apiKey === 'RGAPI-your-api-key-here' || apiKey.includes('xxxxxxxx')) {
+  if (matchIds.length === 0 || !apiKey || apiKey === 'RGAPI-your-api-key-here' || apiKey.includes('xxxxxxxx') || !apiKey.startsWith('RGAPI-')) {
     console.log('No matches to analyze or no valid API key, returning default data');
     return {
       itemBuilds: null,

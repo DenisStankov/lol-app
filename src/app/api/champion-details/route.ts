@@ -6,8 +6,11 @@ import { fetchHighEloMatches, analyzeMatchData, MatchAnalysisResult } from '../.
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 // Debug logging
-console.log("API KEY AVAILABLE:", process.env.RIOT_API_KEY ? "YES (Key exists)" : "NO (Key not found)");
-console.log("API KEY LOOKS VALID:", process.env.RIOT_API_KEY && !process.env.RIOT_API_KEY.includes('your-api-key-here') ? "YES" : "NO");
+console.log("NEXT_PUBLIC_RIOT_API_KEY present:", !!process.env.NEXT_PUBLIC_RIOT_API_KEY);
+console.log("RIOT_API_KEY present:", !!process.env.RIOT_API_KEY);
+const maskedKey = process.env.NEXT_PUBLIC_RIOT_API_KEY || process.env.RIOT_API_KEY;
+console.log("API KEY:", maskedKey ? `${maskedKey.substring(0, 8)}...` : "None");
+console.log("API KEY LOOKS VALID:", maskedKey && !maskedKey.includes('xxxxxxxx') && !maskedKey.includes('your-api-key-here') && maskedKey.startsWith('RGAPI-') ? "YES" : "NO");
 
 // Type definitions
 interface ChampionAbility {
@@ -301,22 +304,32 @@ async function transformChampionData(champData: DDragonChampionData, role: strin
     synergies: []
   };
 
-  const apiKey = process.env.RIOT_API_KEY || '';
+  const apiKey = process.env.NEXT_PUBLIC_RIOT_API_KEY || process.env.RIOT_API_KEY || '';
+  console.log(`Champion: ${champData.id}, Role: ${role}, API Key valid: ${apiKey && !apiKey.includes('xxxxxxxx') && !apiKey.includes('your-api-key-here') && apiKey.startsWith('RGAPI-')}`);
+  
   const region = 'na'; // Default region - could be made configurable
   
-  if (apiKey && !apiKey.includes('RGAPI-your-api-key-here') && !apiKey.includes('xxxxxxxx')) {
+  if (apiKey && !apiKey.includes('your-api-key-here') && !apiKey.includes('xxxxxxxx') && apiKey.startsWith('RGAPI-')) {
     try {
       console.log(`Fetching match data for ${champData.id} in role ${role}`);
       const matchIds = await fetchHighEloMatches(champData.id, role, region, apiKey);
+      console.log(`Found ${matchIds.length} matches for analysis`);
+      
       if (matchIds.length > 0) {
-        console.log(`Found ${matchIds.length} matches for analysis`);
+        console.log(`Analyzing matches for ${champData.id}...`);
         const matchAnalysis = await analyzeMatchData(matchIds, champData.id, role, region, apiKey, patch);
+        console.log(`Analysis complete. Got item data: ${!!matchAnalysis.itemBuilds}, rune data: ${!!matchAnalysis.runeBuilds}, counters: ${matchAnalysis.counters.length}`);
         analysisResult = matchAnalysis;
+      } else {
+        console.log(`No matches found for ${champData.id} in role ${role}, using mock data`);
       }
     } catch (error) {
       console.error(`Error analyzing match data for ${champData.id}:`, error);
+      console.log("Falling back to mock data due to API error");
       // Continue with mock data as fallback
     }
+  } else {
+    console.log(`API key invalid or missing, using mock data. Key: ${apiKey ? apiKey.substring(0, 8) + '...' : 'None'}`);
   }
 
   // Mock data for items, runes, counters, etc.
