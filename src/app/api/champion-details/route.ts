@@ -1,723 +1,177 @@
-import { NextResponse } from 'next/server';
-import axios from 'axios';
-import { fetchHighEloMatches, analyzeMatchData, MatchAnalysisResult } from '../../../lib/match-analyzer';
+import { NextRequest, NextResponse } from 'next/server';
+import { analyzeMatchData } from '@/lib/match-analyzer';
+import { mockChampionDetailsData, ChampionDetail } from '../../../lib/mock-data';
+import * as dataDragon from '@/lib/data-dragon';
 
-// Constants
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-
-// Debug logging
-console.log("NEXT_PUBLIC_RIOT_API_KEY present:", !!process.env.NEXT_PUBLIC_RIOT_API_KEY);
-console.log("RIOT_API_KEY present:", !!process.env.RIOT_API_KEY);
-const maskedKey = process.env.NEXT_PUBLIC_RIOT_API_KEY || process.env.RIOT_API_KEY;
-console.log("API KEY:", maskedKey ? `${maskedKey.substring(0, 8)}...` : "None");
-console.log("API KEY LOOKS VALID:", maskedKey && !maskedKey.includes('xxxxxxxx') && !maskedKey.includes('your-api-key-here') && maskedKey.startsWith('RGAPI-') ? "YES" : "NO");
-
-// Type definitions
-interface ChampionAbility {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  cooldown: number[];
-  cost: number[];
-  range: number[];
-  key: string; // Q, W, E, R, or P for passive
-}
-
-interface ItemBuild {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  gold: number;
-  winRate: number;
-  pickRate: number;
-}
-
-interface RuneBuild {
-  primaryPath: {
-    id: string;
-    name: string;
-    image: string;
-    runes: {
-      id: string;
-      name: string;
-      image: string;
-      winRate: number;
-      pickRate: number;
-    }[];
-  };
-  secondaryPath: {
-    id: string;
-    name: string;
-    image: string;
-    runes: {
-      id: string;
-      name: string;
-      image: string;
-      winRate: number;
-      pickRate: number;
-    }[];
-  };
-  shards: {
-    offense: string;
-    flex: string;
-    defense: string;
-  };
-  winRate: number;
-  pickRate: number;
-}
-
-interface CounterChampion {
-  id: string;
-  name: string;
-  image: string;
-  winRate: number;
-  role: string;
-}
-
-interface ChampionDetails {
-  id: string;
-  name: string;
-  title: string;
-  lore: string;
-  image: string;
-  splash: string;
-  loading: string;
-  role: string;
-  damageType: 'AP' | 'AD' | 'Hybrid';
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  range: 'Melee' | 'Ranged';
-  winRate: number;
-  pickRate: number;
-  banRate: number;
-  abilities: ChampionAbility[];
-  itemBuilds: {
-    startingItems: ItemBuild[];
-    coreItems: ItemBuild[];
-    boots: ItemBuild[];
-    situationalItems: ItemBuild[];
-  };
-  runeBuilds: RuneBuild[];
-  counters: CounterChampion[];
-  synergies?: CounterChampion[]; // Only for ADC/Support
-  skillOrder: string[];
-  tips: {
-    allies: string[];
-    enemies: string[];
-  };
-}
-
-// Data Dragon types
-interface DDragonPassiveImage {
-  full: string;
-  sprite: string;
-  group: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-interface DDragonPassive {
-  name: string;
-  description: string;
-  image: DDragonPassiveImage;
-}
-
-interface DDragonSpellImage {
-  full: string;
-  sprite: string;
-  group: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-interface DDragonSpell {
-  id: string;
-  name: string;
-  description: string;
-  tooltip: string;
-  maxrank: number;
-  cooldown: number[];
-  cost: number[];
-  range: number[];
-  image: DDragonSpellImage;
-}
-
-interface DDragonChampionImage {
-  full: string;
-  sprite: string;
-  group: string;
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-interface DDragonChampionInfo {
-  attack: number;
-  defense: number;
-  magic: number;
-  difficulty: number;
-}
-
-interface DDragonChampionStats {
-  hp: number;
-  hpperlevel: number;
-  mp: number;
-  mpperlevel: number;
-  movespeed: number;
-  armor: number;
-  armorperlevel: number;
-  spellblock: number;
-  spellblockperlevel: number;
-  attackrange: number;
-  hpregen: number;
-  hpregenperlevel: number;
-  mpregen: number;
-  mpregenperlevel: number;
-  crit: number;
-  critperlevel: number;
-  attackdamage: number;
-  attackdamageperlevel: number;
-  attackspeedperlevel: number;
-  attackspeed: number;
-}
-
-interface DDragonChampionData {
-  id: string;
-  key: string;
-  name: string;
-  title: string;
-  image: DDragonChampionImage;
-  lore: string;
-  blurb: string;
-  allytips: string[];
-  enemytips: string[];
-  tags: string[];
-  partype: string;
-  info: DDragonChampionInfo;
-  stats: DDragonChampionStats;
-  spells: DDragonSpell[];
-  passive: DDragonPassive;
-}
-
-// Cache for storing champion details data
-type ChampionDetailsCache = {
-  [id: string]: {
-    [role: string]: {
-      data: ChampionDetails;
-      timestamp: number;
-    }
-  }
-};
-
-const championDetailsCache: ChampionDetailsCache = {};
-
-// Get current patch version
-async function fetchCurrentPatch(): Promise<string> {
-  try {
-    const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
-    return response.data[0]; // First element is the latest version
-  } catch (error) {
-    console.error('Error fetching current patch:', error);
-    return '14.13.1'; // Fallback to a recent patch if API fails
-  }
-}
-
-async function fetchChampionData(champId: string, patch: string): Promise<DDragonChampionData> {
-  try {
-    // Fetch basic champion data
-    const champResponse = await axios.get(
-      `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion/${champId}.json`
-    );
-    
-    return champResponse.data.data[champId];
-  } catch (error) {
-    console.error(`Error fetching champion data for ${champId}:`, error);
-    throw new Error(`Failed to fetch champion data for ${champId}`);
-  }
-}
-
-function getDamageType(tags: string[], info: DDragonChampionInfo): 'AP' | 'AD' | 'Hybrid' {
-  // Logic to determine damage type based on champion tags and info
-  if (tags.includes('Mage') || tags.includes('Assassin') && info.magic > info.attack) {
-    return 'AP';
-  } else if (info.magic > 7 && info.attack > 5) {
-    return 'Hybrid';
-  } else {
-    return 'AD';
-  }
-}
-
-function getDifficulty(info: DDragonChampionInfo): 'Easy' | 'Medium' | 'Hard' {
-  const difficultyValue = info.difficulty;
-  if (difficultyValue <= 3) return 'Easy';
-  if (difficultyValue <= 7) return 'Medium';
-  return 'Hard';
-}
-
-function getRange(attackRange: number): 'Melee' | 'Ranged' {
-  return attackRange <= 175 ? 'Melee' : 'Ranged';
-}
-
-// Update the transformChampionData function
-async function transformChampionData(champData: DDragonChampionData, role: string, patch: string): Promise<ChampionDetails> {
-  // Extract abilities
-  const abilities: ChampionAbility[] = champData.spells.map((spell, index) => {
-    const abilityKey = ['Q', 'W', 'E', 'R'][index];
-    return {
-      id: spell.id,
-      name: spell.name,
-      description: spell.description,
-      image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/spell/${spell.image.full}`,
-      cooldown: spell.cooldown,
-      cost: spell.cost,
-      range: spell.range,
-      key: abilityKey
-    };
-  });
-
-  const passive: ChampionAbility = {
-    id: champData.passive.name.replace(/\s+/g, ''),
-    name: champData.passive.name,
-    description: champData.passive.description,
-    image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/passive/${champData.passive.image.full}`,
-    cooldown: [0],
-    cost: [0],
-    range: [0],
-    key: 'P'
-  };
-
-  // Try to get real data via Riot API
-  let analysisResult: MatchAnalysisResult = {
-    itemBuilds: null,
-    runeBuilds: null,
-    winRate: 50 + Math.random() * 8 - 4, // Random win rate between 46-54%
-    pickRate: 5 + Math.random() * 10, // Random pick rate between 5-15%
-    banRate: 2 + Math.random() * 8, // Random ban rate between 2-10%
-    skillOrder: ['Q', 'W', 'E', 'Q', 'Q', 'R', 'Q', 'W', 'Q', 'W', 'R', 'W', 'W', 'E', 'E', 'R', 'E', 'E'],
-    counters: [],
-    synergies: []
-  };
-
-  const apiKey = process.env.NEXT_PUBLIC_RIOT_API_KEY || process.env.RIOT_API_KEY || '';
-  console.log(`Champion: ${champData.id}, Role: ${role}, API Key valid: ${apiKey && !apiKey.includes('xxxxxxxx') && !apiKey.includes('your-api-key-here') && apiKey.startsWith('RGAPI-')}`);
+/**
+ * Handles GET requests to fetch champion details 
+ */
+export async function GET(request: NextRequest) {
+  // Extract champion ID from the request
+  const { searchParams } = new URL(request.url);
+  const championId = searchParams.get('championId');
   
-  const region = 'na'; // Default region - could be made configurable
+  // Log request information
+  console.log(`[Champion Details API] Request for champion: ${championId}`);
   
-  if (apiKey && !apiKey.includes('your-api-key-here') && !apiKey.includes('xxxxxxxx') && apiKey.startsWith('RGAPI-')) {
-    try {
-      console.log(`Fetching match data for ${champData.id} in role ${role}`);
-      const matchIds = await fetchHighEloMatches(champData.id, role, region, apiKey);
-      console.log(`Found ${matchIds.length} matches for analysis`);
-      
-      if (matchIds.length > 0) {
-        console.log(`Analyzing matches for ${champData.id}...`);
-        const matchAnalysis = await analyzeMatchData(matchIds, champData.id, role, region, apiKey, patch);
-        console.log(`Analysis complete. Got item data: ${!!matchAnalysis.itemBuilds}, rune data: ${!!matchAnalysis.runeBuilds}, counters: ${matchAnalysis.counters.length}`);
-        analysisResult = matchAnalysis;
-      } else {
-        console.log(`No matches found for ${champData.id} in role ${role}, using mock data`);
-      }
-    } catch (error) {
-      console.error(`Error analyzing match data for ${champData.id}:`, error);
-      console.log("Falling back to mock data due to API error");
-      // Continue with mock data as fallback
-    }
-  } else {
-    console.log(`API key invalid or missing, using mock data. Key: ${apiKey ? apiKey.substring(0, 8) + '...' : 'None'}`);
-  }
-
-  // Mock data for items, runes, counters, etc.
-  // In a real application, you would fetch this data from a database or another API
-  const mockItemBuilds = {
-    startingItems: [
-      {
-        id: "1055",
-        name: "Doran's Blade",
-        description: "Good starting item for AD champions",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/1055.png`,
-        gold: 450,
-        winRate: 52.3,
-        pickRate: 65.7
-      },
-      {
-        id: "2003",
-        name: "Health Potion",
-        description: "Consume to restore health over time",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/2003.png`,
-        gold: 50,
-        winRate: 51.8,
-        pickRate: 83.2
-      }
-    ],
-    coreItems: [
-      {
-        id: "3031",
-        name: "Infinity Edge",
-        description: "Massively increases critical strike damage",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3031.png`,
-        gold: 3400,
-        winRate: 54.1,
-        pickRate: 87.3
-      },
-      {
-        id: "3085",
-        name: "Runaan's Hurricane",
-        description: "Ranged attacks fire bolts at nearby targets",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3085.png`,
-        gold: 2600,
-        winRate: 53.6,
-        pickRate: 75.8
-      },
-      {
-        id: "3094",
-        name: "Rapid Firecannon",
-        description: "Attack charges up to deal bonus damage",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3094.png`,
-        gold: 2500,
-        winRate: 52.9,
-        pickRate: 68.4
-      }
-    ],
-    boots: [
-      {
-        id: "3006",
-        name: "Berserker's Greaves",
-        description: "Enhances movement and attack speed",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3006.png`,
-        gold: 1100,
-        winRate: 53.2,
-        pickRate: 91.7
-      }
-    ],
-    situationalItems: [
-      {
-        id: "3036",
-        name: "Lord Dominik's Regards",
-        description: "Overcomes enemy armor",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3036.png`,
-        gold: 3000,
-        winRate: 52.7,
-        pickRate: 45.3
-      },
-      {
-        id: "3139",
-        name: "Mercurial Scimitar",
-        description: "Removes all crowd control and boosts speed",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3139.png`,
-        gold: 3400,
-        winRate: 51.9,
-        pickRate: 18.6
-      },
-      {
-        id: "3095",
-        name: "Stormrazor",
-        description: "First attack critically strikes",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3095.png`,
-        gold: 2700,
-        winRate: 52.2,
-        pickRate: 28.4
-      }
-    ]
-  };
-  
-  const mockRuneBuilds = [
-    {
-      primaryPath: {
-        id: "8000",
-        name: "Precision",
-        image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7201_Precision.png`,
-        runes: [
-          {
-            id: "8008",
-            name: "Lethal Tempo",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png`,
-            winRate: 53.7,
-            pickRate: 85.2
-          },
-          {
-            id: "8009",
-            name: "Presence of Mind",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PresenceOfMind/PresenceOfMind.png`,
-            winRate: 52.8,
-            pickRate: 78.9
-          },
-          {
-            id: "8017",
-            name: "Legend: Alacrity",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity/LegendAlacrity.png`,
-            winRate: 53.1,
-            pickRate: 92.3
-          },
-          {
-            id: "8014",
-            name: "Coup de Grace",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png`,
-            winRate: 52.5,
-            pickRate: 76.4
-          }
-        ]
-      },
-      secondaryPath: {
-        id: "8400",
-        name: "Resolve",
-        image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7204_Resolve.png`,
-        runes: [
-          {
-            id: "8446",
-            name: "Conditioning",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Conditioning/Conditioning.png`,
-            winRate: 51.9,
-            pickRate: 65.8
-          },
-          {
-            id: "8451",
-            name: "Overgrowth",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Overgrowth/Overgrowth.png`,
-            winRate: 52.2,
-            pickRate: 68.7
-          }
-        ]
-      },
-      shards: {
-        offense: "Attack Speed",
-        flex: "Adaptive Force",
-        defense: "Armor"
-      },
-      winRate: 53.4,
-      pickRate: 45.7
-    },
-    {
-      primaryPath: {
-        id: "8100",
-        name: "Domination",
-        image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7200_Domination.png`,
-        runes: [
-          {
-            id: "8112",
-            name: "Electrocute",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Electrocute/Electrocute.png`,
-            winRate: 51.8,
-            pickRate: 35.6
-          },
-          {
-            id: "8126",
-            name: "Cheap Shot",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/CheapShot/CheapShot.png`,
-            winRate: 51.4,
-            pickRate: 32.7
-          },
-          {
-            id: "8138",
-            name: "Eyeball Collection",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/EyeballCollection/EyeballCollection.png`,
-            winRate: 51.6,
-            pickRate: 34.9
-          },
-          {
-            id: "8135",
-            name: "Treasure Hunter",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TreasureHunter/TreasureHunter.png`,
-            winRate: 51.2,
-            pickRate: 30.1
-          }
-        ]
-      },
-      secondaryPath: {
-        id: "8000",
-        name: "Precision",
-        image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7201_Precision.png`,
-        runes: [
-          {
-            id: "8009",
-            name: "Presence of Mind",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PresenceOfMind/PresenceOfMind.png`,
-            winRate: 50.9,
-            pickRate: 31.4
-          },
-          {
-            id: "8014",
-            name: "Coup de Grace",
-            image: `https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png`,
-            winRate: 51.1,
-            pickRate: 32.8
-          }
-        ]
-      },
-      shards: {
-        offense: "Adaptive Force",
-        flex: "Adaptive Force",
-        defense: "Health"
-      },
-      winRate: 51.5,
-      pickRate: 27.9
-    }
-  ];
-  
-  const mockCounters = [
-    {
-      id: "236",
-      name: "Lucian",
-      image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Lucian.png`,
-      winRate: 54.3,
-      role: "BOTTOM"
-    },
-    {
-      id: "67",
-      name: "Vayne",
-      image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Vayne.png`,
-      winRate: 53.8,
-      role: "BOTTOM"
-    },
-    {
-      id: "202",
-      name: "Jhin",
-      image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Jhin.png`,
-      winRate: 52.9,
-      role: "BOTTOM"
-    }
-  ];
-  
-  const mockSynergies = [];
-  
-  // If champion is ADC, add support synergies
-  if (role.toUpperCase() === 'ADC' || role.toUpperCase() === 'BOTTOM') {
-    mockSynergies.push(
-      {
-        id: "412",
-        name: "Thresh",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Thresh.png`,
-        winRate: 54.7,
-        role: "SUPPORT"
-      },
-      {
-        id: "267",
-        name: "Nami",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Nami.png`,
-        winRate: 53.2,
-        role: "SUPPORT"
-      },
-      {
-        id: "117",
-        name: "Lulu",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Lulu.png`,
-        winRate: 52.8,
-        role: "SUPPORT"
-      }
+  // Validate champion ID
+  if (!championId) {
+    console.error('[Champion Details API] Missing championId parameter');
+    return NextResponse.json(
+      { error: 'Missing championId parameter' },
+      { status: 400 }
     );
   }
-  
-  // If champion is support, add ADC synergies
-  if (role.toUpperCase() === 'SUPPORT') {
-    mockSynergies.push(
-      {
-        id: "222",
-        name: "Jinx",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Jinx.png`,
-        winRate: 53.9,
-        role: "ADC"
-      },
-      {
-        id: "51",
-        name: "Caitlyn",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Caitlyn.png`,
-        winRate: 52.7,
-        role: "ADC"
-      },
-      {
-        id: "145",
-        name: "Kai'Sa",
-        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Kaisa.png`,
-        winRate: 51.9,
-        role: "ADC"
-      }
-    );
-  }
-  
-  // Use real data if available, otherwise fallback to mock data
-  const itemBuilds = analysisResult.itemBuilds || mockItemBuilds;
-  const runeBuilds = analysisResult.runeBuilds || mockRuneBuilds;
-  const counters = analysisResult.counters.length > 0 ? analysisResult.counters : mockCounters;
-  const synergies = analysisResult.synergies.length > 0 ? analysisResult.synergies : mockSynergies;
-  
-  // Return with real data where available, mock data as fallback
-  return {
-    id: champData.id,
-    name: champData.name,
-    title: champData.title,
-    lore: champData.lore,
-    image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/${champData.image.full}`,
-    splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champData.id}_0.jpg`,
-    loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champData.id}_0.jpg`,
-    role: role,
-    damageType: getDamageType(champData.tags, champData.info),
-    difficulty: getDifficulty(champData.info),
-    range: getRange(champData.stats.attackrange),
-    winRate: analysisResult.winRate,
-    pickRate: analysisResult.pickRate,
-    banRate: analysisResult.banRate,
-    abilities: [passive, ...abilities],
-    itemBuilds: itemBuilds,
-    runeBuilds: runeBuilds,
-    counters: counters,
-    synergies: synergies,
-    skillOrder: analysisResult.skillOrder,
-    tips: {
-      allies: champData.allytips,
-      enemies: champData.enemytips
-    }
-  };
-}
 
-export async function GET(request: Request) {
   try {
-    // Parse query parameters from the request URL
-    const url = new URL(request.url);
-    const champId = url.searchParams.get('id');
-    const role = url.searchParams.get('role') || 'MIDDLE'; // Default to MIDDLE if no role specified
-    
-    if (!champId) {
-      return NextResponse.json({ error: 'Champion ID is required' }, { status: 400 });
-    }
-    
-    // Check if we have cached data for this champion and role
-    const cachedData = championDetailsCache[champId]?.[role];
-    if (cachedData && Date.now() - cachedData.timestamp < CACHE_DURATION) {
-      // Return cached data if it's still valid
-      return NextResponse.json(cachedData.data);
-    }
-    
     // Fetch current patch version
-    const patch = await fetchCurrentPatch();
+    const currentPatch = await dataDragon.getCurrentPatch();
+    console.log(`[Champion Details API] Using patch: ${currentPatch}`);
     
     // Fetch champion data from Data Dragon
-    const champData = await fetchChampionData(champId, patch);
+    const championData = await dataDragon.getChampionDetails(championId, currentPatch);
     
-    // Transform the data into our ChampionDetails format
-    const transformedData = await transformChampionData(champData, role, patch);
+    // Get champion numeric key for match analysis
+    const championKey = await dataDragon.getChampionNumericKey(championId, currentPatch);
     
-    // Cache the data
-    if (!championDetailsCache[champId]) {
-      championDetailsCache[champId] = {};
+    if (!championKey) {
+      console.error(`[Champion Details API] Could not find numeric key for champion: ${championId}`);
+      // Continue with just the static data, without match analysis
     }
     
-    championDetailsCache[champId][role] = {
-      data: transformedData,
-      timestamp: Date.now()
-    };
+    // Check if we have a valid Riot API key for match analysis
+    const riotApiKey = process.env.NEXT_PUBLIC_RIOT_API_KEY;
+    const isValidKey = riotApiKey && 
+                      !riotApiKey.includes('YOUR_API_KEY') && 
+                      !riotApiKey.includes('RGAPI') && 
+                      riotApiKey.length > 20;
     
-    // Return the data
+    console.log(`[Champion Details API] Riot API key status: ${isValidKey ? 'Valid' : 'Invalid or missing'}`);
+    
+    // Get match analysis data if we have a valid key
+    let matchAnalysisData = null;
+    if (isValidKey && championKey) {
+      try {
+        console.log(`[Champion Details API] Fetching match analysis for champion key: ${championKey}`);
+        // Use the region parameter with a default value
+        matchAnalysisData = await analyzeMatchData(championKey);
+        console.log(`[Champion Details API] Successfully fetched match analysis`);
+      } catch (error) {
+        console.error(`[Champion Details API] Error fetching match analysis:`, error);
+        console.log(`[Champion Details API] Falling back to mock data for match analysis`);
+      }
+    } else {
+      console.log(`[Champion Details API] Using mock data for match analysis (no valid API key or champion key)`);
+    }
+    
+    // Transform the data into our application format
+    const transformedData = transformChampionData(championId, championData, matchAnalysisData, currentPatch);
+    
     return NextResponse.json(transformedData);
   } catch (error) {
-    console.error('Error processing champion details request:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch champion details' },
-      { status: 500 }
+    console.error(`[Champion Details API] Error fetching champion details:`, error);
+    
+    // Fallback to mock data
+    console.log(`[Champion Details API] Falling back to mock data for ${championId}`);
+    const mockData = mockChampionDetailsData.find(
+      (champ: ChampionDetail) => champ.id.toLowerCase() === championId.toLowerCase()
     );
+    
+    if (mockData) {
+      return NextResponse.json(mockData);
+    } else {
+      return NextResponse.json(
+        { error: `Champion not found: ${championId}` },
+        { status: 404 }
+      );
+    }
   }
+}
+
+/**
+ * Transforms champion data from Data Dragon format to our application format
+ */
+function transformChampionData(
+  championId: string,
+  championData: any,
+  matchAnalysis: any | null,
+  patch: string
+) {
+  console.log(`[Champion Details API] Transforming data for ${championId}`);
+  const images = dataDragon.getChampionImageURLs(championId, patch);
+  
+  // If we have real match analysis, use it
+  if (matchAnalysis) {
+    console.log(`[Champion Details API] Using real match analysis data`);
+    
+    return {
+      id: championId,
+      name: championData.name,
+      title: championData.title,
+      lore: championData.lore,
+      tags: championData.tags,
+      stats: championData.stats,
+      abilities: {
+        passive: {
+          name: championData.passive.name,
+          description: championData.passive.description,
+          image: dataDragon.getPassiveImageURL(championData.passive.image.full, patch)
+        },
+        spells: championData.spells.map((spell: any) => ({
+          id: spell.id,
+          name: spell.name,
+          description: spell.description,
+          image: dataDragon.getSpellImageURL(spell.image.full, patch)
+        }))
+      },
+      images,
+      // Use real match analysis data
+      itemBuilds: matchAnalysis.itemBuilds || [],
+      runeBuilds: matchAnalysis.runeBuilds || [],
+      counters: matchAnalysis.counters || [],
+      synergies: matchAnalysis.synergies || [],
+      winRate: matchAnalysis.winRate || 0,
+      pickRate: matchAnalysis.pickRate || 0,
+      banRate: matchAnalysis.banRate || 0,
+      skillOrder: matchAnalysis.skillOrder || []
+    };
+  }
+  
+  // Fallback to mock data for match analysis part
+  console.log(`[Champion Details API] Using mock data for match analysis part`);
+  const mockData = mockChampionDetailsData.find(
+    (champ: ChampionDetail) => champ.id.toLowerCase() === championId.toLowerCase()
+  );
+  
+  return {
+    id: championId,
+    name: championData.name,
+    title: championData.title,
+    lore: championData.lore,
+    tags: championData.tags,
+    stats: championData.stats,
+    abilities: {
+      passive: {
+        name: championData.passive.name,
+        description: championData.passive.description,
+        image: dataDragon.getPassiveImageURL(championData.passive.image.full, patch)
+      },
+      spells: championData.spells.map((spell: any) => ({
+        id: spell.id,
+        name: spell.name,
+        description: spell.description,
+        image: dataDragon.getSpellImageURL(spell.image.full, patch)
+      }))
+    },
+    images,
+    // Use mock data for the match analysis part
+    itemBuilds: mockData?.itemBuilds || [],
+    runeBuilds: mockData?.runeBuilds || [],
+    counters: mockData?.counters || [],
+    synergies: mockData?.synergies || [],
+    winRate: mockData?.winRate || 0,
+    pickRate: mockData?.pickRate || 0,
+    banRate: mockData?.banRate || 0,
+    skillOrder: mockData?.skillOrder || []
+  };
 } 
