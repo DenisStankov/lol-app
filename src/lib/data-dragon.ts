@@ -6,8 +6,69 @@
 import axios from 'axios';
 
 // Cache for recently fetched data
-const dataCache: Record<string, { data: any, timestamp: number }> = {};
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const dataCache: Record<string, CacheEntry<unknown>> = {};
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+// Data Dragon interfaces
+export interface DataDragonChampion {
+  id: string;
+  key: string;
+  name: string;
+  title: string;
+  image: {
+    full: string;
+  };
+  lore: string;
+  blurb: string;
+  tags: string[];
+  stats: Record<string, number>;
+  passive: {
+    name: string;
+    description: string;
+    image: {
+      full: string;
+    };
+  };
+  spells: Array<{
+    id: string;
+    name: string;
+    description: string;
+    tooltip: string;
+    image: {
+      full: string;
+    };
+  }>;
+}
+
+export interface DataDragonItemData {
+  name: string;
+  description: string;
+  gold: {
+    total: number;
+  };
+  image: {
+    full: string;
+  };
+}
+
+export interface DataDragonRunePath {
+  id: number;
+  key: string;
+  name: string;
+  slots: Array<{
+    runes: Array<{
+      id: number;
+      key: string;
+      name: string;
+      icon: string;
+    }>;
+  }>;
+}
 
 /**
  * Fetches the current patch version
@@ -17,12 +78,13 @@ export async function getCurrentPatch(): Promise<string> {
     console.log("Fetching current patch version...");
     
     // Check cache first
-    if (dataCache['versions'] && Date.now() - dataCache['versions'].timestamp < CACHE_DURATION) {
+    const cachedVersions = dataCache['versions'] as CacheEntry<string[]> | undefined;
+    if (cachedVersions && Date.now() - cachedVersions.timestamp < CACHE_DURATION) {
       console.log("Using cached version data");
-      return dataCache['versions'].data[0];
+      return cachedVersions.data[0];
     }
     
-    const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
+    const response = await axios.get<string[]>('https://ddragon.leagueoflegends.com/api/versions.json');
     dataCache['versions'] = {
       data: response.data,
       timestamp: Date.now()
@@ -39,16 +101,17 @@ export async function getCurrentPatch(): Promise<string> {
 /**
  * Fetches champion data for all champions
  */
-export async function getChampionsList(patch: string): Promise<any> {
+export async function getChampionsList(patch: string): Promise<Record<string, DataDragonChampion>> {
   try {
     const cacheKey = `champions-${patch}`;
-    if (dataCache[cacheKey] && Date.now() - dataCache[cacheKey].timestamp < CACHE_DURATION) {
+    const cachedChampions = dataCache[cacheKey] as CacheEntry<Record<string, DataDragonChampion>> | undefined;
+    if (cachedChampions && Date.now() - cachedChampions.timestamp < CACHE_DURATION) {
       console.log(`Using cached champion list for patch ${patch}`);
-      return dataCache[cacheKey].data;
+      return cachedChampions.data;
     }
     
     console.log(`Fetching champion list for patch ${patch}...`);
-    const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
+    const response = await axios.get<{ data: Record<string, DataDragonChampion> }>(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
     dataCache[cacheKey] = {
       data: response.data.data,
       timestamp: Date.now()
@@ -65,16 +128,17 @@ export async function getChampionsList(patch: string): Promise<any> {
 /**
  * Fetches detailed data for a specific champion
  */
-export async function getChampionDetails(champId: string, patch: string): Promise<any> {
+export async function getChampionDetails(champId: string, patch: string): Promise<DataDragonChampion> {
   try {
     const cacheKey = `champion-${champId}-${patch}`;
-    if (dataCache[cacheKey] && Date.now() - dataCache[cacheKey].timestamp < CACHE_DURATION) {
+    const cachedChampion = dataCache[cacheKey] as CacheEntry<DataDragonChampion> | undefined;
+    if (cachedChampion && Date.now() - cachedChampion.timestamp < CACHE_DURATION) {
       console.log(`Using cached details for ${champId}`);
-      return dataCache[cacheKey].data;
+      return cachedChampion.data;
     }
     
     console.log(`Fetching champion details for ${champId} on patch ${patch}...`);
-    const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion/${champId}.json`);
+    const response = await axios.get<{ data: Record<string, DataDragonChampion> }>(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion/${champId}.json`);
     
     if (!response.data.data || !response.data.data[champId]) {
       throw new Error(`Invalid response format for champion ${champId}`);
@@ -96,16 +160,17 @@ export async function getChampionDetails(champId: string, patch: string): Promis
 /**
  * Fetches item data for the current patch
  */
-export async function getItemsData(patch: string): Promise<any> {
+export async function getItemsData(patch: string): Promise<Record<string, DataDragonItemData>> {
   try {
     const cacheKey = `items-${patch}`;
-    if (dataCache[cacheKey] && Date.now() - dataCache[cacheKey].timestamp < CACHE_DURATION) {
+    const cachedItems = dataCache[cacheKey] as CacheEntry<Record<string, DataDragonItemData>> | undefined;
+    if (cachedItems && Date.now() - cachedItems.timestamp < CACHE_DURATION) {
       console.log(`Using cached items data for patch ${patch}`);
-      return dataCache[cacheKey].data;
+      return cachedItems.data;
     }
     
     console.log(`Fetching items data for patch ${patch}...`);
-    const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/item.json`);
+    const response = await axios.get<{ data: Record<string, DataDragonItemData> }>(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/item.json`);
     dataCache[cacheKey] = {
       data: response.data.data,
       timestamp: Date.now()
@@ -122,16 +187,17 @@ export async function getItemsData(patch: string): Promise<any> {
 /**
  * Fetches rune data for the current patch
  */
-export async function getRunesData(patch: string): Promise<any> {
+export async function getRunesData(patch: string): Promise<DataDragonRunePath[]> {
   try {
     const cacheKey = `runes-${patch}`;
-    if (dataCache[cacheKey] && Date.now() - dataCache[cacheKey].timestamp < CACHE_DURATION) {
+    const cachedRunes = dataCache[cacheKey] as CacheEntry<DataDragonRunePath[]> | undefined;
+    if (cachedRunes && Date.now() - cachedRunes.timestamp < CACHE_DURATION) {
       console.log(`Using cached runes data for patch ${patch}`);
-      return dataCache[cacheKey].data;
+      return cachedRunes.data;
     }
     
     console.log(`Fetching runes data for patch ${patch}...`);
-    const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/runesReforged.json`);
+    const response = await axios.get<DataDragonRunePath[]>(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/runesReforged.json`);
     dataCache[cacheKey] = {
       data: response.data,
       timestamp: Date.now()
@@ -186,11 +252,11 @@ export async function getChampionNumericKey(champId: string, patch: string): Pro
     
     // Find the champion by ID (case insensitive)
     const championEntry = Object.values(championsData).find(
-      (champ: any) => champ.id.toLowerCase() === champId.toLowerCase()
+      (champ) => champ.id.toLowerCase() === champId.toLowerCase()
     );
     
     if (championEntry) {
-      return (championEntry as any).key;
+      return championEntry.key;
     }
     
     return null;

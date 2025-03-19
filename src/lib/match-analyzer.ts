@@ -454,12 +454,14 @@ export async function analyzeMatchData(
           }
           
           // Stat shards
-          targetPlayer.perks.statPerks && Object.entries(targetPlayer.perks.statPerks).forEach(([key, value]) => {
-            const shardId = `${key}_${value}`;
-            runeShards[shardId] = runeShards[shardId] || { picks: 0, wins: 0 };
-            runeShards[shardId].picks++;
-            if (won) runeShards[shardId].wins++;
-          });
+          if (targetPlayer.perks.statPerks) {
+            Object.entries(targetPlayer.perks.statPerks).forEach(([key, value]) => {
+              const shardId = `${key}_${value}`;
+              runeShards[shardId] = runeShards[shardId] || { picks: 0, wins: 0 };
+              runeShards[shardId].picks++;
+              if (won) runeShards[shardId].wins++;
+            });
+          }
         }
         
         // Process counters and synergies
@@ -1197,7 +1199,7 @@ export async function analyzeMatchDataOld(
       synergies: synergyChampions
     };
     
-    console.log(`Analysis complete for ${champId}. Got ${finalResult.itemBuilds.coreItems.length} core items, ${finalResult.runeBuilds ? finalResult.runeBuilds.length : 0} rune builds, ${finalResult.counters.length} counters`);
+    console.log(`Analysis complete for ${champId}. Got ${finalResult.itemBuilds?.coreItems?.length || 0} core items, ${finalResult.runeBuilds ? finalResult.runeBuilds.length : 0} rune builds, ${finalResult.counters.length} counters`);
     
     return finalResult;
   } catch (error) {

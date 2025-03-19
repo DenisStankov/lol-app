@@ -1,7 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzeMatchData } from '@/lib/match-analyzer';
+import { analyzeMatchData, MatchAnalysisResult } from '@/lib/match-analyzer';
 import { mockChampionDetailsData, ChampionDetail } from '../../../lib/mock-data';
 import * as dataDragon from '@/lib/data-dragon';
+
+// Define types for champion data from Data Dragon
+interface ChampionData {
+  id: string;
+  name: string;
+  title: string;
+  lore: string;
+  tags: string[];
+  stats: Record<string, number>;
+  passive: {
+    name: string;
+    description: string;
+    image: {
+      full: string;
+    };
+  };
+  spells: Array<{
+    id: string;
+    name: string;
+    description: string;
+    image: {
+      full: string;
+    };
+  }>;
+}
 
 /**
  * Handles GET requests to fetch champion details 
@@ -49,7 +74,7 @@ export async function GET(request: NextRequest) {
     console.log(`[Champion Details API] Riot API key status: ${isValidKey ? 'Valid' : 'Invalid or missing'}`);
     
     // Get match analysis data if we have a valid key
-    let matchAnalysisData = null;
+    let matchAnalysisData: MatchAnalysisResult | null = null;
     if (isValidKey && championKey) {
       try {
         console.log(`[Champion Details API] Fetching match analysis for champion key: ${championKey}`);
@@ -93,8 +118,8 @@ export async function GET(request: NextRequest) {
  */
 function transformChampionData(
   championId: string,
-  championData: any,
-  matchAnalysis: any | null,
+  championData: ChampionData,
+  matchAnalysis: MatchAnalysisResult | null,
   patch: string
 ) {
   console.log(`[Champion Details API] Transforming data for ${championId}`);
@@ -117,7 +142,7 @@ function transformChampionData(
           description: championData.passive.description,
           image: dataDragon.getPassiveImageURL(championData.passive.image.full, patch)
         },
-        spells: championData.spells.map((spell: any) => ({
+        spells: championData.spells.map((spell) => ({
           id: spell.id,
           name: spell.name,
           description: spell.description,
@@ -156,7 +181,7 @@ function transformChampionData(
         description: championData.passive.description,
         image: dataDragon.getPassiveImageURL(championData.passive.image.full, patch)
       },
-      spells: championData.spells.map((spell: any) => ({
+      spells: championData.spells.map((spell) => ({
         id: spell.id,
         name: spell.name,
         description: spell.description,
