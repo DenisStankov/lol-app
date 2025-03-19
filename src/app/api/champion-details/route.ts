@@ -4,7 +4,6 @@ import { fetchHighEloMatches, analyzeMatchData, MatchAnalysisResult } from '../.
 
 // Constants
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-your-api-key-here';
 
 // Debug logging
 console.log("API KEY AVAILABLE:", process.env.RIOT_API_KEY ? "YES (Key exists)" : "NO (Key not found)");
