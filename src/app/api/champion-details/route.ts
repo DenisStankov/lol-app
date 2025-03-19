@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
-import { fetchHighEloMatches, analyzeMatchData, MatchAnalysisResult } from '@/lib/match-analyzer';
+import { fetchHighEloMatches, analyzeMatchData, MatchAnalysisResult } from '../../../lib/match-analyzer';
 
 // Constants
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -265,8 +265,22 @@ function getRange(attackRange: number): 'Melee' | 'Ranged' {
 // Update the transformChampionData function
 async function transformChampionData(champData: DDragonChampionData, role: string, patch: string): Promise<ChampionDetails> {
   // Extract abilities
-  const passive = {
-    id: 'passive',
+  const abilities: ChampionAbility[] = champData.spells.map((spell, index) => {
+    const abilityKey = ['Q', 'W', 'E', 'R'][index];
+    return {
+      id: spell.id,
+      name: spell.name,
+      description: spell.description,
+      image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/spell/${spell.image.full}`,
+      cooldown: spell.cooldown,
+      cost: spell.cost,
+      range: spell.range,
+      key: abilityKey
+    };
+  });
+
+  const passive: ChampionAbility = {
+    id: champData.passive.name.replace(/\s+/g, ''),
     name: champData.passive.name,
     description: champData.passive.description,
     image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/passive/${champData.passive.image.full}`,
@@ -275,18 +289,37 @@ async function transformChampionData(champData: DDragonChampionData, role: strin
     range: [0],
     key: 'P'
   };
+
+  // Try to get real data via Riot API
+  let analysisResult: MatchAnalysisResult = {
+    itemBuilds: null,
+    runeBuilds: null,
+    winRate: 50 + Math.random() * 8 - 4, // Random win rate between 46-54%
+    pickRate: 5 + Math.random() * 10, // Random pick rate between 5-15%
+    banRate: 2 + Math.random() * 8, // Random ban rate between 2-10%
+    skillOrder: ['Q', 'W', 'E', 'Q', 'Q', 'R', 'Q', 'W', 'Q', 'W', 'R', 'W', 'W', 'E', 'E', 'R', 'E', 'E'],
+    counters: [],
+    synergies: []
+  };
+
+  const apiKey = process.env.RIOT_API_KEY || '';
+  const region = 'na'; // Default region - could be made configurable
   
-  const abilities = champData.spells.map((spell, index) => ({
-    id: spell.id,
-    name: spell.name,
-    description: spell.description,
-    image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/spell/${spell.image.full}`,
-    cooldown: spell.cooldown,
-    cost: spell.cost,
-    range: spell.range,
-    key: ['Q', 'W', 'E', 'R'][index]
-  }));
-  
+  if (apiKey && !apiKey.includes('RGAPI-your-api-key-here') && !apiKey.includes('xxxxxxxx')) {
+    try {
+      console.log(`Fetching match data for ${champData.id} in role ${role}`);
+      const matchIds = await fetchHighEloMatches(champData.id, role, region, apiKey);
+      if (matchIds.length > 0) {
+        console.log(`Found ${matchIds.length} matches for analysis`);
+        const matchAnalysis = await analyzeMatchData(matchIds, champData.id, role, region, apiKey, patch);
+        analysisResult = matchAnalysis;
+      }
+    } catch (error) {
+      console.error(`Error analyzing match data for ${champData.id}:`, error);
+      // Continue with mock data as fallback
+    }
+  }
+
   // Mock data for items, runes, counters, etc.
   // In a real application, you would fetch this data from a database or another API
   const mockItemBuilds = {
@@ -354,29 +387,29 @@ async function transformChampionData(champData: DDragonChampionData, role: strin
       {
         id: "3036",
         name: "Lord Dominik's Regards",
-        description: "Deals bonus damage to high-health enemies",
+        description: "Overcomes enemy armor",
         image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3036.png`,
         gold: 3000,
-        winRate: 51.5,
+        winRate: 52.7,
         pickRate: 45.3
       },
       {
         id: "3139",
         name: "Mercurial Scimitar",
-        description: "Activate to remove all crowd control effects",
+        description: "Removes all crowd control and boosts speed",
         image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3139.png`,
-        gold: 3000,
-        winRate: 50.8,
-        pickRate: 12.6
+        gold: 3400,
+        winRate: 51.9,
+        pickRate: 18.6
       },
       {
         id: "3095",
         name: "Stormrazor",
-        description: "First attack slows the target",
+        description: "First attack critically strikes",
         image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/3095.png`,
         gold: 2700,
-        winRate: 52.1,
-        pickRate: 38.9
+        winRate: 52.2,
+        pickRate: 28.4
       }
     ]
   };
@@ -538,57 +571,63 @@ async function transformChampionData(champData: DDragonChampionData, role: strin
     }
   ];
   
-  const mockSynergies = role === "BOTTOM" || role === "UTILITY" ? [
-    {
-      id: role === "BOTTOM" ? "412" : "22",
-      name: role === "BOTTOM" ? "Thresh" : "Ashe",
-      image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/${role === "BOTTOM" ? "Thresh" : "Ashe"}.png`,
-      winRate: 56.2,
-      role: role === "BOTTOM" ? "UTILITY" : "BOTTOM"
-    },
-    {
-      id: role === "BOTTOM" ? "497" : "51",
-      name: role === "BOTTOM" ? "Rakan" : "Caitlyn",
-      image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/${role === "BOTTOM" ? "Rakan" : "Caitlyn"}.png`,
-      winRate: 55.4,
-      role: role === "BOTTOM" ? "UTILITY" : "BOTTOM"
-    },
-    {
-      id: role === "BOTTOM" ? "267" : "81",
-      name: role === "BOTTOM" ? "Nami" : "Ezreal",
-      image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/${role === "BOTTOM" ? "Nami" : "Ezreal"}.png`,
-      winRate: 54.7,
-      role: role === "BOTTOM" ? "UTILITY" : "BOTTOM"
-    }
-  ] : undefined;
+  const mockSynergies = [];
   
-  // Try to fetch real match data if API key is available
-  let matchIds: string[] = [];
-  let analysisResult: MatchAnalysisResult = {
-    itemBuilds: null,
-    runeBuilds: null,
-    winRate: 51.5,
-    pickRate: 12.3,
-    banRate: 5.8,
-    skillOrder: ['Q', 'W', 'E', 'Q', 'Q', 'R', 'Q', 'W', 'Q', 'W', 'R', 'W', 'W', 'E', 'E', 'R', 'E', 'E'],
-    counters: [],
-    synergies: []
-  };
-  
-  if (RIOT_API_KEY && RIOT_API_KEY !== 'RGAPI-your-api-key-here') {
-    console.log(`Attempting to fetch real match data for ${champData.id} in ${role}`);
-    matchIds = await fetchHighEloMatches(champData.id, role, 'na1', RIOT_API_KEY);
-    if (matchIds.length > 0) {
-      analysisResult = await analyzeMatchData(matchIds, champData.id, role, 'na1', RIOT_API_KEY, patch);
-    }
+  // If champion is ADC, add support synergies
+  if (role.toUpperCase() === 'ADC' || role.toUpperCase() === 'BOTTOM') {
+    mockSynergies.push(
+      {
+        id: "412",
+        name: "Thresh",
+        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Thresh.png`,
+        winRate: 54.7,
+        role: "SUPPORT"
+      },
+      {
+        id: "267",
+        name: "Nami",
+        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Nami.png`,
+        winRate: 53.2,
+        role: "SUPPORT"
+      },
+      {
+        id: "117",
+        name: "Lulu",
+        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Lulu.png`,
+        winRate: 52.8,
+        role: "SUPPORT"
+      }
+    );
   }
   
-  // Use the mock data as fallback
-  // ... keep existing mock item builds definition ...
-  // ... keep existing mock rune builds definition ...
-  // ... keep existing mock counters definition ...
+  // If champion is support, add ADC synergies
+  if (role.toUpperCase() === 'SUPPORT') {
+    mockSynergies.push(
+      {
+        id: "222",
+        name: "Jinx",
+        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Jinx.png`,
+        winRate: 53.9,
+        role: "ADC"
+      },
+      {
+        id: "51",
+        name: "Caitlyn",
+        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Caitlyn.png`,
+        winRate: 52.7,
+        role: "ADC"
+      },
+      {
+        id: "145",
+        name: "Kai'Sa",
+        image: `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/Kaisa.png`,
+        winRate: 51.9,
+        role: "ADC"
+      }
+    );
+  }
   
-  // Keep using the mock item builds as fallback
+  // Use real data if available, otherwise fallback to mock data
   const itemBuilds = analysisResult.itemBuilds || mockItemBuilds;
   const runeBuilds = analysisResult.runeBuilds || mockRuneBuilds;
   const counters = analysisResult.counters.length > 0 ? analysisResult.counters : mockCounters;
