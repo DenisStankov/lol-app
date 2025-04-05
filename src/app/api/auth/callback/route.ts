@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForToken, getUserInfoFromToken } from '@/lib/auth-utils';
-import { cookies } from 'next/headers';
 
 /**
  * OAuth callback route - this is the route that Riot redirects to after login
@@ -9,7 +8,8 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get('code');
   const error = searchParams.get('error');
-  const state = searchParams.get('state');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _state = searchParams.get('state');
   
   // Handle errors from the OAuth provider
   if (error) {
@@ -37,11 +37,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/?error=invalid_token', request.url));
     }
     
-    // Set cookies to maintain user session
-    const cookieStore = cookies();
+    // Create the response with redirect
+    const response = NextResponse.redirect(new URL('/', request.url));
     
     // Store the access token (short-lived)
-    cookieStore.set('auth_token', tokenData.access_token, {
+    response.cookies.set('auth_token', tokenData.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: tokenData.expires_in,
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     
     // Store refresh token (long-lived) if available
     if (tokenData.refresh_token) {
-      cookieStore.set('refresh_token', tokenData.refresh_token, {
+      response.cookies.set('refresh_token', tokenData.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         maxAge: 30 * 24 * 60 * 60, // 30 days
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Store basic user info in a session cookie
-    cookieStore.set('user_info', JSON.stringify({
+    response.cookies.set('user_info', JSON.stringify({
       sub: userInfo.sub,
       name: userInfo.name,
     }), {
@@ -69,8 +69,8 @@ export async function GET(request: NextRequest) {
       path: '/',
     });
     
-    // Redirect to the home page or a dashboard
-    return NextResponse.redirect(new URL('/', request.url));
+    // Return the response with cookies
+    return response;
   } catch (error) {
     console.error('Error in auth callback:', error);
     return NextResponse.redirect(new URL('/?error=auth_failed', request.url));

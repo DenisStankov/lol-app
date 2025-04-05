@@ -60,6 +60,7 @@ export async function exchangeCodeForToken(code: string): Promise<TokenResponse>
 export function decodeIdToken(idToken: string) {
   try {
     // ID tokens are JWTs which consist of three parts: header.payload.signature
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_header, payload, _signature] = idToken.split('.');
     const decodedPayload = JSON.parse(atob(payload));
     return decodedPayload;

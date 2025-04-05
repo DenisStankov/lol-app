@@ -1,20 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 import { RIOT_AUTH_CONFIG } from '@/lib/auth-config';
 
 /**
  * Logout route that clears all auth cookies and redirects to home
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
+  // Create the response
+  const response = NextResponse.redirect(RIOT_AUTH_CONFIG.postLogoutRedirectUri);
+  
   // Clear all auth cookies
-  const cookieStore = cookies();
-  cookieStore.delete('auth_token');
-  cookieStore.delete('refresh_token');
-  cookieStore.delete('user_info');
+  response.cookies.delete('auth_token');
+  response.cookies.delete('refresh_token');
+  response.cookies.delete('user_info');
   
-  // Get post-logout redirect URI
-  const redirectUri = RIOT_AUTH_CONFIG.postLogoutRedirectUri;
-  
-  // Redirect to the home page or specified logout redirect
-  return NextResponse.redirect(redirectUri);
+  return response;
 } 
