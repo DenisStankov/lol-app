@@ -27,15 +27,11 @@ export default function Navigation() {
               <Link href="/" className="flex items-center gap-2">
                 <div className="w-8 h-8 relative">
                   <Image
-                    src="/logo.png" 
-                    alt="Logo"
+                    src="/logo.svg" 
+                    alt="LoLytics Logo"
                     width={32}
                     height={32}
                     className="object-contain"
-                    onError={(e) => {
-                      // Fallback if logo image doesn't exist
-                      e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24' fill='none' stroke='%23C89B3C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7 11 2-2-2-2'/%3E%3Cpath d='M11 13h4'/%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3C/svg%3E";
-                    }}
                   />
                 </div>
                 <span className="font-bold text-[#C89B3C]">LoLytics</span>
