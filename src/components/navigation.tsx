@@ -1,13 +1,36 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
+import { Menu, X, LogIn, LogOut, User } from "lucide-react"
+import { getLogoutUrl } from "@/lib/auth-utils"
+import { getAuthUrl } from "@/lib/auth-config"
+
+interface UserInfo {
+  sub: string;
+  name: string;
+}
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [user, setUser] = useState<UserInfo | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const pathname = usePathname()
+  
+  // Check if user is logged in
+  useEffect(() => {
+    const userCookie = document.cookie.split(';').find(c => c.trim().startsWith('user_info='));
+    if (userCookie) {
+      try {
+        const userInfo = JSON.parse(decodeURIComponent(userCookie.split('=')[1]));
+        setUser(userInfo);
+      } catch (e) {
+        console.error('Error parsing user info cookie', e);
+      }
+    }
+    setIsLoading(false);
+  }, []);
   
   const navigation = [
     { name: "Home", href: "/" },
@@ -46,6 +69,35 @@ export default function Navigation() {
             </div>
           </div>
           
+          {/* Auth buttons */}
+          <div className="hidden md:flex items-center gap-4">
+            {!isLoading && (
+              user ? (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-zinc-300">
+                    <User className="w-4 h-4" />
+                    <span>{user.name}</span>
+                  </div>
+                  <a 
+                    href={getLogoutUrl()}
+                    className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </a>
+                </div>
+              ) : (
+                <a 
+                  href={getAuthUrl()}
+                  className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-[#C89B3C] hover:bg-[#C89B3C]/10 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>Login with Riot</span>
+                </a>
+              )
+            )}
+          </div>
+          
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
@@ -81,6 +133,31 @@ export default function Navigation() {
                 {item.name}
               </Link>
             ))}
+            
+            {/* Mobile auth buttons */}
+            {!isLoading && (
+              user ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2 text-zinc-300">
+                    <User className="w-4 h-4" />
+                    <span>{user.name}</span>
+                  </div>
+                  <a 
+                    href={getLogoutUrl()}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                  >
+                    Logout
+                  </a>
+                </>
+              ) : (
+                <a 
+                  href={getAuthUrl()}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-[#C89B3C] hover:bg-[#C89B3C]/10"
+                >
+                  Login with Riot
+                </a>
+              )
+            )}
           </div>
         </div>
       )}

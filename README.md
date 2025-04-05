@@ -112,3 +112,27 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Disclaimer
 
 This application isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends. League of Legends and Riot Games are trademarks or registered trademarks of Riot Games, Inc.
+
+## Riot Games Authentication
+
+LoLytics supports logging in with Riot Games accounts using OAuth:
+
+1. Users can sign in using their Riot Games account
+2. This allows accessing personalized match history and stats
+3. All authentication complies with Riot's API policies
+
+### Setting Up Authentication
+
+To enable Riot Sign-On in your development environment:
+
+1. Register your application in the [Riot Developer Portal](https://developer.riotgames.com/)
+2. Set the following redirect URIs in your application:
+   - `http://localhost:3001/api/auth/callback` (development)
+   - `https://your-domain.com/api/auth/callback` (production)
+3. Set the post-logout redirect URI to:
+   - `http://localhost:3001` (development)
+   - `https://your-domain.com` (production)
+4. Add your Client ID to the `.env.local` file:
+   ```
+   NEXT_PUBLIC_RIOT_CLIENT_ID=your-client-id-here
+   ```
