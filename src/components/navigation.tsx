@@ -4,7 +4,6 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
-import Image from "next/image"
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -25,16 +24,7 @@ export default function Navigation() {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 relative">
-                  <Image
-                    src="/logo.svg" 
-                    alt="LoLytics Logo"
-                    width={32}
-                    height={32}
-                    className="object-contain"
-                  />
-                </div>
-                <span className="font-bold text-[#C89B3C]">LoLytics</span>
+                <span className="font-bold text-[#C89B3C] text-xl">LoLytics</span>
               </Link>
             </div>
             <div className="hidden md:block">
