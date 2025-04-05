@@ -38,7 +38,7 @@ export default function Navigation() {
                     }}
                   />
                 </div>
-                <span className="font-bold text-[#C89B3C]">LoL Tracker</span>
+                <span className="font-bold text-[#C89B3C]">LoLytics</span>
               </Link>
             </div>
             <div className="hidden md:block">

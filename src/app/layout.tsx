@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LoL Tracker",
+  title: "LoLytics",
   description: "League of Legends statistics and summoner information",
 };
 

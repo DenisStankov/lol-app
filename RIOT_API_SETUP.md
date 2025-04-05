@@ -1,6 +1,6 @@
-# Setting Up Your Riot API Key
+# Setting Up Your Riot API Key for LoLytics
 
-To get real champion data including runes, items, counters, and synergies, you need to add a valid Riot API key to your project.
+To get real champion data including runes, items, counters, and synergies in LoLytics, you need to add a valid Riot API key to your project.
 
 ## Getting a Riot API Key
 

@@ -1,4 +1,4 @@
-# League of Legends Stats App
+# LoLytics
 
 A modern League of Legends application featuring champion tier lists, champion details, and summoner profiles.
 
@@ -26,8 +26,8 @@ A modern League of Legends application featuring champion tier lists, champion d
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/my-lol-app.git
-   cd my-lol-app
+   git clone https://github.com/yourusername/lolytics.git
+   cd lolytics
    ```
 
 2. Install dependencies:
