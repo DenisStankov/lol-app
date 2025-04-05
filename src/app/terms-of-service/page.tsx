@@ -11,8 +11,8 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-semibold text-zinc-100 mb-4">1. Acceptance of Terms</h2>
             <p className="mb-4">
-              By accessing and using LoLytics ("the Service"), you agree to be bound by these Terms of Service
-              ("Terms"). If you do not agree to these Terms, please do not use the Service.
+              By accessing and using LoLytics (&ldquo;the Service&rdquo;), you agree to be bound by these Terms of Service
+              (&ldquo;Terms&rdquo;). If you do not agree to these Terms, please do not use the Service.
             </p>
             <p>
               Last updated: {new Date().toLocaleDateString()}
@@ -65,7 +65,7 @@ export default function TermsOfService() {
             <p>
               All content included as part of the Service, such as text, graphics, logos, and software, 
               is the property of LoLytics or its content suppliers and protected by copyright and other laws. 
-              Our use of Riot Games' intellectual property is in accordance with Riot Games' Legal Jibber Jabber 
+              Our use of Riot Games&apos; intellectual property is in accordance with Riot Games&apos; Legal Jibber Jabber 
               and Developer Policies.
             </p>
           </section>
@@ -90,7 +90,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-2xl font-semibold text-zinc-100 mb-4">9. Limitation of Liability</h2>
             <p>
-              LoLytics is provided "as is" without warranties of any kind, either express or implied. 
+              LoLytics is provided &ldquo;as is&rdquo; without warranties of any kind, either express or implied. 
               We shall not be liable for any damages arising from the use of this application. 
               In no event will we be liable for any indirect, consequential, exemplary, incidental, 
               special or punitive damages.

@@ -11,7 +11,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-semibold text-zinc-100 mb-4">1. Introduction</h2>
             <p className="mb-4">
-              Welcome to LoLytics ("we," "our," or "us"). We respect your privacy and are committed 
+              Welcome to LoLytics (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;). We respect your privacy and are committed 
               to protecting your personal information. This Privacy Policy explains how we collect, use, 
               and safeguard your information when you use our League of Legends statistics and analysis service.
             </p>
@@ -108,7 +108,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-2xl font-semibold text-zinc-100 mb-4">9. Riot Games API</h2>
             <p>
-              LoLytics isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games 
+              LoLytics isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions of Riot Games 
               or anyone officially involved in producing or managing League of Legends. League of Legends and 
               Riot Games are trademarks or registered trademarks of Riot Games, Inc.
             </p>
