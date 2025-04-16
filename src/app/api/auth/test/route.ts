@@ -10,13 +10,20 @@ export async function GET() {
     : 'Not set';
     
   return NextResponse.json({
-    clientIdSet: Boolean(clientId),
+    status: 'info',
+    message: 'OAuth access is pending approval from Riot Games',
+    clientIdSet: !!clientId,
     maskedClientId,
     environment: process.env.NODE_ENV,
     authConfig: {
       redirectUri: RIOT_AUTH_CONFIG.redirectUri,
       authEndpoint: RIOT_AUTH_CONFIG.authEndpoint,
       scope: RIOT_AUTH_CONFIG.scope,
-    }
+    },
+    nextSteps: [
+      'Request OAuth access from Riot Developer Support',
+      'Update the client ID once approved',
+      'Ensure redirect URIs match between your app and Riot Developer Portal'
+    ]
   });
 } 

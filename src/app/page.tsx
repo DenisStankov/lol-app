@@ -6,6 +6,7 @@ import TopChampions from "@/components/championList"
 import PatchInfo from "@/components/patchInfo"
 import RecentMatches from "@/components/recentMatches"
 import Navigation from "@/components/navigation"
+import Image from "next/image"
 
 export default function Home() {
   const currentYear = new Date().getFullYear()
@@ -14,6 +15,14 @@ export default function Home() {
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Navigation Bar */}
       <Navigation />
+
+      {/* OAuth Status Notice */}
+      <div className="mb-8 p-4 bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg max-w-3xl">
+        <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-2">Authentication Status</h2>
+        <p className="text-amber-700 dark:text-amber-300">
+          Riot OAuth authentication is currently pending approval. The login feature will be available once we receive OAuth access from Riot Games. Thank you for your patience!
+        </p>
+      </div>
 
       {/* Header with centered search */}
       <header className="text-center py-12 px-4 md:px-8">

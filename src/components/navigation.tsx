@@ -87,13 +87,10 @@ export default function Navigation() {
                   </a>
                 </div>
               ) : (
-                <a 
-                  href={getAuthUrl()}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-[#C89B3C] hover:bg-[#C89B3C]/10 transition-colors"
-                >
+                <div className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-zinc-500 bg-zinc-800/50 cursor-not-allowed">
                   <LogIn className="w-4 h-4" />
-                  <span>Login with Riot</span>
-                </a>
+                  <span>Login (OAuth Pending)</span>
+                </div>
               )
             )}
           </div>
@@ -150,12 +147,9 @@ export default function Navigation() {
                   </a>
                 </>
               ) : (
-                <a 
-                  href={getAuthUrl()}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-[#C89B3C] hover:bg-[#C89B3C]/10"
-                >
-                  Login with Riot
-                </a>
+                <div className="block px-3 py-2 rounded-md text-base font-medium text-zinc-500 bg-zinc-800/50">
+                  Login (OAuth Pending)
+                </div>
               )
             )}
           </div>
