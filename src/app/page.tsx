@@ -6,7 +6,6 @@ import TopChampions from "@/components/championList"
 import PatchInfo from "@/components/patchInfo"
 import RecentMatches from "@/components/recentMatches"
 import Navigation from "@/components/navigation"
-import Image from "next/image"
 
 export default function Home() {
   const currentYear = new Date().getFullYear()

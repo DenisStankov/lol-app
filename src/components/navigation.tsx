@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X, LogIn, LogOut, User } from "lucide-react"
 import { getLogoutUrl } from "@/lib/auth-utils"
-import { getAuthUrl } from "@/lib/auth-config"
 
 interface UserInfo {
   sub: string;
