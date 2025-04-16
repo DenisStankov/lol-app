@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X, LogIn, LogOut, User } from "lucide-react"
 import { getLogoutUrl } from "@/lib/auth-utils"
+import { getAuthUrl } from "@/lib/auth-config"
 
 interface UserInfo {
   sub: string;
@@ -86,10 +87,13 @@ export default function Navigation() {
                   </a>
                 </div>
               ) : (
-                <div className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-zinc-500 bg-zinc-800/50 cursor-not-allowed">
+                <a 
+                  href={getAuthUrl()}
+                  className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-[#C89B3C] hover:bg-[#C89B3C]/10 transition-colors"
+                >
                   <LogIn className="w-4 h-4" />
-                  <span>Login (OAuth Pending)</span>
-                </div>
+                  <span>Login with Riot</span>
+                </a>
               )
             )}
           </div>
@@ -146,9 +150,12 @@ export default function Navigation() {
                   </a>
                 </>
               ) : (
-                <div className="block px-3 py-2 rounded-md text-base font-medium text-zinc-500 bg-zinc-800/50">
-                  Login (OAuth Pending)
-                </div>
+                <a 
+                  href={getAuthUrl()}
+                  className="block px-3 py-2 rounded-md text-base font-medium text-[#C89B3C] hover:bg-[#C89B3C]/10"
+                >
+                  Login with Riot
+                </a>
               )
             )}
           </div>
