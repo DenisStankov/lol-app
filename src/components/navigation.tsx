@@ -28,13 +28,16 @@ export default function Navigation() {
 
   // Check if user is logged in
   useEffect(() => {
-    const userCookie = document.cookie.split(";").find((c) => c.trim().startsWith("user_info="))
-    if (userCookie) {
-      try {
-        const userInfo = JSON.parse(decodeURIComponent(userCookie.split("=")[1]))
-        setUser(userInfo)
-      } catch (e) {
-        console.error("Error parsing user info cookie", e)
+    // Make sure document.cookie exists and isn't empty before splitting
+    if (typeof document !== 'undefined' && document.cookie) {
+      const userCookie = document.cookie.split(";").find((c) => c.trim().startsWith("user_info="))
+      if (userCookie) {
+        try {
+          const userInfo = JSON.parse(decodeURIComponent(userCookie.split("=")[1]))
+          setUser(userInfo)
+        } catch (e) {
+          console.error("Error parsing user info cookie", e)
+        }
       }
     }
     setIsLoading(false)
