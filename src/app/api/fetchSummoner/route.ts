@@ -36,28 +36,68 @@ export async function GET(request: NextRequest) {
       try {
         console.log("🔐 Using authenticated endpoint");
         // Get user data from authenticated endpoint
-        const response = await axios.get('https://europe.api.riotgames.com/riot/account/v1/accounts/me', {
+        const accountResponse = await axios.get('https://europe.api.riotgames.com/riot/account/v1/accounts/me', {
           headers: {
             'Authorization': `Bearer ${accessToken}`
           }
         });
         
-        console.log("👤 Me endpoint response:", response.data);
+        console.log("👤 Account endpoint response:", accountResponse.data);
         
-        if (response.data && response.data.puuid) {
-          // Use the PUUID to get summoner data
-          console.log("🎮 Fetching summoner data with PUUID:", response.data.puuid);
-          const summonerResponse = await axios.get(
-            `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${response.data.puuid}`,
-            {
-              headers: {
-                'X-Riot-Token': process.env.RIOT_API_KEY || ''
-              }
-            }
-          );
+        if (accountResponse.data && accountResponse.data.gameName && accountResponse.data.tagLine) {
+          // Use the Riot ID (gameName + tagLine) to get summoner data
+          const gameName = accountResponse.data.gameName;
+          const tagLine = accountResponse.data.tagLine;
+          console.log("🎮 Riot ID found:", `${gameName}#${tagLine}`);
           
-          console.log("📊 Summoner data received:", summonerResponse.data);
-          summonerData = summonerResponse.data;
+          try {
+            // First get the PUUID using the Account v1 API
+            const riotIdLookupResponse = await axios.get(
+              `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+              {
+                headers: {
+                  'X-Riot-Token': process.env.RIOT_API_KEY || ''
+                }
+              }
+            );
+            
+            console.log("🔎 Riot ID lookup response:", riotIdLookupResponse.data);
+            
+            if (riotIdLookupResponse.data && riotIdLookupResponse.data.puuid) {
+              // Now get the summoner data using the PUUID
+              const summonerResponse = await axios.get(
+                `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${riotIdLookupResponse.data.puuid}`,
+                {
+                  headers: {
+                    'X-Riot-Token': process.env.RIOT_API_KEY || ''
+                  }
+                }
+              );
+              
+              console.log("📊 Summoner data received:", summonerResponse.data);
+              summonerData = summonerResponse.data;
+              
+              // Ensure we include the Riot ID in the response
+              summonerData = {
+                ...summonerData,
+                riotId: `${gameName}#${tagLine}`
+              };
+            }
+          } catch (riotApiError) {
+            console.error("❌ Error fetching summoner via Riot API:", riotApiError);
+            
+            // Create a fallback with at least the real name
+            summonerData = {
+              id: accountResponse.data.puuid,
+              accountId: accountResponse.data.puuid,
+              puuid: accountResponse.data.puuid,
+              name: gameName,
+              profileIconId: 29, // Default icon
+              revisionDate: Date.now(),
+              summonerLevel: 30,
+              riotId: `${gameName}#${tagLine}`
+            };
+          }
         }
       } catch (authError) {
         console.error('❌ Error using auth token:', authError);
@@ -82,17 +122,17 @@ export async function GET(request: NextRequest) {
         summonerData = response.data;
         console.log("📊 Summoner data by PUUID:", summonerData);
       } else {
-        // We don't have a direct endpoint for Riot ID, so we'll use mock data for now
+        // We don't have a direct endpoint for Riot ID from query params, so let's at least return the Riot ID
         console.log("⚠️ Using mock data for Riot ID:", riotId);
         // In a real app, you would implement proper logic to get the summoner from Riot ID
         summonerData = {
-          id: '123456',
-          accountId: '123456',
-          puuid: riotId,
-          name: 'LoLytics Summoner',
+          id: riotId || '123456',
+          accountId: riotId || '123456',
+          puuid: riotId || '123456',
+          name: riotId || 'LoLytics User',
           profileIconId: 29, // Default profile icon as fallback
           revisionDate: Date.now(),
-          summonerLevel: 100
+          summonerLevel: 30
         };
         console.log("📊 Mock summoner data:", summonerData);
       }
