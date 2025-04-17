@@ -116,12 +116,17 @@ export function DropdownMenuItem({ children, className, asChild, ...props }: Dro
   // If asChild is true, clone the first child and add props
   if (asChild && React.Children.count(children) === 1) {
     const child = React.Children.only(children) as React.ReactElement;
-    // Use a more general type that works with both string and component types
+    
+    // Add type assertion for child.props
     const childProps = {
       ...props,
       className: `px-3 py-2 text-sm cursor-pointer ${className || ""}`,
       onClick: (e: React.MouseEvent) => {
-        if (child.props.onClick) child.props.onClick(e);
+        // Add type assertion for onClick
+        const childOnClick = (child.props as any).onClick;
+        if (typeof childOnClick === 'function') {
+          childOnClick(e);
+        }
         setOpen(false);
       },
     };
