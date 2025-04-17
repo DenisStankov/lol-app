@@ -131,7 +131,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
   };
 
   return (
-    <Card className="border-[#C89B3C]/20 bg-zinc-900/50 backdrop-blur-sm shadow-lg w-full max-w-4xl mx-auto">
+    <Card className="border-[#C89B3C]/20 bg-zinc-900/50 backdrop-blur-sm shadow-lg">
       <CardContent className="p-8">
         <div className="flex flex-col md:flex-row items-center gap-6">
           {/* Input Field - Improved styling */}
@@ -149,7 +149,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
           {/* Region Select Dropdown - Improved styling */}
           <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger className="w-40 h-20 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-2xl font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
+            <SelectTrigger className="w-32 h-20 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-2xl font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
               <SelectValue placeholder="EUW" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-[#C89B3C]/30 rounded-lg">
