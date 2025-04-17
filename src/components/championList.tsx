@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ArrowUp, Swords, Users, Trophy, Loader2 } from 'lucide-react'
+import { Trophy, Loader2 } from 'lucide-react'
 import { Card } from "@/components/card"
 import Image from "next/image"
 import axios from "axios"
