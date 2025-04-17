@@ -79,33 +79,48 @@ export default function Navigation() {
   
   // Fetch user's profile data to get the profile icon ID and summoner name
   async function fetchUserProfile(userInfo: UserInfo) {
-    console.log("Fetching user profile for:", userInfo.sub)
+    console.log("Fetching user profile for:", userInfo.sub);
     try {
       // First try using auth token for authenticated endpoint
       const response = await axios.get('/api/fetchSummoner', {
         params: { riotId: userInfo.sub }
-      })
+      });
       
-      console.log("Summoner data response:", response.data)
+      console.log("Summoner data response:", response.data);
       
       if (response.data) {
+        // Log the full response to help debug
+        console.log("Full summoner data response:", {
+          name: response.data.name,
+          profileIconId: response.data.profileIconId,
+          summonerLevel: response.data.summonerLevel,
+          riotId: response.data.riotId,
+          region: response.data.region
+        });
+        
         // Extract profile icon ID, ensuring it's a number
-        const profileIconId = parseInt(String(response.data.profileIconId), 10)
-        console.log("Profile icon ID:", profileIconId, "Type:", typeof profileIconId)
+        const profileIconId = parseInt(String(response.data.profileIconId), 10);
+        console.log("Profile icon ID:", profileIconId, "Type:", typeof profileIconId);
+        
+        // Extract summoner name with validation
+        const summonerName = response.data.name && typeof response.data.name === 'string' 
+          ? response.data.name.trim() 
+          : null;
+        console.log("Summoner name:", summonerName);
         
         // Update user state with summoner info
         const updatedUser = {
           ...userInfo,
           profileIconId: profileIconId,
           puuid: response.data.puuid,
-          summonerName: response.data.name // Use League name from summoner data
-        }
+          summonerName: summonerName
+        };
         
-        console.log("Updated user info with summoner data:", updatedUser)
-        setUser(updatedUser)
+        console.log("Updated user info with summoner data:", updatedUser);
+        setUser(updatedUser);
       }
     } catch (error) {
-      console.error("Failed to fetch user profile:", error)
+      console.error("Failed to fetch user profile:", error);
     }
   }
 
@@ -132,6 +147,28 @@ export default function Navigation() {
       .substring(0, 2)
   }
   
+  // Get display name (prefer League summoner name if available)
+  const getDisplayName = () => {
+    // Log what data we have to help debug
+    console.log("User data for display name:", {
+      summonerName: user?.summonerName,
+      name: user?.name,
+      sub: user?.sub
+    });
+    
+    // Prioritize summoner name, then fall back to other options
+    if (user?.summonerName && typeof user.summonerName === 'string' && user.summonerName.trim() !== '') {
+      return user.summonerName;
+    } else if (user?.name && typeof user.name === 'string' && user.name.trim() !== '') {
+      return user.name;
+    } else if (user?.sub) {
+      // If we only have sub (Riot ID), use that
+      return user.sub.includes('#') ? user.sub : `Summoner #${user.sub.substring(0, 5)}`;
+    }
+    
+    return "Summoner";
+  }
+
   // Get profile icon URL
   const getProfileIconUrl = (iconId: number) => {
     try {
@@ -141,6 +178,7 @@ export default function Navigation() {
         return null;
       }
       
+      // Use default Data Dragon URL format
       const url = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/profileicon/${iconId}.png`;
       console.log("Profile icon URL:", url);
       return url;
@@ -148,11 +186,6 @@ export default function Navigation() {
       console.error("Error generating profile icon URL:", error);
       return null;
     }
-  }
-
-  // Get display name (prefer League summoner name if available)
-  const getDisplayName = () => {
-    return user?.summonerName || user?.name || "Summoner";
   }
 
   return (
@@ -191,13 +224,16 @@ export default function Navigation() {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 transition-colors">
                     <Avatar className="h-7 w-7 border-2 border-[#C89B3C]/70">
-                      {user.profileIconId && getProfileIconUrl(user.profileIconId) ? (
+                      {user?.profileIconId && getProfileIconUrl(user.profileIconId) ? (
                         <AvatarImage 
                           src={getProfileIconUrl(user.profileIconId) || ''} 
                           alt={getDisplayName()} 
                           className="bg-[#0A1428]"
-                          onError={() => {
+                          onError={(e) => {
                             console.error("Failed to load profile icon:", user.profileIconId);
+                            console.error("Image error event:", e);
+                            // Manually fallback to initials by removing the image source
+                            e.currentTarget.src = '';
                           }}
                         />
                       ) : (
@@ -291,13 +327,16 @@ export default function Navigation() {
                 <div className="mt-3 pt-3 border-t border-zinc-700">
                   <div className="flex items-center gap-2 px-3 py-2">
                     <Avatar className="h-8 w-8 border-2 border-[#C89B3C]/70">
-                      {user.profileIconId && getProfileIconUrl(user.profileIconId) ? (
+                      {user?.profileIconId && getProfileIconUrl(user.profileIconId) ? (
                         <AvatarImage 
                           src={getProfileIconUrl(user.profileIconId) || ''} 
                           alt={getDisplayName()}
                           className="bg-[#0A1428]"
-                          onError={() => {
+                          onError={(e) => {
                             console.error("Failed to load profile icon:", user.profileIconId);
+                            console.error("Image error event:", e);
+                            // Manually fallback to initials by removing the image source
+                            e.currentTarget.src = '';
                           }}
                         />
                       ) : (
