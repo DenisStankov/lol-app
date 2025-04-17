@@ -131,25 +131,25 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
   };
 
   return (
-    <Card className="border-[#C89B3C]/20 bg-zinc-900/50 backdrop-blur-sm shadow-lg">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row items-center gap-4">
+    <Card className="border-[#C89B3C]/20 bg-zinc-900/50 backdrop-blur-sm shadow-lg w-full max-w-4xl mx-auto">
+      <CardContent className="p-8">
+        <div className="flex flex-col md:flex-row items-center gap-6">
           {/* Input Field - Improved styling */}
           <div className="relative w-full md:flex-1">
-            <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-[#C89B3C]" />
+            <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-8 w-8 text-[#C89B3C]" />
             <Input
               placeholder="Search summoner..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={handleInputFocus}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
-              className="pl-14 pr-5 py-7 h-16 w-full bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C] focus:border-[#C89B3C]/70 text-xl rounded-xl font-medium tracking-wide shadow-inner"
+              className="pl-16 pr-6 py-8 h-20 w-full bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C] focus:border-[#C89B3C]/70 text-2xl rounded-xl font-medium tracking-wide shadow-inner"
             />
           </div>
 
           {/* Region Select Dropdown - Improved styling */}
           <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger className="w-32 h-16 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-xl font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
+            <SelectTrigger className="w-40 h-20 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-2xl font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
               <SelectValue placeholder="EUW" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-[#C89B3C]/30 rounded-lg">
