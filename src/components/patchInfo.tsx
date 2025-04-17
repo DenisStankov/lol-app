@@ -35,6 +35,8 @@ export default function PatchInfo() {
             { type: "Champion", title: "Champion balance updates" },
             { type: "Item", title: "Item system changes" },
             { type: "System", title: "Ranked adjustments" },
+            { type: "Balance", title: "Champion reworks and adjustments" },
+            { type: "Feature", title: "UI/UX improvements" },
           ])
         }
       } catch (err) {
@@ -49,11 +51,11 @@ export default function PatchInfo() {
   }, [])
 
   return (
-    <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm">
+    <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm h-full flex flex-col">
       {/* Background gradient effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#C89B3C]/10 via-transparent to-transparent" />
 
-      <div className="relative p-6 space-y-6">
+      <div className="relative p-6 space-y-6 flex-1 flex flex-col">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -64,9 +66,9 @@ export default function PatchInfo() {
         </div>
 
         {/* Version Display */}
-        <div className="flex items-center justify-center py-4">
+        <div className="flex items-center justify-center py-6 flex-grow">
           {isLoading ? (
-            <Loader2 className="w-6 h-6 text-[#C89B3C] animate-spin" />
+            <Loader2 className="w-8 h-8 text-[#C89B3C] animate-spin" />
           ) : error ? (
             <div className="flex items-center gap-2 text-red-400">
               <AlertCircle className="w-5 h-5" />
@@ -75,7 +77,7 @@ export default function PatchInfo() {
           ) : (
             <div className="text-center">
               <div className="relative">
-                <span className="text-4xl font-bold text-[#C89B3C] tracking-tight
+                <span className="text-5xl font-bold text-[#C89B3C] tracking-tight
                   [text-shadow:0_0_20px_rgba(200,155,60,0.2)]
                   animate-pulse">
                   {patchVersion}
@@ -90,7 +92,7 @@ export default function PatchInfo() {
         </div>
 
         {/* Recent Changes */}
-        <div className="space-y-3">
+        <div className="space-y-3 mt-auto">
           <h3 className="text-sm font-medium text-zinc-400">Recent Changes</h3>
           <div className="space-y-2">
             {recentChanges.map((note, index) => (

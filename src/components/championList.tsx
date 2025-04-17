@@ -83,10 +83,10 @@ export default function TopChampions() {
           }
         })
         
-        // Sort by win rate and take top 5
+        // Sort by win rate and take top 6
         const topChampions = transformedChampions
           .sort((a: Champion, b: Champion) => b.winRate - a.winRate)
-          .slice(0, 5)
+          .slice(0, 6)
         
         setChampions(topChampions)
       } catch (err) {
@@ -109,113 +109,124 @@ export default function TopChampions() {
 
   if (loading) {
     return (
-      <div className="p-6 bg-zinc-950 rounded-xl min-h-[400px] flex items-center justify-center">
-        <div className="flex flex-col items-center">
-          <Loader2 className="w-8 h-8 text-[#C89B3C] animate-spin" />
-          <p className="mt-4 text-zinc-400">Loading champion data...</p>
+      <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm h-full flex items-center justify-center">
+        <div className="flex flex-col items-center p-12">
+          <Loader2 className="w-10 h-10 text-[#C89B3C] animate-spin" />
+          <p className="mt-6 text-zinc-400">Loading champion data...</p>
         </div>
-      </div>
+      </Card>
     )
   }
   
   if (error) {
     return (
-      <div className="p-6 bg-zinc-950 rounded-xl">
-        <div className="text-red-400">{error}</div>
-      </div>
+      <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm h-full flex items-center justify-center p-8">
+        <div className="text-red-400 text-center">
+          <div className="text-xl mb-2">😞</div>
+          {error}
+        </div>
+      </Card>
     )
   }
 
   return (
-    <div className="p-6 bg-zinc-950 rounded-xl">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-zinc-100">Top Champions</h2>
-          <p className="text-zinc-400 text-sm mt-1">Current meta powerhouses</p>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm">
-          <Trophy className="w-4 h-4" />
-          <span>Patch {patchVersion}</span>
-        </div>
-      </div>
+    <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm h-full">
+      {/* Background gradient effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0A1428]/50 to-transparent" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {champions.map((champion) => (
-          <Card
-            key={champion.id}
-            className={`group relative overflow-hidden border-0 bg-gradient-to-br from-zinc-900/90 to-zinc-950/90 backdrop-blur-sm
-              ${hoveredChamp === champion.id ? 'scale-[1.02]' : 'scale-100'}
-              transition-all duration-300 ease-out`}
-            onMouseEnter={() => setHoveredChamp(champion.id)}
-            onMouseLeave={() => setHoveredChamp(null)}
-          >
-            {/* Glowing border effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#C89B3C]/0 via-[#C89B3C]/20 to-[#C89B3C]/0 
-              opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="relative p-6 h-full">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-[#C89B3C]" />
+              <h2 className="text-xl font-bold text-zinc-100">Top Champions</h2>
+            </div>
+            <p className="text-sm text-zinc-400 mt-1">Current meta powerhouses</p>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm">
+            <span>Patch {patchVersion}</span>
+          </div>
+        </div>
 
-            <div className="relative p-4">
-              {/* Champion image and info */}
-              <div className="flex gap-4">
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden">
-                  <Image
-                    src={champion.image || "/placeholder.svg"}
-                    alt={champion.name}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-zinc-100 group-hover:text-[#C89B3C] transition-colors">
-                    {champion.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-zinc-400 text-sm">{champion.role}</span>
-                    <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                    <span className="text-zinc-400 text-sm">{champion.difficulty}</span>
-                  </div>
-                  {/* Win rate indicator */}
-                  <div className="flex items-center gap-2 mt-3">
-                    <div 
-                      className="h-1.5 bg-gradient-to-r from-[#C89B3C] to-[#C89B3C]/50 rounded-full transition-all duration-300"
-                      style={{ width: `${champion.winRate}%` }}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {champions.map((champion) => (
+            <Card
+              key={champion.id}
+              className={`group relative overflow-hidden border-0 bg-zinc-900/50 hover:bg-zinc-900/80
+                ${hoveredChamp === champion.id ? 'ring-1 ring-[#C89B3C]/50 scale-[1.02]' : 'scale-100'}
+                transition-all duration-300 ease-out`}
+              onMouseEnter={() => setHoveredChamp(champion.id)}
+              onMouseLeave={() => setHoveredChamp(null)}
+            >
+              {/* Glowing border effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#C89B3C]/0 via-[#C89B3C]/10 to-[#C89B3C]/0 
+                opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              <div className="relative p-4">
+                {/* Champion image and info */}
+                <div className="flex gap-4">
+                  <div className="relative w-16 h-16 rounded-lg overflow-hidden">
+                    <Image
+                      src={champion.image || "/placeholder.svg"}
+                      alt={champion.name}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
                     />
-                    <span className="text-[#C89B3C] text-sm font-medium">
-                      {champion.winRate}%
-                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-zinc-100 group-hover:text-[#C89B3C] transition-colors">
+                      {champion.name}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-zinc-400 text-xs">{champion.role}</span>
+                      <span className="w-1 h-1 rounded-full bg-zinc-700" />
+                      <span className="text-zinc-400 text-xs">{champion.difficulty}</span>
+                    </div>
+                    {/* Win rate indicator */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <div 
+                        className="h-1.5 bg-gradient-to-r from-[#C89B3C] to-[#C89B3C]/50 rounded-full transition-all duration-300"
+                        style={{ width: `${champion.winRate}%` }}
+                      />
+                      <span className="text-[#C89B3C] text-xs font-medium">
+                        {champion.winRate}%
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mt-4 p-3 rounded-lg bg-black/20">
-                <div className="flex items-center gap-2">
-                  <ArrowUp className={`w-4 h-4 ${champion.trend === "up" ? "text-green-400" : "text-red-400"}`} />
-                  <div>
-                    <div className="text-sm font-medium text-zinc-100">{champion.winRate}%</div>
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-2 mt-3 p-2 rounded-lg bg-black/20">
+                  <div className="flex flex-col items-center gap-1">
+                    <div className={`text-sm font-medium ${champion.trend === "up" ? "text-green-400" : "text-red-400"}`}>
+                      {champion.winRate}%
+                    </div>
                     <div className="text-xs text-zinc-500">Win Rate</div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-blue-400" />
-                  <div>
-                    <div className="text-sm font-medium text-zinc-100">{champion.pickRate}%</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="text-sm font-medium text-blue-400">{champion.pickRate}%</div>
                     <div className="text-xs text-zinc-500">Pick Rate</div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Swords className="w-4 h-4 text-red-400" />
-                  <div>
-                    <div className="text-sm font-medium text-zinc-100">{champion.banRate}%</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="text-sm font-medium text-red-400">{champion.banRate}%</div>
                     <div className="text-xs text-zinc-500">Ban Rate</div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
+              
+              {/* Bottom gradient border */}
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r 
+                from-transparent via-[#C89B3C]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            </Card>
+          ))}
+        </div>
+
+        {/* Bottom gradient border */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r 
+          from-transparent via-[#C89B3C]/30 to-transparent" />
       </div>
-    </div>
+    </Card>
   )
 }
