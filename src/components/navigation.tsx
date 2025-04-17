@@ -3,13 +3,21 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, LogIn, LogOut, User } from "lucide-react"
+import { Menu, X, LogOut, User, ChevronDown, Settings, BarChart2, Shield } from "lucide-react"
 import { getLogoutUrl } from "@/lib/auth-utils"
 import { getAuthUrl } from "@/lib/auth-config"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 interface UserInfo {
-  sub: string;
-  name: string;
+  sub: string
+  name: string
 }
 
 export default function Navigation() {
@@ -17,21 +25,21 @@ export default function Navigation() {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const pathname = usePathname()
-  
+
   // Check if user is logged in
   useEffect(() => {
-    const userCookie = document.cookie.split(';').find(c => c.trim().startsWith('user_info='));
+    const userCookie = document.cookie.split(";").find((c) => c.trim().startsWith("user_info="))
     if (userCookie) {
       try {
-        const userInfo = JSON.parse(decodeURIComponent(userCookie.split('=')[1]));
-        setUser(userInfo);
+        const userInfo = JSON.parse(decodeURIComponent(userCookie.split("=")[1]))
+        setUser(userInfo)
       } catch (e) {
-        console.error('Error parsing user info cookie', e);
+        console.error("Error parsing user info cookie", e)
       }
     }
-    setIsLoading(false);
-  }, []);
-  
+    setIsLoading(false)
+  }, [])
+
   const navigation = [
     { name: "Home", href: "/" },
     { name: "Champions", href: "/champions" },
@@ -39,6 +47,16 @@ export default function Navigation() {
     { name: "Leaderboards", href: "/leaderboards" },
     { name: "Stats", href: "/stats" },
   ]
+
+  // Get initials for avatar fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2)
+  }
 
   return (
     <nav className="bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-zinc-800/50">
@@ -68,36 +86,61 @@ export default function Navigation() {
               </div>
             </div>
           </div>
-          
+
           {/* Auth buttons */}
           <div className="hidden md:flex items-center gap-4">
-            {!isLoading && (
-              user ? (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-zinc-300">
-                    <User className="w-4 h-4" />
-                    <span>{user.name}</span>
-                  </div>
-                  <a 
-                    href={getLogoutUrl()}
-                    className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
-                  </a>
-                </div>
+            {!isLoading &&
+              (user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 transition-colors">
+                    <Avatar className="h-7 w-7 border-2 border-[#C89B3C]/70">
+                      <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-zinc-200 font-medium text-sm">{user.name}</span>
+                    <ChevronDown className="h-4 w-4 text-zinc-400" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border border-zinc-800 text-zinc-200">
+                    <div className="px-2 py-2.5 border-b border-zinc-800">
+                      <p className="text-xs font-medium text-zinc-400">Signed in as</p>
+                      <p className="text-sm font-semibold text-[#C89B3C]">{user.name}</p>
+                    </div>
+                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800">
+                      <User className="w-4 h-4 text-zinc-400" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800">
+                      <BarChart2 className="w-4 h-4 text-zinc-400" />
+                      <span>My Stats</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800">
+                      <Settings className="w-4 h-4 text-zinc-400" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-zinc-800" />
+                    <DropdownMenuItem
+                      className="flex items-center gap-2 text-[#E84057] hover:bg-zinc-800 focus:bg-zinc-800"
+                      asChild
+                    >
+                      <a href={getLogoutUrl()}>
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
-                <a 
+                <a
                   href={getAuthUrl()}
-                  className="flex items-center gap-1 px-3 py-2 rounded-md text-sm font-medium text-[#C89B3C] hover:bg-[#C89B3C]/10 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-[#C89B3C] to-[#785A28] text-zinc-900 hover:from-[#D5B45C] hover:to-[#8E6B32] transition-colors shadow-md"
                 >
-                  <LogIn className="w-4 h-4" />
+                  <Shield className="w-4 h-4" />
                   <span>Login with Riot</span>
                 </a>
-              )
-            )}
+              ))}
           </div>
-          
+
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
@@ -133,31 +176,60 @@ export default function Navigation() {
                 {item.name}
               </Link>
             ))}
-            
+
             {/* Mobile auth buttons */}
-            {!isLoading && (
-              user ? (
-                <>
-                  <div className="flex items-center gap-2 px-3 py-2 text-zinc-300">
-                    <User className="w-4 h-4" />
-                    <span>{user.name}</span>
+            {!isLoading &&
+              (user ? (
+                <div className="mt-3 pt-3 border-t border-zinc-700">
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <Avatar className="h-8 w-8 border-2 border-[#C89B3C]/70">
+                      <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-zinc-200 font-medium">{user.name}</span>
                   </div>
-                  <a 
-                    href={getLogoutUrl()}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-700 hover:text-white"
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800"
+                    onClick={() => setMobileMenuOpen(false)}
                   >
-                    Logout
+                    <User className="w-4 h-4 text-zinc-400" />
+                    <span>Profile</span>
+                  </Link>
+                  <Link
+                    href="/my-stats"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <BarChart2 className="w-4 h-4 text-zinc-400" />
+                    <span>My Stats</span>
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Settings className="w-4 h-4 text-zinc-400" />
+                    <span>Settings</span>
+                  </Link>
+                  <a
+                    href={getLogoutUrl()}
+                    className="flex items-center gap-2 px-3 py-2 mt-2 rounded-md text-base font-medium text-[#E84057] hover:bg-zinc-800"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
                   </a>
-                </>
+                </div>
               ) : (
-                <a 
+                <a
                   href={getAuthUrl()}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-[#C89B3C] hover:bg-[#C89B3C]/10"
+                  className="flex items-center justify-center gap-2 mx-2 mt-3 px-4 py-2.5 rounded-md text-base font-medium bg-gradient-to-r from-[#C89B3C] to-[#785A28] text-zinc-900 hover:from-[#D5B45C] hover:to-[#8E6B32]"
                 >
-                  Login with Riot
+                  <Shield className="w-5 h-5" />
+                  <span>Login with Riot</span>
                 </a>
-              )
-            )}
+              ))}
           </div>
         </div>
       )}
