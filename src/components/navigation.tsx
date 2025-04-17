@@ -89,20 +89,20 @@ export default function Navigation() {
       console.log("Summoner data response:", response.data)
       
       if (response.data) {
+        // Extract profile icon ID, ensuring it's a number
+        const profileIconId = parseInt(String(response.data.profileIconId), 10)
+        console.log("Profile icon ID:", profileIconId, "Type:", typeof profileIconId)
+        
         // Update user state with summoner info
-        setUser({
+        const updatedUser = {
           ...userInfo,
-          profileIconId: response.data.profileIconId,
+          profileIconId: profileIconId,
           puuid: response.data.puuid,
           summonerName: response.data.name // Use League name from summoner data
-        })
+        }
         
-        console.log("Updated user info with summoner data:", {
-          ...userInfo,
-          profileIconId: response.data.profileIconId,
-          puuid: response.data.puuid,
-          summonerName: response.data.name
-        })
+        console.log("Updated user info with summoner data:", updatedUser)
+        setUser(updatedUser)
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error)
@@ -134,7 +134,20 @@ export default function Navigation() {
   
   // Get profile icon URL
   const getProfileIconUrl = (iconId: number) => {
-    return `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/profileicon/${iconId}.png`
+    try {
+      // Make sure we have a valid icon ID
+      if (!iconId || isNaN(iconId)) {
+        console.error("Invalid profile icon ID:", iconId);
+        return null;
+      }
+      
+      const url = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/profileicon/${iconId}.png`;
+      console.log("Profile icon URL:", url);
+      return url;
+    } catch (error) {
+      console.error("Error generating profile icon URL:", error);
+      return null;
+    }
   }
 
   // Get display name (prefer League summoner name if available)
@@ -178,11 +191,14 @@ export default function Navigation() {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 transition-colors">
                     <Avatar className="h-7 w-7 border-2 border-[#C89B3C]/70">
-                      {user.profileIconId ? (
+                      {user.profileIconId && getProfileIconUrl(user.profileIconId) ? (
                         <AvatarImage 
-                          src={getProfileIconUrl(user.profileIconId)} 
+                          src={getProfileIconUrl(user.profileIconId) || ''} 
                           alt={getDisplayName()} 
                           className="bg-[#0A1428]"
+                          onError={() => {
+                            console.error("Failed to load profile icon:", user.profileIconId);
+                          }}
                         />
                       ) : (
                         <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
@@ -275,11 +291,14 @@ export default function Navigation() {
                 <div className="mt-3 pt-3 border-t border-zinc-700">
                   <div className="flex items-center gap-2 px-3 py-2">
                     <Avatar className="h-8 w-8 border-2 border-[#C89B3C]/70">
-                      {user.profileIconId ? (
+                      {user.profileIconId && getProfileIconUrl(user.profileIconId) ? (
                         <AvatarImage 
-                          src={getProfileIconUrl(user.profileIconId)} 
+                          src={getProfileIconUrl(user.profileIconId) || ''} 
                           alt={getDisplayName()}
                           className="bg-[#0A1428]"
+                          onError={() => {
+                            console.error("Failed to load profile icon:", user.profileIconId);
+                          }}
                         />
                       ) : (
                         <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
