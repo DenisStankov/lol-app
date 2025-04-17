@@ -21,6 +21,7 @@ interface UserInfo {
   name: string
   puuid?: string
   profileIconId?: number
+  summonerName?: string  // Added summonerName for League of Legends name
 }
 
 export default function Navigation() {
@@ -46,35 +47,61 @@ export default function Navigation() {
 
   // Check if user is logged in
   useEffect(() => {
-    // Make sure document.cookie exists and isn't empty before splitting
-    if (typeof document !== 'undefined' && document.cookie) {
-      const userCookie = document.cookie.split(";").find((c) => c.trim().startsWith("user_info="))
-      if (userCookie) {
-        try {
-          const userInfo = JSON.parse(decodeURIComponent(userCookie.split("=")[1]))
-          setUser(userInfo)
-          
-          // If user is logged in, fetch their summoner profile for the icon ID
-          if (userInfo.sub) {
-            fetchUserProfile(userInfo)
+    async function initUser() {
+      setIsLoading(true)
+      
+      try {
+        // Make sure document.cookie exists and isn't empty before splitting
+        if (typeof document !== 'undefined' && document.cookie) {
+          const userCookie = document.cookie.split(";").find((c) => c.trim().startsWith("user_info="))
+          if (userCookie) {
+            const userInfo = JSON.parse(decodeURIComponent(userCookie.split("=")[1]))
+            console.log("User info from cookie:", userInfo)
+            
+            // Set basic user info
+            setUser(userInfo)
+            
+            // If user is logged in, fetch their summoner profile
+            if (userInfo.sub) {
+              await fetchUserProfile(userInfo)
+            }
           }
-        } catch (e) {
-          console.error("Error parsing user info cookie", e)
         }
+      } catch (e) {
+        console.error("Error parsing user info cookie", e)
+      } finally {
+        setIsLoading(false)
       }
     }
-    setIsLoading(false)
+    
+    initUser()
   }, [])
   
-  // Fetch user's profile data to get the profile icon ID
+  // Fetch user's profile data to get the profile icon ID and summoner name
   async function fetchUserProfile(userInfo: UserInfo) {
+    console.log("Fetching user profile for:", userInfo.sub)
     try {
-      const response = await axios.get(`/api/fetchSummoner?riotId=${userInfo.sub}`)
-      if (response.data && response.data.profileIconId) {
+      // First try using auth token for authenticated endpoint
+      const response = await axios.get('/api/fetchSummoner', {
+        params: { riotId: userInfo.sub }
+      })
+      
+      console.log("Summoner data response:", response.data)
+      
+      if (response.data) {
+        // Update user state with summoner info
         setUser({
           ...userInfo,
           profileIconId: response.data.profileIconId,
-          puuid: response.data.puuid
+          puuid: response.data.puuid,
+          summonerName: response.data.name // Use League name from summoner data
+        })
+        
+        console.log("Updated user info with summoner data:", {
+          ...userInfo,
+          profileIconId: response.data.profileIconId,
+          puuid: response.data.puuid,
+          summonerName: response.data.name
         })
       }
     } catch (error) {
@@ -108,6 +135,11 @@ export default function Navigation() {
   // Get profile icon URL
   const getProfileIconUrl = (iconId: number) => {
     return `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/profileicon/${iconId}.png`
+  }
+
+  // Get display name (prefer League summoner name if available)
+  const getDisplayName = () => {
+    return user?.summonerName || user?.name || "Summoner";
   }
 
   return (
@@ -149,22 +181,22 @@ export default function Navigation() {
                       {user.profileIconId ? (
                         <AvatarImage 
                           src={getProfileIconUrl(user.profileIconId)} 
-                          alt={user.name} 
+                          alt={getDisplayName()} 
                           className="bg-[#0A1428]"
                         />
                       ) : (
                         <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
-                          {getInitials(user.name)}
+                          {getInitials(getDisplayName())}
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <span className="text-zinc-200 font-medium text-sm">{user.name}</span>
+                    <span className="text-zinc-200 font-medium text-sm">{getDisplayName()}</span>
                     <ChevronDown className="h-4 w-4 text-zinc-400" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border border-zinc-800 text-zinc-200">
                     <div className="px-2 py-2.5 border-b border-zinc-800">
                       <p className="text-xs font-medium text-zinc-400">Signed in as</p>
-                      <p className="text-sm font-semibold text-[#C89B3C]">{user.name}</p>
+                      <p className="text-sm font-semibold text-[#C89B3C]">{getDisplayName()}</p>
                     </div>
                     <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800">
                       <User className="w-4 h-4 text-zinc-400" />
@@ -246,16 +278,16 @@ export default function Navigation() {
                       {user.profileIconId ? (
                         <AvatarImage 
                           src={getProfileIconUrl(user.profileIconId)} 
-                          alt={user.name}
+                          alt={getDisplayName()}
                           className="bg-[#0A1428]"
                         />
                       ) : (
                         <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
-                          {getInitials(user.name)}
+                          {getInitials(getDisplayName())}
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <span className="text-zinc-200 font-medium">{user.name}</span>
+                    <span className="text-zinc-200 font-medium">{getDisplayName()}</span>
                   </div>
                   <Link
                     href="/profile"
