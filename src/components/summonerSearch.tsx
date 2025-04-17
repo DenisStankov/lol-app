@@ -143,13 +143,13 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
               onChange={(e) => setQuery(e.target.value)}
               onFocus={handleInputFocus}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
-              className="pl-12 pr-4 py-3 h-12 w-full bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C] focus:border-[#C89B3C]/70 text-lg rounded-xl font-medium tracking-wide shadow-inner"
+              className="pl-12 pr-4 py-2.5 h-10 w-full bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C] focus:border-[#C89B3C]/70 text-base rounded-xl font-medium tracking-wide shadow-inner"
             />
           </div>
 
           {/* Region Select Dropdown - Improved styling */}
           <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger className="w-24 h-12 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-lg font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
+            <SelectTrigger className="w-20 h-10 min-w-0 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-base font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all shrink-0">
               <SelectValue placeholder="EUW" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-[#C89B3C]/30 rounded-lg">
