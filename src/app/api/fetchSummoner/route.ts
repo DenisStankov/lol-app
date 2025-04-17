@@ -5,8 +5,12 @@ import axios from 'axios';
  * API route to fetch summoner profile data by Riot ID or PUUID
  */
 export async function GET(request: NextRequest) {
-  console.log("📞 fetchSummoner API called");
+  console.log("📞 fetchSummoner API called", new Date().toISOString());
   try {
+    // Verify API key is available
+    console.log("RIOT_API_KEY available:", !!process.env.RIOT_API_KEY);
+    console.log("RIOT_API_KEY first few chars:", process.env.RIOT_API_KEY ? process.env.RIOT_API_KEY.substring(0, 4) + "..." : "not set");
+    
     // Get query parameters
     const params = request.nextUrl.searchParams;
     const riotId = params.get('riotId');
@@ -26,6 +30,9 @@ export async function GET(request: NextRequest) {
     // First try to use the access token from cookies if available
     const accessToken = request.cookies.get('auth_token')?.value;
     console.log("🔑 Access token available:", !!accessToken);
+    if (accessToken) {
+      console.log("🔑 Access token first few chars:", accessToken.substring(0, 5) + "...");
+    }
     
     // Set up the Riot API request
     let summonerData;
@@ -50,6 +57,10 @@ export async function GET(request: NextRequest) {
           const tagLine = accountResponse.data.tagLine;
           console.log("🎮 Riot ID found:", `${gameName}#${tagLine}`);
           
+          // IMPORTANT: We need to test all regions since we don't know which one the user's account is in
+          const regions = ['euw1', 'na1', 'kr', 'eun1', 'br1', 'la1', 'la2', 'oc1', 'tr1', 'ru', 'jp1'];
+          let foundSummoner = false;
+          
           try {
             // First get the PUUID using the Account v1 API
             const riotIdLookupResponse = await axios.get(
@@ -64,27 +75,45 @@ export async function GET(request: NextRequest) {
             console.log("🔎 Riot ID lookup response:", riotIdLookupResponse.data);
             
             if (riotIdLookupResponse.data && riotIdLookupResponse.data.puuid) {
-              // Now get the summoner data using the PUUID
-              const summonerResponse = await axios.get(
-                `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${riotIdLookupResponse.data.puuid}`,
-                {
-                  headers: {
-                    'X-Riot-Token': process.env.RIOT_API_KEY || ''
+              // Try to find summoner data in each region
+              for (const regionToTry of regions) {
+                console.log(`🌐 Trying region ${regionToTry} for summoner data...`);
+                try {
+                  // Now get the summoner data using the PUUID
+                  const summonerResponse = await axios.get(
+                    `https://${regionToTry}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${riotIdLookupResponse.data.puuid}`,
+                    {
+                      headers: {
+                        'X-Riot-Token': process.env.RIOT_API_KEY || ''
+                      }
+                    }
+                  );
+                  
+                  if (summonerResponse.data && summonerResponse.data.profileIconId) {
+                    console.log(`✅ Found summoner data in region ${regionToTry}:`, summonerResponse.data);
+                    summonerData = summonerResponse.data;
+                    
+                    // Add additional info
+                    summonerData = {
+                      ...summonerData,
+                      riotId: `${gameName}#${tagLine}`,
+                      region: regionToTry
+                    };
+                    
+                    foundSummoner = true;
+                    break;
                   }
+                } catch (regionError) {
+                  console.log(`❌ Error for region ${regionToTry}:`, regionError.message);
                 }
-              );
+              }
               
-              console.log("📊 Summoner data received:", summonerResponse.data);
-              summonerData = summonerResponse.data;
-              
-              // Ensure we include the Riot ID in the response
-              summonerData = {
-                ...summonerData,
-                riotId: `${gameName}#${tagLine}`
-              };
+              if (!foundSummoner) {
+                console.log("❌ Could not find summoner data in any region");
+              }
             }
           } catch (riotApiError) {
-            console.error("❌ Error fetching summoner via Riot API:", riotApiError);
+            console.error("❌ Error fetching summoner via Riot API:", riotApiError.message);
             
             // Create a fallback with at least the real name
             summonerData = {
@@ -100,7 +129,7 @@ export async function GET(request: NextRequest) {
           }
         }
       } catch (authError) {
-        console.error('❌ Error using auth token:', authError);
+        console.error('❌ Error using auth token:', authError.message);
         // Fall back to standard API if token is invalid
       }
     }
