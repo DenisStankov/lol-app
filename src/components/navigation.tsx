@@ -53,6 +53,11 @@ export default function Navigation() {
 
   // Get initials for avatar fallback
   const getInitials = (name: string) => {
+    // Add defensive check to prevent errors when name is undefined or empty
+    if (!name || typeof name !== 'string') {
+      return "U"; // Default to "U" for User if no name is available
+    }
+    
     return name
       .split(" ")
       .map((part) => part[0])
