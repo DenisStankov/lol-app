@@ -9,10 +9,16 @@ export async function GET() {
     ? `${clientId.substring(0, 4)}...${clientId.substring(clientId.length - 4)}`
     : 'Not set';
     
+  // Check if the client ID is valid
+  const clientIdValid = clientId.length > 10; // Riot client IDs are typically longer
+  
   return NextResponse.json({
-    status: 'info',
-    message: 'OAuth access is pending approval from Riot Games',
+    status: clientIdValid ? 'ready' : 'pending',
+    message: clientIdValid 
+      ? 'OAuth configuration appears valid' 
+      : 'OAuth access is pending approval from Riot Games',
     clientIdSet: !!clientId,
+    clientIdValid,
     maskedClientId,
     environment: process.env.NODE_ENV,
     authConfig: {
@@ -20,7 +26,10 @@ export async function GET() {
       authEndpoint: RIOT_AUTH_CONFIG.authEndpoint,
       scope: RIOT_AUTH_CONFIG.scope,
     },
-    nextSteps: [
+    nextSteps: clientIdValid ? [
+      'Click the Login with Riot button to test authentication',
+      'Check the browser console for debugging information'
+    ] : [
       'Request OAuth access from Riot Developer Support',
       'Update the client ID once approved',
       'Ensure redirect URIs match between your app and Riot Developer Portal'

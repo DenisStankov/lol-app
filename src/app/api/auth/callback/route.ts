@@ -5,16 +5,25 @@ import { exchangeCodeForToken, getUserInfoFromToken } from '@/lib/auth-utils';
  * OAuth callback route - this is the route that Riot redirects to after login
  */
 export async function GET(request: NextRequest) {
+  console.log('OAuth callback received');
+  
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get('code');
   const error = searchParams.get('error');
+  const errorDescription = searchParams.get('error_description');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const _state = searchParams.get('state');
   
+  // Log the callback parameters
+  console.log('Callback parameters:');
+  console.log('- Code available:', !!code);
+  console.log('- Error:', error);
+  console.log('- Error description:', errorDescription);
+  
   // Handle errors from the OAuth provider
   if (error) {
-    console.error('Error from Riot OAuth:', error);
-    return NextResponse.redirect(new URL('/?error=auth_error', request.url));
+    console.error('Error from Riot OAuth:', error, errorDescription);
+    return NextResponse.redirect(new URL(`/?error=auth_error&message=${encodeURIComponent(errorDescription || error)}`, request.url));
   }
   
   // Ensure we have an authorization code
@@ -26,8 +35,12 @@ export async function GET(request: NextRequest) {
   // Verify state parameter (in a production app, you should store the state in the session and verify it)
   
   try {
+    console.log('Exchanging code for token');
+    
     // Exchange the authorization code for tokens
     const tokenData = await exchangeCodeForToken(code);
+    
+    console.log('Token exchange successful, extracting user info');
     
     // Extract user info from the ID token
     const userInfo = getUserInfoFromToken(tokenData.id_token);
@@ -36,6 +49,8 @@ export async function GET(request: NextRequest) {
       console.error('Failed to extract user info from token');
       return NextResponse.redirect(new URL('/?error=invalid_token', request.url));
     }
+    
+    console.log('User info extracted, creating response');
     
     // Create the response with redirect
     const response = NextResponse.redirect(new URL('/', request.url));
@@ -69,10 +84,12 @@ export async function GET(request: NextRequest) {
       path: '/',
     });
     
+    console.log('Auth flow completed successfully');
+    
     // Return the response with cookies
     return response;
   } catch (error) {
     console.error('Error in auth callback:', error);
-    return NextResponse.redirect(new URL('/?error=auth_failed', request.url));
+    return NextResponse.redirect(new URL(`/?error=auth_failed&message=${encodeURIComponent(error instanceof Error ? error.message : 'Unknown error')}`, request.url));
   }
 } 
