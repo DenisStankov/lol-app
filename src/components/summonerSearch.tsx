@@ -132,38 +132,38 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
   return (
     <Card className="border-[#C89B3C]/20 bg-zinc-900/50 backdrop-blur-sm shadow-lg">
-      <CardContent className="p-8">
-        <div className="flex flex-col md:flex-row items-center gap-6">
+      <CardContent className="p-4">
+        <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Input Field - Improved styling */}
           <div className="relative w-full md:flex-1">
-            <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-8 w-8 text-[#C89B3C]" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#C89B3C]" />
             <Input
               placeholder="Search summoner..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={handleInputFocus}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
-              className="pl-16 pr-6 py-8 h-20 w-full bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C] focus:border-[#C89B3C]/70 text-2xl rounded-xl font-medium tracking-wide shadow-inner"
+              className="pl-12 pr-4 py-3 h-12 w-full bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C] focus:border-[#C89B3C]/70 text-lg rounded-xl font-medium tracking-wide shadow-inner"
             />
           </div>
 
           {/* Region Select Dropdown - Improved styling */}
           <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger className="w-32 h-20 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-2xl font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
+            <SelectTrigger className="w-24 h-12 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-lg font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
               <SelectValue placeholder="EUW" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-[#C89B3C]/30 rounded-lg">
-              <SelectItem value="euw1" className="text-lg">EUW</SelectItem>
-              <SelectItem value="na1" className="text-lg">NA</SelectItem>
-              <SelectItem value="kr" className="text-lg">KR</SelectItem>
-              <SelectItem value="eun1" className="text-lg">EUNE</SelectItem>
-              <SelectItem value="br1" className="text-lg">BR</SelectItem>
-              <SelectItem value="jp1" className="text-lg">JP</SelectItem>
-              <SelectItem value="la1" className="text-lg">LAN</SelectItem>
-              <SelectItem value="la2" className="text-lg">LAS</SelectItem>
-              <SelectItem value="oc1" className="text-lg">OCE</SelectItem>
-              <SelectItem value="tr1" className="text-lg">TR</SelectItem>
-              <SelectItem value="ru" className="text-lg">RU</SelectItem>
+              <SelectItem value="euw1" className="text-base">EUW</SelectItem>
+              <SelectItem value="na1" className="text-base">NA</SelectItem>
+              <SelectItem value="kr" className="text-base">KR</SelectItem>
+              <SelectItem value="eun1" className="text-base">EUNE</SelectItem>
+              <SelectItem value="br1" className="text-base">BR</SelectItem>
+              <SelectItem value="jp1" className="text-base">JP</SelectItem>
+              <SelectItem value="la1" className="text-base">LAN</SelectItem>
+              <SelectItem value="la2" className="text-base">LAS</SelectItem>
+              <SelectItem value="oc1" className="text-base">OCE</SelectItem>
+              <SelectItem value="tr1" className="text-base">TR</SelectItem>
+              <SelectItem value="ru" className="text-base">RU</SelectItem>
             </SelectContent>
           </Select>
         </div>
