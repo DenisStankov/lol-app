@@ -19,33 +19,64 @@ interface TokenResponse {
  */
 export async function exchangeCodeForToken(code: string): Promise<TokenResponse> {
   const clientId = RIOT_AUTH_CONFIG.clientId;
+  const clientSecret = process.env.RIOT_CLIENT_SECRET;
   const redirectUri = RIOT_AUTH_CONFIG.redirectUri;
   
-  // If we don't have a client ID or client secret, throw an error
+  // Log debugging information
+  console.log('Exchanging code for token:');
+  console.log('- Client ID available:', !!clientId);
+  console.log('- Client Secret available:', !!clientSecret);
+  console.log('- Redirect URI:', redirectUri);
+  
+  // If we don't have the required credentials, throw an error
   if (!clientId) {
+    console.error('Missing Riot Client ID. Please set NEXT_PUBLIC_RIOT_CLIENT_ID environment variable.');
     throw new Error('Missing Riot Client ID. Please set NEXT_PUBLIC_RIOT_CLIENT_ID environment variable.');
   }
   
+  if (!clientSecret) {
+    console.error('Missing Riot Client Secret. Please set RIOT_CLIENT_SECRET environment variable.');
+    throw new Error('Missing Riot Client Secret. Please set RIOT_CLIENT_SECRET environment variable.');
+  }
+  
   try {
+    // Create the authentication header using Basic auth with client ID and secret
+    const authString = `${clientId}:${clientSecret}`;
+    let authHeader;
+
+    // In Node.js environment, use Buffer
+    if (typeof Buffer !== 'undefined') {
+      authHeader = 'Basic ' + Buffer.from(authString).toString('base64');
+    } 
+    // In browser or Edge environment, use btoa
+    else {
+      authHeader = 'Basic ' + btoa(authString);
+    }
+    
+    console.log('Making token request with auth header');
+    
     const tokenResponse = await fetch(RIOT_AUTH_CONFIG.tokenEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': authHeader
       },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        client_id: clientId,
         redirect_uri: redirectUri,
       }).toString(),
     });
     
+    console.log('Token response status:', tokenResponse.status);
+    
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
       console.error('Error exchanging code for token:', errorData);
-      throw new Error(`Failed to exchange code for token: ${tokenResponse.status}`);
+      throw new Error(`Failed to exchange code for token: ${tokenResponse.status} - ${errorData}`);
     }
     
+    console.log('Token exchange successful');
     return await tokenResponse.json();
   } catch (error) {
     console.error('Error exchanging code for token:', error);
