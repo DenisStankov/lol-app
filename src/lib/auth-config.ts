@@ -12,7 +12,7 @@ export const RIOT_AUTH_CONFIG = {
   
   // Redirect URI (must match what's registered in Riot Developer Portal)
   redirectUri: process.env.NODE_ENV === 'production' 
-    ? 'https://lol-app-green.vercel.app/api/auth/callback' // Updated with actual Vercel domain
+    ? 'https://lol-app-green.vercel.app/api/auth/callback'
     : 'http://localhost:3001/api/auth/callback',
     
   // Scopes to request (openid is required at minimum)
