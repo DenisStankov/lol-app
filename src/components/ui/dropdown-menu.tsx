@@ -59,10 +59,11 @@ interface DropdownMenuContentProps {
 export function DropdownMenuContent({ children, className, align = "center" }: DropdownMenuContentProps) {
   const { open, setOpen } = useDropdownMenu()
   
-  if (!open) return null
-
-  // Handle clicking outside
+  // Handle clicking outside - moved above the conditional return
   React.useEffect(() => {
+    // Only add the event listener if the menu is open
+    if (!open) return;
+    
     const handleOutsideClick = (event: MouseEvent) => {
       if (!(event.target as HTMLElement).closest("[role='menu']")) {
         setOpen(false)
@@ -73,7 +74,9 @@ export function DropdownMenuContent({ children, className, align = "center" }: D
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick)
     }
-  }, [setOpen])
+  }, [open, setOpen])
+  
+  if (!open) return null
 
   const alignmentClasses = {
     start: "left-0",
