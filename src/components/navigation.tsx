@@ -86,7 +86,7 @@ export default function Navigation() {
         params: { riotId: userInfo.sub }
       });
       
-      console.log("Summoner data response:", response.data);
+      console.log("Summoner data response (raw):", JSON.stringify(response.data));
       
       if (response.data) {
         // Log the full response to help debug
@@ -102,16 +102,34 @@ export default function Navigation() {
         const profileIconId = parseInt(String(response.data.profileIconId), 10);
         console.log("Profile icon ID:", profileIconId, "Type:", typeof profileIconId);
         
-        // Extract summoner name with validation
-        const summonerName = response.data.name && typeof response.data.name === 'string' 
-          ? response.data.name.trim() 
-          : null;
-        console.log("Summoner name:", summonerName);
+        // Try multiple possible name fields from the API
+        let summonerName = null;
+        // Try various possible name fields from the API
+        if (response.data.name && typeof response.data.name === 'string') {
+          summonerName = response.data.name.trim();
+        } else if (response.data.gameName && typeof response.data.gameName === 'string') {
+          summonerName = response.data.gameName.trim();
+        } else if (response.data.riotId && typeof response.data.riotId === 'string') {
+          // Extract name part from Riot ID (format: "name#tag")
+          const parts = response.data.riotId.split('#');
+          if (parts.length > 0) {
+            summonerName = parts[0].trim();
+          }
+        }
+        
+        // If we still don't have a name, use a hardcoded one for testing
+        if (!summonerName) {
+          // For testing - if we can't get a name from the API, use the name from the OAuth token
+          summonerName = userInfo.name;
+          console.log("Using fallback name from token:", summonerName);
+        }
+        
+        console.log("Final summoner name used:", summonerName);
         
         // Update user state with summoner info
         const updatedUser = {
           ...userInfo,
-          profileIconId: profileIconId,
+          profileIconId: isNaN(profileIconId) ? undefined : profileIconId,
           puuid: response.data.puuid,
           summonerName: summonerName
         };
@@ -121,6 +139,12 @@ export default function Navigation() {
       }
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
+      
+      // Fallback: just use the name from the OAuth token
+      setUser({
+        ...userInfo,
+        summonerName: userInfo.name
+      });
     }
   }
 
@@ -158,14 +182,18 @@ export default function Navigation() {
     
     // Prioritize summoner name, then fall back to other options
     if (user?.summonerName && typeof user.summonerName === 'string' && user.summonerName.trim() !== '') {
+      console.log("Using summonerName:", user.summonerName);
       return user.summonerName;
     } else if (user?.name && typeof user.name === 'string' && user.name.trim() !== '') {
+      console.log("Using name:", user.name);
       return user.name;
     } else if (user?.sub) {
+      console.log("Using sub:", user.sub);
       // If we only have sub (Riot ID), use that
       return user.sub.includes('#') ? user.sub : `Summoner #${user.sub.substring(0, 5)}`;
     }
     
+    console.log("No valid name found, using default");
     return "Summoner";
   }
 
