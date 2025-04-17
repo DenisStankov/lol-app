@@ -211,8 +211,8 @@ export async function fetchHighEloMatches(
     
     if (puuids.length === 0) {
       console.error('[Match Analyzer] Could not find any puuids');
-      return [];
-    }
+  return [];
+}
     
     // Get recent matches for these players
     const matchIds: string[] = [];
@@ -1204,15 +1204,15 @@ export async function analyzeMatchDataOld(
     return finalResult;
   } catch (error) {
     console.error('Error analyzing match data:', error);
-    return {
-      itemBuilds: null,
-      runeBuilds: null,
-      winRate: 51.5,
-      pickRate: 12.3,
-      banRate: 5.8,
-      skillOrder: ['Q', 'W', 'E', 'Q', 'Q', 'R', 'Q', 'W', 'Q', 'W', 'R', 'W', 'W', 'E', 'E', 'R', 'E', 'E'],
-      counters: [],
-      synergies: []
-    };
+  return {
+    itemBuilds: null,
+    runeBuilds: null,
+    winRate: 51.5,
+    pickRate: 12.3,
+    banRate: 5.8,
+    skillOrder: ['Q', 'W', 'E', 'Q', 'Q', 'R', 'Q', 'W', 'Q', 'W', 'R', 'W', 'W', 'E', 'E', 'R', 'E', 'E'],
+    counters: [],
+    synergies: []
+  };
   }
 } 

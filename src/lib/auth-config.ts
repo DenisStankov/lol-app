@@ -2,17 +2,9 @@
  * Riot Games OAuth authentication configuration
  */
 
-// Log the client ID for debugging (masked for security)
-const clientId = process.env.NEXT_PUBLIC_RIOT_CLIENT_ID || '';
-console.log('OAuth Client ID available:', !!clientId);
-if (clientId) {
-  const maskedId = `${clientId.substring(0, 4)}...${clientId.substring(clientId.length - 4)}`;
-  console.log('Masked Client ID:', maskedId);
-}
-
 export const RIOT_AUTH_CONFIG = {
   // The client ID from your Riot Developer Portal application
-  clientId: clientId,
+  clientId: process.env.NEXT_PUBLIC_RIOT_CLIENT_ID || '',
   
   // Auth endpoints
   authEndpoint: 'https://auth.riotgames.com/authorize',
@@ -36,12 +28,6 @@ export const RIOT_AUTH_CONFIG = {
  * Generates the Riot OAuth login URL with all necessary parameters
  */
 export function getAuthUrl() {
-  // Log the auth URL parameters for debugging
-  console.log('Generating auth URL with:');
-  console.log('- Client ID available:', !!RIOT_AUTH_CONFIG.clientId);
-  console.log('- Redirect URI:', RIOT_AUTH_CONFIG.redirectUri);
-  console.log('- Scopes:', RIOT_AUTH_CONFIG.scope);
-  
   const params = new URLSearchParams({
     client_id: RIOT_AUTH_CONFIG.clientId,
     redirect_uri: RIOT_AUTH_CONFIG.redirectUri,
@@ -50,10 +36,7 @@ export function getAuthUrl() {
     state: generateRandomState(),
   });
   
-  const authUrl = `${RIOT_AUTH_CONFIG.authEndpoint}?${params.toString()}`;
-  console.log('Generated auth URL:', authUrl);
-  
-  return authUrl;
+  return `${RIOT_AUTH_CONFIG.authEndpoint}?${params.toString()}`;
 }
 
 /**
