@@ -13,18 +13,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import axios from "axios"
 
 interface UserInfo {
   sub: string
   name: string
+  puuid?: string
+  profileIconId?: number
 }
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [user, setUser] = useState<UserInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [patchVersion, setPatchVersion] = useState("14.8.1") // Default fallback version
   const pathname = usePathname()
+
+  // Fetch current patch version for icon URLs
+  useEffect(() => {
+    async function fetchPatchVersion() {
+      try {
+        const response = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
+        setPatchVersion(response.data[0])
+      } catch (error) {
+        console.error("Failed to fetch patch version:", error)
+      }
+    }
+    
+    fetchPatchVersion()
+  }, [])
 
   // Check if user is logged in
   useEffect(() => {
@@ -35,6 +53,11 @@ export default function Navigation() {
         try {
           const userInfo = JSON.parse(decodeURIComponent(userCookie.split("=")[1]))
           setUser(userInfo)
+          
+          // If user is logged in, fetch their summoner profile for the icon ID
+          if (userInfo.sub) {
+            fetchUserProfile(userInfo)
+          }
         } catch (e) {
           console.error("Error parsing user info cookie", e)
         }
@@ -42,6 +65,22 @@ export default function Navigation() {
     }
     setIsLoading(false)
   }, [])
+  
+  // Fetch user's profile data to get the profile icon ID
+  async function fetchUserProfile(userInfo: UserInfo) {
+    try {
+      const response = await axios.get(`/api/fetchSummoner?riotId=${userInfo.sub}`)
+      if (response.data && response.data.profileIconId) {
+        setUser({
+          ...userInfo,
+          profileIconId: response.data.profileIconId,
+          puuid: response.data.puuid
+        })
+      }
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error)
+    }
+  }
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -64,6 +103,11 @@ export default function Navigation() {
       .join("")
       .toUpperCase()
       .substring(0, 2)
+  }
+  
+  // Get profile icon URL
+  const getProfileIconUrl = (iconId: number) => {
+    return `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/profileicon/${iconId}.png`
   }
 
   return (
@@ -102,9 +146,17 @@ export default function Navigation() {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 transition-colors">
                     <Avatar className="h-7 w-7 border-2 border-[#C89B3C]/70">
-                      <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
-                        {getInitials(user.name)}
-                      </AvatarFallback>
+                      {user.profileIconId ? (
+                        <AvatarImage 
+                          src={getProfileIconUrl(user.profileIconId)} 
+                          alt={user.name} 
+                          className="bg-[#0A1428]"
+                        />
+                      ) : (
+                        <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     <span className="text-zinc-200 font-medium text-sm">{user.name}</span>
                     <ChevronDown className="h-4 w-4 text-zinc-400" />
@@ -191,9 +243,17 @@ export default function Navigation() {
                 <div className="mt-3 pt-3 border-t border-zinc-700">
                   <div className="flex items-center gap-2 px-3 py-2">
                     <Avatar className="h-8 w-8 border-2 border-[#C89B3C]/70">
-                      <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
-                        {getInitials(user.name)}
-                      </AvatarFallback>
+                      {user.profileIconId ? (
+                        <AvatarImage 
+                          src={getProfileIconUrl(user.profileIconId)} 
+                          alt={user.name}
+                          className="bg-[#0A1428]"
+                        />
+                      ) : (
+                        <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
+                          {getInitials(user.name)}
+                        </AvatarFallback>
+                      )}
                     </Avatar>
                     <span className="text-zinc-200 font-medium">{user.name}</span>
                   </div>

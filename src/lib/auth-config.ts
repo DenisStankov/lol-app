@@ -13,7 +13,7 @@ export const RIOT_AUTH_CONFIG = {
   // Redirect URI (must match what's registered in Riot Developer Portal)
   redirectUri: process.env.NODE_ENV === 'production' 
     ? 'https://lol-app-green.vercel.app/api/auth/callback'
-    : 'http://localhost:3001/api/auth/callback',
+    : 'http://localhost:3000/api/auth/callback',
     
   // Scopes to request (openid is required at minimum)
   scope: 'openid offline_access lol',
@@ -21,7 +21,7 @@ export const RIOT_AUTH_CONFIG = {
   // Post-logout redirect
   postLogoutRedirectUri: process.env.NODE_ENV === 'production'
     ? 'https://lol-app-green.vercel.app'
-    : 'http://localhost:3001',
+    : 'http://localhost:3000',
 };
 
 /**
