@@ -100,6 +100,12 @@ interface DropdownMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
   asChild?: boolean
 }
 
+// Add a more specific type for handling component props
+interface WithOptionalOnClick {
+  onClick?: (e: React.MouseEvent) => void;
+  [key: string]: unknown;
+}
+
 export function DropdownMenuItem({ children, className, asChild, ...props }: DropdownMenuItemProps) {
   const { setOpen } = useDropdownMenu()
   
@@ -122,8 +128,8 @@ export function DropdownMenuItem({ children, className, asChild, ...props }: Dro
       ...props,
       className: `px-3 py-2 text-sm cursor-pointer ${className || ""}`,
       onClick: (e: React.MouseEvent) => {
-        // Add type assertion for onClick
-        const childOnClick = (child.props as any).onClick;
+        // Use the specific type instead of any
+        const childOnClick = (child.props as WithOptionalOnClick).onClick;
         if (typeof childOnClick === 'function') {
           childOnClick(e);
         }
