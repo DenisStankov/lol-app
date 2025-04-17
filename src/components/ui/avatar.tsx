@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 
 interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string
@@ -15,15 +16,19 @@ export function Avatar({ className, ...props }: AvatarProps) {
   )
 }
 
-interface AvatarImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface AvatarImageProps extends Omit<React.ComponentProps<typeof Image>, 'src'> {
   className?: string
+  src: string
 }
 
-export function AvatarImage({ className, alt = "", ...props }: AvatarImageProps) {
+export function AvatarImage({ className, alt = "", src, ...props }: AvatarImageProps) {
   return (
-    <img
+    <Image
       className={`aspect-square h-full w-full object-cover ${className || ""}`}
+      src={src}
       alt={alt}
+      fill
+      sizes="(max-width: 768px) 100vw, 50vw"
       {...props}
     />
   )
