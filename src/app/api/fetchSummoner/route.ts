@@ -1,28 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import axios, { AxiosResponse } from 'axios';
-
-const RIOT_API_KEY = process.env.RIOT_API_KEY;
-
-interface SummonerData {
-  gameName: string;
-  tagLine: string;
-  puuid: string;
-}
-
-interface SummonerStats {
-  id: string;
-  summonerLevel: number;
-  profileIconId: number;
-}
-
-interface RankedStats {
-  tier: string;
-  rank: string;
-  leaguePoints: number;
-  wins: number;
-  losses: number;
-  queueType: string;
-}
+import axios from 'axios';
 
 /**
  * API route to fetch summoner profile data by Riot ID or PUUID
