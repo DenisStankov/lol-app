@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
                     break;
                   }
                 } catch (regionError) {
-                  console.log(`❌ Error for region ${regionToTry}:`, regionError.message);
+                  console.log(`❌ Error for region ${regionToTry}:`, regionError instanceof Error ? regionError.message : String(regionError));
                 }
               }
               
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
               }
             }
           } catch (riotApiError) {
-            console.error("❌ Error fetching summoner via Riot API:", riotApiError.message);
+            console.error("❌ Error fetching summoner via Riot API:", riotApiError instanceof Error ? riotApiError.message : String(riotApiError));
             
             // Create a fallback with at least the real name
             summonerData = {
@@ -129,7 +129,7 @@ export async function GET(request: NextRequest) {
           }
         }
       } catch (authError) {
-        console.error('❌ Error using auth token:', authError.message);
+        console.error('❌ Error using auth token:', authError instanceof Error ? authError.message : String(authError));
         // Fall back to standard API if token is invalid
       }
     }
@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(summonerData);
     
   } catch (error) {
-    console.error('❌ Error in fetchSummoner:', error);
+    console.error('❌ Error in fetchSummoner:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
       { error: 'Failed to fetch summoner data', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
