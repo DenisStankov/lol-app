@@ -4,7 +4,7 @@ import axios from "axios";
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 // ✅ Riot API Regions for Account & Summoner Data
-const RIOT_ACCOUNT_REGIONS: Record<string, string> = {
+const RIOT_ACCOUNT_REGIONS: Record<string, string> = { 
   euw1: "europe",
   eun1: "europe",
   tr1: "europe",
