@@ -6,7 +6,7 @@ import axios from 'axios';
  */
 export async function GET(request: NextRequest) {
   console.log("📞 fetchSummoner API called", new Date().toISOString());
-  try {
+  try { 
     // Verify API key is available
     console.log("RIOT_API_KEY available:", !!process.env.RIOT_API_KEY);
     console.log("RIOT_API_KEY first few chars:", process.env.RIOT_API_KEY ? process.env.RIOT_API_KEY.substring(0, 4) + "..." : "not set");
