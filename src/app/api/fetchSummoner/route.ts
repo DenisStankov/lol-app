@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
+import { getRoutingValue } from '@/lib/riotUtils';
 
 /**
  * API route to fetch summoner profile data by Riot ID or PUUID
@@ -76,7 +77,8 @@ export async function GET(request: NextRequest) {
           ...summonerResponse.data,
           summonerName: gameName,
           tagLine: tagLine,
-          region: region
+          region: region,
+          profileIconId: summonerResponse.data.profileIconId || 29
         };
         
         console.log("✅ Found summoner by Riot ID:", summonerData);
@@ -157,7 +159,8 @@ export async function GET(request: NextRequest) {
               ...summonerResponse.data,
               summonerName: authedGameName,
               tagLine: authedTagLine,
-              region: region
+              region: region,
+              profileIconId: summonerResponse.data.profileIconId || 29
             };
             
             console.log("✅ Found authenticated user's summoner data");
@@ -189,24 +192,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-/**
- * Helper function to get the routing value for Riot API based on region
- */
-function getRoutingValue(region: string): string {
-  const routingMap: Record<string, string> = { 
-    euw1: "europe",
-    eun1: "europe",
-    tr1: "europe",
-    ru: "europe",
-    na1: "americas",
-    br1: "americas",
-    la1: "americas",
-    la2: "americas",
-    kr: "asia",
-    jp1: "asia",
-  };
-  
-  return routingMap[region] || "europe";
 }
