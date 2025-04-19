@@ -81,15 +81,6 @@ interface ChampionData {
   version: string
 }
 
-// Define role data for display
-const roleData: Record<string, { label: string; color: string }> = {
-  "TOP": { label: "TOP", color: "#FF9500" },
-  "JUNGLE": { label: "JNG", color: "#19B326" },
-  "MIDDLE": { label: "MID", color: "#4F8EFF" },
-  "BOTTOM": { label: "BOT", color: "#FF4E50" },
-  "UTILITY": { label: "SUP", color: "#CC66FF" }
-}
-
 // Helper function to format ability descriptions
 const formatDescription = (description: string) => {
   // Replace HTML tags with proper formatting
