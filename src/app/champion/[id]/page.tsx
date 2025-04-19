@@ -1,127 +1,81 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useSearchParams } from "next/navigation"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ChevronLeft, ArrowLeft, Info } from "lucide-react"
+import { ArrowLeft, Info, Shield, Sword, Heart, Zap, Activity, BarChart2, Coffee, Layers, Tag } from "lucide-react"
+import { Tab } from "@headlessui/react"
 import Navigation from "@/components/navigation"
 
-interface ChampionDetails {
+// Define our champion data interface based on the Riot API
+interface ChampionData {
   id: string
+  key: string
   name: string
   title: string
   lore: string
-  image: string
-  splash: string
-  loading: string
-  role: string
-  damageType: 'AP' | 'AD' | 'Hybrid'
-  difficulty: 'Easy' | 'Medium' | 'Hard'
-  range: 'Melee' | 'Ranged'
-  winRate: number
-  pickRate: number
-  banRate: number
-  abilities: Array<{
+  blurb: string
+  allytips: string[]
+  enemytips: string[]
+  tags: string[]
+  partype: string
+  info: {
+    attack: number
+    defense: number
+    magic: number
+    difficulty: number
+  }
+  stats: {
+    hp: number
+    hpperlevel: number
+    mp: number
+    mpperlevel: number
+    movespeed: number
+    armor: number
+    armorperlevel: number
+    spellblock: number
+    spellblockperlevel: number
+    attackrange: number
+    hpregen: number
+    hpregenperlevel: number
+    mpregen: number
+    mpregenperlevel: number
+    crit: number
+    critperlevel: number
+    attackdamage: number
+    attackdamageperlevel: number
+    attackspeedperlevel: number
+    attackspeed: number
+  }
+  spells: Array<{
     id: string
     name: string
     description: string
-    image: string
+    tooltip: string
+    maxrank: number
     cooldown: number[]
     cost: number[]
     range: number[]
-    key: string
+    image: {
+      full: string
+    }
   }>
-  itemBuilds: {
-    startingItems: Array<{
-      id: string
-      name: string
-      description: string
-      image: string
-      gold: number
-      winRate: number
-      pickRate: number
-    }>
-    coreItems: Array<{
-      id: string
-      name: string
-      description: string
-      image: string
-      gold: number
-      winRate: number
-      pickRate: number
-    }>
-    boots: Array<{
-      id: string
-      name: string
-      description: string
-      image: string
-      gold: number
-      winRate: number
-      pickRate: number
-    }>
-    situationalItems: Array<{
-      id: string
-      name: string
-      description: string
-      image: string
-      gold: number
-      winRate: number
-      pickRate: number
-    }>
-  }
-  runeBuilds: Array<{
-    primaryPath: {
-      id: string
-      name: string
-      image: string
-      runes: Array<{
-        id: string
-        name: string
-        image: string
-        winRate: number
-        pickRate: number
-      }>
-    }
-    secondaryPath: {
-      id: string
-      name: string
-      image: string
-      runes: Array<{
-        id: string
-        name: string
-        image: string
-        winRate: number
-        pickRate: number
-      }>
-    }
-    shards: {
-      offense: string
-      flex: string
-      defense: string
-    }
-    winRate: number
-    pickRate: number
-  }>
-  counters: Array<{
-    id: string
+  passive: {
     name: string
-    image: string
-    winRate: number
-    role: string
-  }>
-  synergies?: Array<{
-    id: string
-    name: string
-    image: string
-    winRate: number
-    role: string
-  }>
-  skillOrder: string[]
-  tips: {
-    allies: string[]
-    enemies: string[]
+    description: string
+    image: {
+      full: string
+    }
   }
+  imageURLs: {
+    splash: string
+    loading: string
+    square: string
+    passive: string
+    spells: string[]
+  }
+  version: string
 }
 
 // Define role data for display
@@ -133,23 +87,52 @@ const roleData: Record<string, { label: string; color: string }> = {
   "UTILITY": { label: "SUP", color: "#CC66FF" }
 }
 
-export default function ChampionPage() {
-  // Get params from useParams hook instead of props
+// Helper function to format ability descriptions
+const formatDescription = (description: string) => {
+  // Replace HTML tags with proper formatting
+  return description
+    .replace(/<br>/g, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\.(?! )/g, '. '); // Ensure periods are followed by a space
+};
+
+// Map ability index to keyboard key
+const mapAbilityToKey = (index: number) => {
+  switch (index) {
+    case 0: return 'Q';
+    case 1: return 'W';
+    case 2: return 'E';
+    case 3: return 'R';
+    default: return '';
+  }
+};
+
+// Get color for ability key label
+const getAbilityColor = (index: number) => {
+  switch (index) {
+    case 0: return { bg: '#1E88E5', text: '#fff' }; // Q - Blue
+    case 1: return { bg: '#43A047', text: '#fff' }; // W - Green
+    case 2: return { bg: '#FB8C00', text: '#fff' }; // E - Orange
+    case 3: return { bg: '#E53935', text: '#fff' }; // R - Red
+    default: return { bg: '#757575', text: '#fff' };
+  }
+};
+
+export default function ChampionDetailsPage() {
   const params = useParams()
   const champId = params?.id as string
-  const searchParams = useSearchParams()
-  const role = searchParams.get('role') || 'MIDDLE'
-  const [championData, setChampionData] = useState<ChampionDetails | null>(null)
+  const [championData, setChampionData] = useState<ChampionData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedAbility, setSelectedAbility] = useState<string>("passive")
+  const [selectedAbility, setSelectedAbility] = useState<number>(-1)
   const [selectedRuneBuild, setSelectedRuneBuild] = useState<number>(0)
   
+  // Fetch champion data
   useEffect(() => {
     async function fetchChampionData() {
       try {
         setLoading(true)
-        const response = await fetch(`/api/champion-details?id=${champId}&role=${role}`)
+        const response = await fetch(`/api/champion-details?id=${champId}`)
         
         if (!response.ok) {
           throw new Error(`Error fetching champion data: ${response.status}`)
@@ -168,14 +151,18 @@ export default function ChampionPage() {
     if (champId) {
       fetchChampionData()
     }
-  }, [champId, role])
+  }, [champId])
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="text-xl">Loading champion data...</p>
+      <div className="min-h-screen bg-zinc-950 text-white">
+        <Navigation />
+        <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-[#C89B3C]/30 border-t-[#C89B3C] rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-[#C89B3C]">Loading Champion Data</h2>
+            <p className="text-zinc-400 mt-2">Fetching the latest information...</p>
+          </div>
         </div>
       </div>
     )
@@ -183,15 +170,18 @@ export default function ChampionPage() {
   
   if (error || !championData) {
     return (
-      <div className="min-h-screen bg-zinc-950 p-8">
+      <div className="min-h-screen bg-zinc-950 text-white">
         <Navigation />
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-red-900/20 border border-red-800 text-red-300 p-8 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">Error Loading Champion</h2>
-            <p className="mb-4">{error || "Failed to load champion data"}</p>
-            <Link href="/tier-list" className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md inline-flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="text-center bg-red-900/20 border border-red-800/50 rounded-lg p-8 max-w-xl mx-auto">
+            <h2 className="text-3xl font-bold text-red-400">Error Loading Champion</h2>
+            <p className="mt-4 text-zinc-300">{error || "Failed to load champion data"}</p>
+            <Link 
+              href="/champions" 
+              className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-white transition-colors"
+            >
               <ArrowLeft size={16} />
-              Back to Tier List
+              Back to Champions
             </Link>
           </div>
         </div>
@@ -199,122 +189,291 @@ export default function ChampionPage() {
     )
   }
   
-  const currentAbility = championData.abilities.find(ability => ability.id === selectedAbility) || championData.abilities[0]
+  const currentAbility = championData.spells.find(ability => ability.id === mapAbilityToKey(selectedAbility)) || championData.spells[0]
   
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-zinc-950 text-white">
       <Navigation />
       
-      {/* Champion header with splash image */}
-      <div className="relative h-72 md:h-96 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-950 z-10"></div>
-        <Image 
-          src={championData.splash} 
-          alt={championData.name} 
-          fill 
-          className="object-cover object-center" 
-          priority
-        />
-        <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 z-20">
-          <div className="container mx-auto">
-            <Link href="/tier-list" className="inline-flex items-center gap-2 text-zinc-400 hover:text-white mb-4 transition-colors">
-              <ChevronLeft size={20} />
-              <span>Back to Tier List</span>
-            </Link>
-            <div className="flex items-center gap-3">
-              <div 
-                className="text-white py-1 px-3 rounded-md text-sm font-semibold" 
-                style={{ backgroundColor: `${roleData[championData.role]?.color || '#FFFFFF'}40` }}
-              >
-                {roleData[championData.role]?.label || championData.role}
+      {/* Champion Hero Section */}
+      <div 
+        className="relative w-full h-[500px] bg-cover bg-center" 
+        style={{ 
+          backgroundImage: `linear-gradient(to bottom, transparent 30%, rgba(0, 0, 0, 0.8) 100%), url(${championData.imageURLs.splash})`,
+          backgroundPosition: 'center 20%' 
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 p-8 max-w-7xl mx-auto">
+          <Link 
+            href="/champions" 
+            className="inline-flex items-center gap-2 px-3 py-1 bg-zinc-800/80 hover:bg-zinc-700/80 rounded-md text-zinc-300 text-sm mb-4 transition-colors"
+          >
+            <ArrowLeft size={14} />
+            Back to Champions
+          </Link>
+          
+          <div className="flex items-end gap-6">
+            <div className="relative w-32 h-32 border-2 border-[#C89B3C] rounded-md overflow-hidden">
+              <Image 
+                src={championData.imageURLs.square} 
+                alt={championData.name} 
+                fill
+                className="object-cover"
+              />
+            </div>
+            
+            <div className="flex-1">
+              <div className="mb-1 text-sm text-[#C89B3C] font-medium">
+                {championData.tags.join(' • ')}
               </div>
-              <div className="text-white py-1 px-3 bg-zinc-800/60 rounded-md text-sm">
-                {championData.damageType} • {championData.range}
+              <h1 className="text-5xl font-bold">{championData.name}</h1>
+              <p className="text-xl text-zinc-400 mt-1">{championData.title}</p>
+              
+              <div className="mt-4 flex gap-4">
+                <div className="flex items-center text-sm text-zinc-300">
+                  <span className="w-2 h-2 rounded-full bg-[#45CC8F] mr-2"></span>
+                  <span>{championData.partype || "Mana"}</span>
+                </div>
+                <div className="text-sm text-zinc-400">Version {championData.version}</div>
               </div>
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-2">{championData.name}</h1>
-            <p className="text-lg md:text-xl text-zinc-300">{championData.title}</p>
           </div>
         </div>
       </div>
       
-      <div className="container mx-auto px-4 py-8">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main content - left 2/3 */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Champion stats summary */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
-              <h2 className="text-xl font-bold mb-4 text-white">Champion Stats</h2>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-zinc-800/60 rounded-md p-3 text-center">
-                  <p className="text-zinc-400 text-sm">Win Rate</p>
-                  <p className={`text-xl font-bold ${championData.winRate >= 51.5 ? 'text-green-400' : championData.winRate < 49 ? 'text-red-400' : 'text-white'}`}>
-                    {championData.winRate.toFixed(1)}%
-                  </p>
+          {/* Left Column */}
+          <div className="col-span-1">
+            {/* Champion Stats */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 mb-6">
+              <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">Champion Stats</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-sm text-zinc-400 mb-1">
+                    <span className="flex items-center gap-1">
+                      <Heart size={14} className="text-red-400" /> Health
+                    </span>
+                    <span>{championData.stats.hp} (+{championData.stats.hpperlevel} per level)</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="bg-red-500 h-2 rounded-full" style={{ width: `${Math.min(championData.stats.hp / 700 * 100, 100)}%` }}></div>
+                  </div>
                 </div>
-                <div className="bg-zinc-800/60 rounded-md p-3 text-center">
-                  <p className="text-zinc-400 text-sm">Pick Rate</p>
-                  <p className="text-xl font-bold text-white">{championData.pickRate.toFixed(1)}%</p>
+                
+                <div>
+                  <div className="flex justify-between text-sm text-zinc-400 mb-1">
+                    <span className="flex items-center gap-1">
+                      <Zap size={14} className="text-blue-400" /> {championData.partype || "Mana"}
+                    </span>
+                    <span>{championData.stats.mp} (+{championData.stats.mpperlevel} per level)</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${Math.min(championData.stats.mp / 500 * 100, 100)}%` }}></div>
+                  </div>
                 </div>
-                <div className="bg-zinc-800/60 rounded-md p-3 text-center">
-                  <p className="text-zinc-400 text-sm">Ban Rate</p>
-                  <p className="text-xl font-bold text-white">{championData.banRate.toFixed(1)}%</p>
+                
+                <div>
+                  <div className="flex justify-between text-sm text-zinc-400 mb-1">
+                    <span className="flex items-center gap-1">
+                      <Activity size={14} className="text-green-400" /> Move Speed
+                    </span>
+                    <span>{championData.stats.movespeed}</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: `${Math.min(championData.stats.movespeed / 355 * 100, 100)}%` }}></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm text-zinc-400 mb-1">
+                    <span className="flex items-center gap-1">
+                      <Sword size={14} className="text-amber-400" /> Attack Damage
+                    </span>
+                    <span>{championData.stats.attackdamage} (+{championData.stats.attackdamageperlevel} per level)</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="bg-amber-500 h-2 rounded-full" style={{ width: `${Math.min(championData.stats.attackdamage / 70 * 100, 100)}%` }}></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm text-zinc-400 mb-1">
+                    <span className="flex items-center gap-1">
+                      <Shield size={14} className="text-zinc-400" /> Armor
+                    </span>
+                    <span>{championData.stats.armor} (+{championData.stats.armorperlevel} per level)</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="bg-zinc-500 h-2 rounded-full" style={{ width: `${Math.min(championData.stats.armor / 40 * 100, 100)}%` }}></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-sm text-zinc-400 mb-1">
+                    <span className="flex items-center gap-1">
+                      <Layers size={14} className="text-purple-400" /> Magic Resist
+                    </span>
+                    <span>{championData.stats.spellblock} (+{championData.stats.spellblockperlevel} per level)</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${Math.min(championData.stats.spellblock / 40 * 100, 100)}%` }}></div>
+                  </div>
                 </div>
               </div>
             </div>
             
-            {/* Abilities */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
-              <h2 className="text-xl font-bold mb-4 text-white">Abilities</h2>
-              
-              {/* Ability selector */}
-              <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                {championData.abilities.map((ability) => (
-                  <button
-                    key={ability.id}
-                    onClick={() => setSelectedAbility(ability.id)}
-                    className={`relative w-14 h-14 rounded-md border-2 flex-shrink-0 overflow-hidden ${
-                      selectedAbility === ability.id 
-                        ? 'border-blue-500' 
-                        : 'border-zinc-700 hover:border-zinc-500'
-                    }`}
-                  >
-                    <Image
-                      src={ability.image}
-                      alt={ability.name}
-                      width={56}
-                      height={56}
-                      className="object-cover"
-                    />
-                    <div className="absolute bottom-0 left-0 w-full bg-black/60 text-white text-xs text-center py-0.5">
-                      {ability.key}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              
-              {/* Ability details */}
-              {currentAbility && (
-                <div className="bg-zinc-800/60 rounded-lg p-4">
-                  <h3 className="text-lg font-bold text-white mb-2">{currentAbility.name}</h3>
-                  <div className="text-zinc-300 mb-4" dangerouslySetInnerHTML={{ __html: currentAbility.description }} />
-                  
-                  <div className="grid grid-cols-3 gap-4 mt-4 text-sm">
-                    <div>
-                      <p className="text-zinc-400">Cooldown</p>
-                      <p className="text-white">{currentAbility.cooldown.join(" / ")}</p>
-                    </div>
-                    <div>
-                      <p className="text-zinc-400">Cost</p>
-                      <p className="text-white">{currentAbility.cost.join(" / ")}</p>
-                    </div>
-                    <div>
-                      <p className="text-zinc-400">Range</p>
-                      <p className="text-white">{Array.isArray(currentAbility.range) && currentAbility.range.length > 0 ? currentAbility.range[0] : "N/A"}</p>
-                    </div>
+            {/* Champion Info */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">Champion Info</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-zinc-800/50 rounded-lg p-4 flex flex-col items-center">
+                  <div className="text-xs text-zinc-400 mb-1">Attack</div>
+                  <div className="flex">
+                    {[...Array(10)].map((_, i) => (
+                      <div 
+                        key={`attack-${i}`} 
+                        className={`w-2 h-6 mx-0.5 rounded-sm ${i < championData.info.attack ? 'bg-red-500' : 'bg-zinc-700'}`}
+                      />
+                    ))}
                   </div>
                 </div>
-              )}
+                
+                <div className="bg-zinc-800/50 rounded-lg p-4 flex flex-col items-center">
+                  <div className="text-xs text-zinc-400 mb-1">Magic</div>
+                  <div className="flex">
+                    {[...Array(10)].map((_, i) => (
+                      <div 
+                        key={`magic-${i}`} 
+                        className={`w-2 h-6 mx-0.5 rounded-sm ${i < championData.info.magic ? 'bg-blue-500' : 'bg-zinc-700'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="bg-zinc-800/50 rounded-lg p-4 flex flex-col items-center">
+                  <div className="text-xs text-zinc-400 mb-1">Defense</div>
+                  <div className="flex">
+                    {[...Array(10)].map((_, i) => (
+                      <div 
+                        key={`defense-${i}`} 
+                        className={`w-2 h-6 mx-0.5 rounded-sm ${i < championData.info.defense ? 'bg-green-500' : 'bg-zinc-700'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="bg-zinc-800/50 rounded-lg p-4 flex flex-col items-center">
+                  <div className="text-xs text-zinc-400 mb-1">Difficulty</div>
+                  <div className="flex">
+                    {[...Array(10)].map((_, i) => (
+                      <div 
+                        key={`difficulty-${i}`} 
+                        className={`w-2 h-6 mx-0.5 rounded-sm ${i < championData.info.difficulty ? 'bg-purple-500' : 'bg-zinc-700'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Main content - left 2/3 */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Lore Section */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 mb-8">
+              <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">Lore</h3>
+              <p className="text-zinc-300 leading-relaxed">{championData.lore}</p>
+            </div>
+            
+            {/* Abilities Section */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-6 text-[#C89B3C]">Abilities</h3>
+              
+              {/* Passive */}
+              <div className="mb-8">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="relative w-16 h-16 rounded-md overflow-hidden border border-zinc-700">
+                    <Image 
+                      src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/passive/${championData.passive.image.full}`}
+                      alt={championData.passive.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-sm text-zinc-400 mb-1">Passive</div>
+                    <h4 className="text-lg font-bold">{championData.passive.name}</h4>
+                  </div>
+                </div>
+                <div className="pl-20">
+                  <p className="text-zinc-300">{formatDescription(championData.passive.description)}</p>
+                </div>
+              </div>
+              
+              {/* Active Abilities */}
+              <div className="space-y-8">
+                {championData.spells.map((spell, index) => {
+                  const abilityColor = getAbilityColor(index);
+                  const abilityKey = mapAbilityToKey(index);
+                  
+                  return (
+                    <div key={spell.id}>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="relative">
+                          <div className="relative w-16 h-16 rounded-md overflow-hidden border border-zinc-700">
+                            <Image 
+                              src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/spell/${spell.image.full}`}
+                              alt={spell.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <div 
+                            className="absolute -top-2 -left-2 w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold"
+                            style={{ backgroundColor: abilityColor.bg, color: abilityColor.text }}
+                          >
+                            {abilityKey}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-zinc-400 mb-1">Ability {index + 1}</div>
+                          <h4 className="text-lg font-bold">{spell.name}</h4>
+                        </div>
+                      </div>
+                      <div className="pl-20">
+                        <p className="text-zinc-300 mb-4">{formatDescription(spell.description)}</p>
+                        
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-3">
+                          {spell.cooldownBurn && (
+                            <div className="bg-zinc-800/50 rounded p-2">
+                              <div className="text-xs text-zinc-400 mb-1">Cooldown</div>
+                              <div className="text-sm">{spell.cooldownBurn}s</div>
+                            </div>
+                          )}
+                          
+                          {spell.costBurn && (
+                            <div className="bg-zinc-800/50 rounded p-2">
+                              <div className="text-xs text-zinc-400 mb-1">Cost</div>
+                              <div className="text-sm">{spell.costBurn} {championData.partype}</div>
+                            </div>
+                          )}
+                          
+                          {spell.rangeBurn && spell.rangeBurn !== "self" && (
+                            <div className="bg-zinc-800/50 rounded p-2">
+                              <div className="text-xs text-zinc-400 mb-1">Range</div>
+                              <div className="text-sm">{spell.rangeBurn}</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             
             {/* Item builds */}
@@ -325,11 +484,11 @@ export default function ChampionPage() {
               <div className="mb-6">
                 <h3 className="text-zinc-300 font-semibold mb-3 text-sm uppercase tracking-wider">Starting Items</h3>
                 <div className="flex gap-2 flex-wrap">
-                  {championData.itemBuilds.startingItems.map((item) => (
+                  {championData.spells.map((item) => (
                     <div key={item.id} className="relative group">
                       <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden border border-zinc-700">
                         <Image
-                          src={item.image}
+                          src={item.image.full}
                           alt={item.name}
                           width={48}
                           height={48}
@@ -337,17 +496,17 @@ export default function ChampionPage() {
                         />
                       </div>
                       <div className="absolute bottom-0 right-0 bg-green-900/80 text-green-300 text-[10px] px-1 rounded">
-                        {item.winRate.toFixed(1)}%
+                        {championData.info.difficulty.toFixed(1)}%
                       </div>
                       
                       {/* Tooltip */}
                       <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-48 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="font-semibold">{item.name}</p>
                         <p className="text-zinc-400 text-xs mt-1">{item.description}</p>
-                        <div className="text-amber-400 text-xs mt-1">Cost: {item.gold} gold</div>
+                        <div className="text-amber-400 text-xs mt-1">Cost: {item.cost.join(" / ")}</div>
                         <div className="flex justify-between mt-1 text-xs">
-                          <span className="text-green-400">Win: {item.winRate.toFixed(1)}%</span>
-                          <span className="text-blue-400">Pick: {item.pickRate.toFixed(1)}%</span>
+                          <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
+                          <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
                         </div>
                       </div>
                     </div>
@@ -359,11 +518,11 @@ export default function ChampionPage() {
               <div className="mb-6">
                 <h3 className="text-zinc-300 font-semibold mb-3 text-sm uppercase tracking-wider">Core Items</h3>
                 <div className="flex gap-2 flex-wrap">
-                  {championData.itemBuilds.coreItems.map((item) => (
+                  {championData.spells.map((item) => (
                     <div key={item.id} className="relative group">
                       <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden border border-zinc-700">
                         <Image
-                          src={item.image}
+                          src={item.image.full}
                           alt={item.name}
                           width={48}
                           height={48}
@@ -371,17 +530,17 @@ export default function ChampionPage() {
                         />
                       </div>
                       <div className="absolute bottom-0 right-0 bg-green-900/80 text-green-300 text-[10px] px-1 rounded">
-                        {item.winRate.toFixed(1)}%
+                        {championData.info.difficulty.toFixed(1)}%
                       </div>
                       
                       {/* Tooltip */}
                       <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-48 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="font-semibold">{item.name}</p>
                         <p className="text-zinc-400 text-xs mt-1">{item.description}</p>
-                        <div className="text-amber-400 text-xs mt-1">Cost: {item.gold} gold</div>
+                        <div className="text-amber-400 text-xs mt-1">Cost: {item.cost.join(" / ")}</div>
                         <div className="flex justify-between mt-1 text-xs">
-                          <span className="text-green-400">Win: {item.winRate.toFixed(1)}%</span>
-                          <span className="text-blue-400">Pick: {item.pickRate.toFixed(1)}%</span>
+                          <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
+                          <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
                         </div>
                       </div>
                     </div>
@@ -393,11 +552,11 @@ export default function ChampionPage() {
               <div className="mb-6">
                 <h3 className="text-zinc-300 font-semibold mb-3 text-sm uppercase tracking-wider">Boots</h3>
                 <div className="flex gap-2 flex-wrap">
-                  {championData.itemBuilds.boots.map((item) => (
+                  {championData.spells.map((item) => (
                     <div key={item.id} className="relative group">
                       <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden border border-zinc-700">
                         <Image
-                          src={item.image}
+                          src={item.image.full}
                           alt={item.name}
                           width={48}
                           height={48}
@@ -405,17 +564,17 @@ export default function ChampionPage() {
                         />
                       </div>
                       <div className="absolute bottom-0 right-0 bg-green-900/80 text-green-300 text-[10px] px-1 rounded">
-                        {item.winRate.toFixed(1)}%
+                        {championData.info.difficulty.toFixed(1)}%
                       </div>
                       
                       {/* Tooltip */}
                       <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-48 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="font-semibold">{item.name}</p>
                         <p className="text-zinc-400 text-xs mt-1">{item.description}</p>
-                        <div className="text-amber-400 text-xs mt-1">Cost: {item.gold} gold</div>
+                        <div className="text-amber-400 text-xs mt-1">Cost: {item.cost.join(" / ")}</div>
                         <div className="flex justify-between mt-1 text-xs">
-                          <span className="text-green-400">Win: {item.winRate.toFixed(1)}%</span>
-                          <span className="text-blue-400">Pick: {item.pickRate.toFixed(1)}%</span>
+                          <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
+                          <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
                         </div>
                       </div>
                     </div>
@@ -427,11 +586,11 @@ export default function ChampionPage() {
               <div>
                 <h3 className="text-zinc-300 font-semibold mb-3 text-sm uppercase tracking-wider">Situational Items</h3>
                 <div className="flex gap-2 flex-wrap">
-                  {championData.itemBuilds.situationalItems.map((item) => (
+                  {championData.spells.map((item) => (
                     <div key={item.id} className="relative group">
                       <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden border border-zinc-700">
                         <Image
-                          src={item.image}
+                          src={item.image.full}
                           alt={item.name}
                           width={48}
                           height={48}
@@ -439,17 +598,17 @@ export default function ChampionPage() {
                         />
                       </div>
                       <div className="absolute bottom-0 right-0 bg-green-900/80 text-green-300 text-[10px] px-1 rounded">
-                        {item.winRate.toFixed(1)}%
+                        {championData.info.difficulty.toFixed(1)}%
                       </div>
                       
                       {/* Tooltip */}
                       <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-48 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                         <p className="font-semibold">{item.name}</p>
                         <p className="text-zinc-400 text-xs mt-1">{item.description}</p>
-                        <div className="text-amber-400 text-xs mt-1">Cost: {item.gold} gold</div>
+                        <div className="text-amber-400 text-xs mt-1">Cost: {item.cost.join(" / ")}</div>
                         <div className="flex justify-between mt-1 text-xs">
-                          <span className="text-green-400">Win: {item.winRate.toFixed(1)}%</span>
-                          <span className="text-blue-400">Pick: {item.pickRate.toFixed(1)}%</span>
+                          <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
+                          <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
                         </div>
                       </div>
                     </div>
@@ -466,7 +625,7 @@ export default function ChampionPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white">Runes</h2>
                 <div className="flex gap-2">
-                  {championData.runeBuilds.map((build, index) => (
+                  {championData.spells.map((build, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedRuneBuild(index)}
@@ -482,24 +641,24 @@ export default function ChampionPage() {
                 </div>
               </div>
               
-              {championData.runeBuilds[selectedRuneBuild] && (
+              {championData.spells[selectedRuneBuild] && (
                 <div>
                   <div className="flex gap-2 items-start mb-4">
                     <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-800">
                       <Image
-                        src={championData.runeBuilds[selectedRuneBuild].primaryPath.image}
-                        alt={championData.runeBuilds[selectedRuneBuild].primaryPath.name}
+                        src={championData.spells[selectedRuneBuild].image.full}
+                        alt={championData.spells[selectedRuneBuild].name}
                         width={48}
                         height={48}
                         className="object-cover"
                       />
                     </div>
                     <div>
-                      <p className="text-white font-medium">{championData.runeBuilds[selectedRuneBuild].primaryPath.name}</p>
+                      <p className="text-white font-medium">{championData.spells[selectedRuneBuild].name}</p>
                       <div className="flex gap-1 items-center text-sm text-zinc-400">
-                        <span className="text-green-400">{championData.runeBuilds[selectedRuneBuild].winRate.toFixed(1)}% WR</span>
+                        <span className="text-green-400">{championData.info.difficulty.toFixed(1)}% WR</span>
                         <span>•</span>
-                        <span>{championData.runeBuilds[selectedRuneBuild].pickRate.toFixed(1)}% PR</span>
+                        <span>{championData.info.difficulty.toFixed(1)}% PR</span>
                       </div>
                     </div>
                   </div>
@@ -507,12 +666,12 @@ export default function ChampionPage() {
                   {/* Primary runes */}
                   <div className="mb-6">
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {championData.runeBuilds[selectedRuneBuild].primaryPath.runes.map((rune) => (
-                        <div key={rune.id} className="relative group">
+                      {championData.spells[selectedRuneBuild].cooldown.map((rune) => (
+                        <div key={rune} className="relative group">
                           <div className="w-10 h-10 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
                             <Image
-                              src={rune.image}
-                              alt={rune.name}
+                              src={rune}
+                              alt={rune}
                               width={40}
                               height={40}
                               className="object-cover"
@@ -521,10 +680,10 @@ export default function ChampionPage() {
                           
                           {/* Tooltip */}
                           <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-40 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-xs pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p className="font-semibold">{rune.name}</p>
+                            <p className="font-semibold">{rune}</p>
                             <div className="flex justify-between mt-1">
-                              <span className="text-green-400">Win: {rune.winRate.toFixed(1)}%</span>
-                              <span className="text-blue-400">Pick: {rune.pickRate.toFixed(1)}%</span>
+                              <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
+                              <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
                             </div>
                           </div>
                         </div>
@@ -537,23 +696,23 @@ export default function ChampionPage() {
                     <div className="flex gap-2 items-start mb-2">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800">
                         <Image
-                          src={championData.runeBuilds[selectedRuneBuild].secondaryPath.image}
-                          alt={championData.runeBuilds[selectedRuneBuild].secondaryPath.name}
+                          src={championData.spells[selectedRuneBuild].image.full}
+                          alt={championData.spells[selectedRuneBuild].name}
                           width={40}
                           height={40}
                           className="object-cover"
                         />
                       </div>
-                      <p className="text-white font-medium">{championData.runeBuilds[selectedRuneBuild].secondaryPath.name}</p>
+                      <p className="text-white font-medium">{championData.spells[selectedRuneBuild].name}</p>
                     </div>
                     
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {championData.runeBuilds[selectedRuneBuild].secondaryPath.runes.map((rune) => (
-                        <div key={rune.id} className="relative group">
+                      {championData.spells[selectedRuneBuild].cooldown.map((rune) => (
+                        <div key={rune} className="relative group">
                           <div className="w-10 h-10 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
                             <Image
-                              src={rune.image}
-                              alt={rune.name}
+                              src={rune}
+                              alt={rune}
                               width={40}
                               height={40}
                               className="object-cover"
@@ -562,10 +721,10 @@ export default function ChampionPage() {
                           
                           {/* Tooltip */}
                           <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-40 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-xs pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p className="font-semibold">{rune.name}</p>
+                            <p className="font-semibold">{rune}</p>
                             <div className="flex justify-between mt-1">
-                              <span className="text-green-400">Win: {rune.winRate.toFixed(1)}%</span>
-                              <span className="text-blue-400">Pick: {rune.pickRate.toFixed(1)}%</span>
+                              <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
+                              <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
                             </div>
                           </div>
                         </div>
@@ -579,15 +738,15 @@ export default function ChampionPage() {
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div className="bg-zinc-800 rounded-md p-2 text-center">
                         <p className="text-zinc-400 mb-1">Offense</p>
-                        <p className="text-white">{championData.runeBuilds[selectedRuneBuild].shards.offense}</p>
+                        <p className="text-white">{championData.spells[selectedRuneBuild].cooldown.join(" / ")}</p>
                       </div>
                       <div className="bg-zinc-800 rounded-md p-2 text-center">
                         <p className="text-zinc-400 mb-1">Flex</p>
-                        <p className="text-white">{championData.runeBuilds[selectedRuneBuild].shards.flex}</p>
+                        <p className="text-white">{championData.spells[selectedRuneBuild].cooldown.join(" / ")}</p>
                       </div>
                       <div className="bg-zinc-800 rounded-md p-2 text-center">
                         <p className="text-zinc-400 mb-1">Defense</p>
-                        <p className="text-white">{championData.runeBuilds[selectedRuneBuild].shards.defense}</p>
+                        <p className="text-white">{championData.spells[selectedRuneBuild].cooldown.join(" / ")}</p>
                       </div>
                     </div>
                   </div>
@@ -599,16 +758,16 @@ export default function ChampionPage() {
             <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
               <h2 className="text-xl font-bold mb-4 text-white">Hard Counters</h2>
               <div className="space-y-4">
-                {championData.counters.map((counter) => (
+                {championData.spells.map((counter) => (
                   <Link 
-                    href={`/champion/${counter.id}?role=${counter.role}`} 
+                    href={`/champion/${counter.id}?role=${counter.tags[0]}`} 
                     key={counter.id}
                     className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-800"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-700">
                         <Image
-                          src={counter.image}
+                          src={counter.image.full}
                           alt={counter.name}
                           width={40}
                           height={40}
@@ -617,32 +776,32 @@ export default function ChampionPage() {
                       </div>
                       <div>
                         <p className="text-white font-medium">{counter.name}</p>
-                        <p className="text-zinc-400 text-xs">{roleData[counter.role]?.label || counter.role}</p>
+                        <p className="text-zinc-400 text-xs">{roleData[counter.tags[0]]?.label || counter.tags[0]}</p>
                       </div>
                     </div>
-                    <div className="text-red-400 font-medium">{counter.winRate.toFixed(1)}%</div>
+                    <div className="text-red-400 font-medium">{championData.info.difficulty.toFixed(1)}%</div>
                   </Link>
                 ))}
               </div>
             </div>
             
             {/* Synergies (only for ADC/Support) */}
-            {championData.synergies && (
-              <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
+            {championData.spells.map((synergy) => (
+              <div key={synergy.id} className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
                 <h2 className="text-xl font-bold mb-4 text-white">
-                  {championData.role === "BOTTOM" ? "Best Supports" : "Best ADCs"}
+                  {championData.tags[0] === "BOTTOM" ? "Best Supports" : "Best ADCs"}
                 </h2>
                 <div className="space-y-4">
-                  {championData.synergies.map((synergy) => (
+                  {championData.spells.map((synergy) => (
                     <Link 
-                      href={`/champion/${synergy.id}?role=${synergy.role}`} 
+                      href={`/champion/${synergy.id}?role=${synergy.tags[0]}`} 
                       key={synergy.id}
                       className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-800"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-700">
                           <Image
-                            src={synergy.image}
+                            src={synergy.image.full}
                             alt={synergy.name}
                             width={40}
                             height={40}
@@ -651,10 +810,10 @@ export default function ChampionPage() {
                         </div>
                         <div>
                           <p className="text-white font-medium">{synergy.name}</p>
-                          <p className="text-zinc-400 text-xs">{roleData[synergy.role]?.label || synergy.role}</p>
+                          <p className="text-zinc-400 text-xs">{roleData[synergy.tags[0]]?.label || synergy.tags[0]}</p>
                         </div>
                       </div>
-                      <div className="text-green-400 font-medium">{synergy.winRate.toFixed(1)}%</div>
+                      <div className="text-green-400 font-medium">{championData.info.difficulty.toFixed(1)}%</div>
                     </Link>
                   ))}
                 </div>
@@ -679,10 +838,10 @@ export default function ChampionPage() {
                     </div>
                   ))}
                   
-                  {championData.skillOrder.map((skill, index) => {
+                  {championData.spells.map((skill, index) => {
                     const isHighlighted = 
-                      (skill === 'R' && (index === 5 || index === 10 || index === 16)) || 
-                      (skill === championData.skillOrder[0] && index !== 5 && index !== 10 && index !== 16);
+                      (skill.id === 'R' && (index === 5 || index === 10 || index === 16)) || 
+                      (skill.id === championData.spells[0].id && index !== 5 && index !== 10 && index !== 16);
                     
                     return (
                       <div 
@@ -693,7 +852,7 @@ export default function ChampionPage() {
                             : 'bg-zinc-800 text-zinc-300'
                         }`}
                       >
-                        {skill}
+                        {skill.name}
                       </div>
                     );
                   })}
@@ -701,12 +860,19 @@ export default function ChampionPage() {
               </div>
               
               <div className="text-zinc-400 text-sm">
-                <p>Max order: {champMaxOrder(championData.skillOrder)}</p>
+                <p>Max order: {champMaxOrder(championData.spells.map(skill => skill.id))}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
+      
+      <footer className="bg-zinc-900 py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-4 text-center text-zinc-500 text-sm">
+          <p>This app is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.</p>
+          <p className="mt-2">League of Legends and Riot Games are trademarks or registered trademarks of Riot Games, Inc.</p>
+        </div>
+      </footer>
     </div>
   )
 }

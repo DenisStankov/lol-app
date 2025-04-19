@@ -13,7 +13,6 @@ export async function GET(req: NextRequest) {
   
   // Validate iconId - ensure it's a number
   if (!/^\d+$/.test(iconId)) {
-    console.log(`Invalid icon ID requested: ${iconId}, using default icon 1`);
     iconId = '1'; // Use default if not a valid number
   }
   
@@ -32,20 +31,15 @@ export async function GET(req: NextRequest) {
     // Continue with hardcoded versions if we can't fetch the latest
   }
   
-  console.log(`Attempting to fetch profile icon ${iconId} (Latest available version: ${latestVersion || 'using fallback versions'})`);
-  
   // Try fetching from different versions until one works
   for (const version of VERSIONS) {
     try {
       const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${iconId}.png`;
-      console.log(`Trying to fetch icon from: ${iconUrl}`);
       
       const response = await axios.get(iconUrl, { 
         responseType: 'arraybuffer',
         validateStatus: (status) => status === 200 // Only accept 200 responses
       });
-      
-      console.log(`✅ Successfully fetched icon ${iconId} from version ${version}`);
       
       // Return the image with appropriate headers
       return new NextResponse(response.data, {
@@ -55,16 +49,9 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        console.log(`❌ Failed to fetch icon ${iconId} from version ${version}: Status ${error.response.status}`);
-      } else {
-        console.log(`❌ Failed to fetch icon ${iconId} from version ${version}: Unknown error`);
-      }
       // Continue to the next version
     }
   }
-  
-  console.log(`⚠️ All versions failed for icon ${iconId}, trying default icons`);
   
   // If the requested icon fails, try a series of known good default icons
   for (const defaultIcon of DEFAULT_ICONS) {
@@ -72,14 +59,11 @@ export async function GET(req: NextRequest) {
     
     try {
       const fallbackUrl = `https://ddragon.leagueoflegends.com/cdn/${VERSIONS[0]}/img/profileicon/${defaultIcon}.png`;
-      console.log(`Trying fallback icon: ${fallbackUrl}`);
       
       const fallbackResponse = await axios.get(fallbackUrl, { 
         responseType: 'arraybuffer',
         validateStatus: (status) => status === 200
       });
-      
-      console.log(`✅ Successfully fetched fallback icon ${defaultIcon}`);
       
       return new NextResponse(fallbackResponse.data, {
         headers: {
@@ -88,13 +72,11 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch {
-      console.log(`❌ Failed to fetch fallback icon ${defaultIcon}`);
       // Try the next default icon
       continue;
     }
   }
   
   // If all attempts fail, return a 404
-  console.log(`❌ All profile icon attempts failed, returning 404`);
   return NextResponse.json({ error: 'Profile icon not found' }, { status: 404 });
 } 

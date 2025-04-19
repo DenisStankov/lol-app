@@ -31,10 +31,9 @@ export default function ProfileIcon({
         const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
           setLatestVersion(response.data[0]);
-          console.log(`✅ Fetched latest DDragon version: ${response.data[0]}`);
         }
       } catch (error) {
-        console.error('Failed to fetch latest DDragon version, using default', error);
+        // Failed to fetch latest DDragon version, using default
       }
     };
     
@@ -58,9 +57,6 @@ export default function ProfileIcon({
       ? iconId 
       : fallbackIcon;
       
-    // Log for debugging
-    console.log(`🖼️ Loading profile icon: ${numericIconId} using version ${latestVersion}`);
-    
     // Create direct DDragon URL
     const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/profileicon/${numericIconId}.png`;
     setSrc(iconUrl);
@@ -86,17 +82,14 @@ export default function ProfileIcon({
         onLoad={() => {
           setIsLoading(false);
           setHasError(false);
-          console.log(`✅ Successfully loaded icon: ${iconId || fallbackIcon}`);
         }}
         onError={(e) => {
-          console.error(`❌ Failed to load icon: ${iconId}`, e);
           setIsLoading(false);
           setHasError(true);
           
           // If the current icon failed and it's not already the fallback,
           // try the fallback icon instead
           if (iconId !== fallbackIcon) {
-            console.log(`⚠️ Trying fallback icon: ${fallbackIcon}`);
             setSrc(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/profileicon/${fallbackIcon}.png`);
           }
         }}
