@@ -191,7 +191,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                   >
                     <div className="relative">
                       <Image 
-                        src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${summoner.profileIconId}.png`}
+                        src={`/api/profileIcon?iconId=${summoner.profileIconId}`}
                         alt="Profile Icon" 
                         width={48} 
                         height={48} 
@@ -239,7 +239,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                 >
                   <div className="relative flex-shrink-0">
                     <Image 
-                      src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${summoner.profileIconId}.png`}
+                      src={`/api/profileIcon?iconId=${summoner.profileIconId}`}
                       alt="Profile Icon" 
                       width={36} 
                       height={36} 

@@ -201,12 +201,12 @@ export default function Navigation() {
     try {
       if (!iconId || iconId < 0) {
         // No logging, just return default
-        return 'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png';
+        return '/api/profileIcon?iconId=29';
       }
-      return `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${iconId}.png`;
+      return `/api/profileIcon?iconId=${iconId}`;
     } catch {
       // No logging, just return default
-      return 'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png';
+      return '/api/profileIcon?iconId=29';
     }
   };
 
