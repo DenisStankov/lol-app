@@ -679,21 +679,4 @@ export default function ChampionDetailsPage() {
       </footer>
     </div>
   )
-}
-
-// Helper function to determine the max order from skill order
-function champMaxOrder(skillOrder: string[]): string {
-  const counts: Record<string, number> = {};
-  
-  skillOrder.forEach(skill => {
-    if (skill !== 'R') { // Exclude ultimate from max order
-      counts[skill] = (counts[skill] || 0) + 1;
-    }
-  });
-  
-  const maxSkills = Object.entries(counts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([skill]) => skill);
-  
-  return maxSkills.join(' > ');
 } 
