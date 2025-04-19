@@ -139,7 +139,7 @@ export default function ChampionDetailsPage() {
         const data = await response.json()
         setChampionData(data)
         setLoading(false)
-      } catch (_) {
+      } catch {
         setError('Failed to load champion data. Please try again later.')
         setLoading(false)
       }

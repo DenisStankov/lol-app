@@ -32,7 +32,7 @@ export default function ProfileIcon({
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
           setLatestVersion(response.data[0]);
         }
-      } catch (_) {
+      } catch {
         // Failed to fetch latest DDragon version, using default
       }
     };
