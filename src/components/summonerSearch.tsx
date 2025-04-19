@@ -44,7 +44,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
           const parsed = JSON.parse(savedSearches);
           setRecentSearches(parsed.slice(0, 5)); // Show top 5 most recent
         }
-      } catch (err) {
+      } catch {
         // Silently handle error
       }
     }

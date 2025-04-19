@@ -28,17 +28,16 @@ export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [user, setUser] = useState<UserInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [patchVersion, setPatchVersion] = useState("14.8.1") // Default fallback version
   const pathname = usePathname()
 
   // Fetch current patch version for icon URLs
   useEffect(() => {
     async function fetchPatchVersion() {
       try {
-        const response = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
-        setPatchVersion(response.data[0])
-      } catch (error) {
-        console.error("Failed to fetch patch version:", error)
+        // No need to store the version if we're not using it
+        await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
+      } catch {
+        // Silently handle error
       }
     }
     
@@ -205,7 +204,7 @@ export default function Navigation() {
         return 'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png';
       }
       return `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${iconId}.png`;
-    } catch (error) {
+    } catch {
       // No logging, just return default
       return 'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png';
     }

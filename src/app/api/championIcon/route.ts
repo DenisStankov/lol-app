@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
           'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
         },
       });
-    } catch (error) {
+    } catch {
       // Silently continue to the next version without logging error
       // Continue to the next version
     }
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
         'Cache-Control': 'public, max-age=86400',
       },
     });
-  } catch (error) {
+  } catch {
     // Silently catch the error without logging
     
     // Return 404 if everything fails
