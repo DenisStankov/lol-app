@@ -20,8 +20,9 @@ export async function GET(request: NextRequest) {
     // Get gameName and tagLine directly from parameters
     const gameName = params.get('gameName');
     const tagLine = params.get('tagLine');
+    const isSearched = params.get('isSearched') === 'true';
     
-    console.log("🔍 Query params:", { riotId, puuid, gameName, tagLine, region });
+    console.log("🔍 Query params:", { riotId, puuid, gameName, tagLine, region, isSearched });
     
     // Allow for different parameter combinations
     if (!riotId && !puuid && !(gameName && tagLine)) {
@@ -43,8 +44,8 @@ export async function GET(request: NextRequest) {
     let summonerData;
     
     // Determine which API endpoint to use
-    if (accessToken) {
-      // If we have an auth token, we can use the authenticated endpoints
+    if (accessToken && !isSearched) {
+      // Only use auth token if we're not explicitly looking for a searched summoner
       try {
         console.log("🔐 Using authenticated endpoint");
         // Get user data from authenticated endpoint

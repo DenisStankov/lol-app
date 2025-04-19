@@ -45,7 +45,7 @@ export default function SummonerProfile() {
     console.log("🔍 Fetching Summoner Data:", { gameName, tagLine, region });
 
     axios
-      .get(`/api/fetchSummoner?gameName=${gameName}&tagLine=${tagLine}&region=${region}`)
+      .get(`/api/fetchSummoner?gameName=${gameName}&tagLine=${tagLine}&region=${region}&isSearched=true`)
       .then((res) => {
         console.log("✅ Summoner data received:", res.data);
         setSummoner(res.data);
