@@ -168,8 +168,8 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
           </Select>
         </div>
 
-        {/* Search Results and Recent Searches Dropdown - Improved styling */}
-        {showResults && (
+        {/* Search Results Dropdown */}
+        {showResults && query.length >= 3 && (
           <div className="fixed inset-x-4 md:absolute md:inset-x-0 z-50 mt-2 max-h-96 overflow-y-auto bg-zinc-900 border-2 border-[#C89B3C]/30 rounded-xl shadow-2xl">
             {/* Loading indicator */}
             {loading && (
@@ -180,7 +180,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
             )}
 
             {/* Search results */}
-            {!loading && query.length >= 3 && results.length > 0 && (
+            {!loading && results.length > 0 && (
               <div className="p-3">
                 <p className="px-4 py-2 text-sm text-[#C89B3C]/80 uppercase font-semibold">Search Results</p>
                 {results.map((summoner) => (
@@ -219,46 +219,48 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                 <p className="text-sm mt-2">Try a different name or region</p>
               </div>
             )}
-
-            {/* Recent searches */}
-            {showRecentSearches && recentSearches.length > 0 && (query.length < 3 || results.length === 0) && (
-              <div className="p-3">
-                <p className="px-4 py-2 text-sm text-[#C89B3C]/80 uppercase font-semibold flex items-center">
-                  <History className="h-4 w-4 mr-1.5" />
-                  Recent Searches
-                </p>
-                {recentSearches.map((summoner) => (
-                  <div 
-                    key={summoner.puuid} 
-                    className="flex items-center gap-4 p-4 cursor-pointer hover:bg-[#C89B3C]/20 rounded-lg transition-colors"
-                    onClick={() => handleSelect(summoner, summoner.region)}
-                  >
-                    <div className="relative">
-                      <Image 
-                        src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner.profileIconId}.png`} 
-                        alt="Profile Icon" 
-                        width={48} 
-                        height={48} 
-                        className="rounded-full border-2 border-[#C89B3C]/40" 
-                      />
-                      <div className="absolute -bottom-1 -right-1 bg-zinc-800 text-xs font-bold px-1.5 py-0.5 rounded border border-[#C89B3C]/30 text-[#C89B3C]">
-                        {summoner.region.toUpperCase().replace(/[0-9]/g, '')}
-                      </div>
+          </div>
+        )}
+        
+        {/* Recent searches - Now permanently displayed below search bar */}
+        {showRecentSearches && recentSearches.length > 0 && (
+          <div className="mt-4 border-t border-[#C89B3C]/20 pt-4">
+            <p className="px-2 text-sm text-[#C89B3C]/80 uppercase font-semibold flex items-center mb-2">
+              <History className="h-4 w-4 mr-1.5" />
+              Recent Searches
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {recentSearches.map((summoner) => (
+                <div 
+                  key={summoner.puuid} 
+                  className="flex items-center gap-3 p-2 cursor-pointer hover:bg-[#C89B3C]/20 rounded-lg transition-colors"
+                  onClick={() => handleSelect(summoner, summoner.region)}
+                >
+                  <div className="relative flex-shrink-0">
+                    <Image 
+                      src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner.profileIconId}.png`} 
+                      alt="Profile Icon" 
+                      width={36} 
+                      height={36} 
+                      className="rounded-full border-2 border-[#C89B3C]/40" 
+                    />
+                    <div className="absolute -bottom-1 -right-1 bg-zinc-800 text-xs font-bold px-1 py-0 rounded border border-[#C89B3C]/30 text-[#C89B3C]">
+                      {summoner.region.toUpperCase().replace(/[0-9]/g, '')}
                     </div>
-                    <div className="flex-1">
-                      <div className="font-semibold text-white text-lg">{summoner.summonerName}</div>
-                      <div className="flex items-center text-sm text-zinc-400">
-                        <span>#{summoner.tagLine}</span>
-                        <span className="mx-2 text-zinc-600">•</span>
-                        <Clock className="h-3 w-3 mr-1 text-zinc-500" />
-                        <span>{formatTimeAgo(summoner.lastSearched)}</span>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-[#C89B3C]/70" />
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white text-base truncate">{summoner.summonerName}</div>
+                    <div className="flex items-center text-xs text-zinc-400">
+                      <span className="truncate">#{summoner.tagLine}</span>
+                      <span className="mx-1 text-zinc-600 flex-shrink-0">•</span>
+                      <Clock className="h-3 w-3 mr-0.5 text-zinc-500 flex-shrink-0" />
+                      <span className="flex-shrink-0">{formatTimeAgo(summoner.lastSearched)}</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-[#C89B3C]/70 flex-shrink-0" />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </CardContent>
