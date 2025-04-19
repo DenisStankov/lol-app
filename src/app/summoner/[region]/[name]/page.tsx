@@ -48,6 +48,7 @@ export default function SummonerProfile() {
       .get(`/api/fetchSummoner?gameName=${gameName}&tagLine=${tagLine}&region=${region}&isSearched=true`)
       .then((res) => {
         console.log("✅ Summoner data received:", res.data);
+        console.log("🖼️ Profile Icon ID from API:", res.data.profileIconId);
         setSummoner(res.data);
         setLoading(false);
       })
@@ -74,11 +75,15 @@ export default function SummonerProfile() {
               <div className="absolute -inset-1 bg-[#C89B3C]/20 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
               <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-[#C89B3C]/20">
                 <Image
-                  src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner?.profileIconId}.png`}
+                  src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner?.profileIconId || 29}.png`}
                   alt="Summoner Icon"
                   width={128}
                   height={128}
                   className="object-cover"
+                  onError={(e) => {
+                    console.log("🖼️ Image load error, using fallback");
+                    e.currentTarget.src = "https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/29.png";
+                  }}
                 />
               </div>
             </div>
