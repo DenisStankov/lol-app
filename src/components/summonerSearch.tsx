@@ -135,7 +135,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
       <CardContent className="p-4">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Input Field - Improved styling */}
-          <div className="relative w-full md:flex-[3]">
+          <div className="relative w-full md:w-4/5">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#C89B3C]" />
             <Input
               placeholder="Search summoner..."
@@ -149,7 +149,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
           {/* Region Select Dropdown - Improved styling */}
           <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger className="w-16 h-10 min-w-0 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-base font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all shrink-0">
+            <SelectTrigger className="w-full md:w-24 h-10 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-base font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
               <SelectValue placeholder="EUW" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-800 border-[#C89B3C]/30 rounded-lg">
