@@ -668,8 +668,8 @@ export default function ChampionDetailsPage() {
                         <div key={rune} className="relative group">
                           <div className="w-10 h-10 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
                             <Image
-                              src={rune}
-                              alt={rune}
+                              src={`${rune}`}
+                              alt={`${rune}`}
                               width={40}
                               height={40}
                               className="object-cover"
@@ -709,8 +709,8 @@ export default function ChampionDetailsPage() {
                         <div key={rune} className="relative group">
                           <div className="w-10 h-10 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
                             <Image
-                              src={rune}
-                              alt={rune}
+                              src={`${rune}`}
+                              alt={`${rune}`}
                               width={40}
                               height={40}
                               className="object-cover"
