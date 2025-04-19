@@ -8,7 +8,6 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/card";
 import { Input } from "@/components/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select";
-import { getProfileIconUrl } from "@/lib/riotUtils";
 
 interface Summoner {
   summonerName: string;
@@ -211,12 +210,11 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                   >
                     <div className="relative">
                       <Image 
-                        src={getProfileIconUrl(summoner.profileIconId)}
+                        src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner.profileIconId}.png`} 
                         alt="Profile Icon" 
                         width={48} 
                         height={48} 
                         className="rounded-full border-2 border-[#C89B3C]/40" 
-                        unoptimized
                       />
                       <div className="absolute -bottom-1 -right-1 bg-zinc-800 text-xs font-bold px-1.5 py-0.5 rounded border border-[#C89B3C]/30 text-[#C89B3C]">
                         {region.toUpperCase().replace(/[0-9]/g, '')}
@@ -259,12 +257,11 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                 >
                   <div className="relative flex-shrink-0">
                     <Image 
-                      src={getProfileIconUrl(summoner.profileIconId)}
+                      src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner.profileIconId}.png`} 
                       alt="Profile Icon" 
                       width={36} 
                       height={36} 
                       className="rounded-full border-2 border-[#C89B3C]/40" 
-                      unoptimized
                     />
                     <div className="absolute -bottom-1 -right-1 bg-zinc-800 text-xs font-bold px-1 py-0 rounded border border-[#C89B3C]/30 text-[#C89B3C]">
                       {summoner.region.toUpperCase().replace(/[0-9]/g, '')}
