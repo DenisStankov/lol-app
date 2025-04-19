@@ -15,14 +15,16 @@ export async function GET(request: NextRequest) {
     const params = request.nextUrl.searchParams;
     const riotId = params.get('riotId');
     const puuid = params.get('puuid');
+    const gameName = params.get('gameName');
+    const tagLine = params.get('tagLine');
     const region = params.get('region') || 'euw1'; // Default to EUW if not specified
     
-    console.log("🔍 Query params:", { riotId, puuid, region });
+    console.log("🔍 Query params:", { riotId, puuid, gameName, tagLine, region });
     
-    if (!riotId && !puuid) {
+    if (!riotId && !puuid && (!gameName || !tagLine)) {
       console.log("❌ Missing required parameters");
       return NextResponse.json(
-        { error: 'Missing required parameter: riotId or puuid' }, 
+        { error: 'Missing required parameter: riotId or puuid or (gameName and tagLine)' }, 
         { status: 400 }
       );
     }
@@ -150,6 +152,51 @@ export async function GET(request: NextRequest) {
         );
         summonerData = response.data;
         console.log("📊 Summoner data by PUUID:", summonerData);
+      } else if (gameName && tagLine) {
+        // Fetch by gameName and tagLine
+        console.log("🔎 Fetching by Riot ID:", `${gameName}#${tagLine}`);
+        try {
+          // First determine the routing value based on region
+          const routingValue = getRoutingValue(region);
+          
+          // Get PUUID from the Account v1 API
+          const accountResponse = await axios.get(
+            `https://${routingValue}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+            {
+              headers: {
+                'X-Riot-Token': process.env.RIOT_API_KEY || ''
+              }
+            }
+          );
+          
+          if (accountResponse.data && accountResponse.data.puuid) {
+            // Now get the summoner data using the PUUID
+            const summonerResponse = await axios.get(
+              `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountResponse.data.puuid}`,
+              {
+                headers: {
+                  'X-Riot-Token': process.env.RIOT_API_KEY || ''
+                }
+              }
+            );
+            
+            summonerData = {
+              ...summonerResponse.data,
+              summonerName: gameName,
+              tagLine: tagLine
+            };
+            
+            console.log("📊 Summoner data by Riot ID:", summonerData);
+          } else {
+            throw new Error("Could not find account data");
+          }
+        } catch (error) {
+          console.error("❌ Error fetching by Riot ID:", error instanceof Error ? error.message : String(error));
+          return NextResponse.json(
+            { error: 'Summoner not found' },
+            { status: 404 }
+          );
+        }
       } else {
         // We don't have a direct endpoint for Riot ID from query params, so let's at least return the Riot ID
         console.log("⚠️ Using mock data for Riot ID:", riotId);
@@ -177,4 +224,24 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * Helper function to get the routing value for Riot API based on region
+ */
+function getRoutingValue(region: string): string {
+  const routingMap: Record<string, string> = { 
+    euw1: "europe",
+    eun1: "europe",
+    tr1: "europe",
+    ru: "europe",
+    na1: "americas",
+    br1: "americas",
+    la1: "americas",
+    la2: "americas",
+    kr: "asia",
+    jp1: "asia",
+  };
+  
+  return routingMap[region] || "europe";
 }
