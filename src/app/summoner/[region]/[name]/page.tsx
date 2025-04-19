@@ -149,7 +149,7 @@ export default function SummonerProfile() {
                         width={64}
                         height={64}
                         className="w-full h-full object-cover"
-                        onError={(_e) => {
+                        onError={() => {
                           console.error("Failed to load champion icon");
                           // No replacement image needed as the container has a background
                         }}
