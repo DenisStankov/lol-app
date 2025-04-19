@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { SearchIcon, Filter, ChevronDown, ArrowUpDown, Star } from "lucide-react";
+import { SearchIcon, ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/input";
 import { Button } from "@/components/button";
 import Navigation from "@/components/navigation";
-import Image from "next/image";
 import Link from "next/link";
 
 interface Champion {
@@ -38,7 +37,7 @@ export default function ChampionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<string | null>(null);
-  const [version, setVersion] = useState("13.24.1");
+  const [latestVersion, setLatestVersion] = useState("13.24.1");
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [featured, setFeatured] = useState<Champion | null>(null);
@@ -53,7 +52,7 @@ export default function ChampionsPage() {
         // Get latest version
         const versionResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json");
         const latestVersion = versionResponse.data[0];
-        setVersion(latestVersion);
+        setLatestVersion(latestVersion);
         
         // Fetch champions data
         const response = await axios.get(
@@ -298,7 +297,7 @@ export default function ChampionsPage() {
       <footer className="border-t border-zinc-800/50 mt-16">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <p className="text-center text-zinc-500 text-sm">
-            LoLytics isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.
+            LoLytics isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.
           </p>
         </div>
       </footer>
