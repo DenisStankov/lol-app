@@ -170,7 +170,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
         {/* Search Results and Recent Searches Dropdown - Improved styling */}
         {showResults && (
-          <div className="absolute z-20 left-0 right-0 mt-3 max-h-96 overflow-y-auto bg-zinc-900 border-2 border-[#C89B3C]/30 rounded-xl shadow-2xl">
+          <div className="fixed inset-x-4 md:absolute md:inset-x-0 z-50 mt-2 max-h-96 overflow-y-auto bg-zinc-900 border-2 border-[#C89B3C]/30 rounded-xl shadow-2xl">
             {/* Loading indicator */}
             {loading && (
               <div className="p-6 text-center">
