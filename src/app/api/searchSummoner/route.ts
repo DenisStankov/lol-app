@@ -42,14 +42,20 @@ export async function GET(req: Request) {
   try {
     console.log(`🔍 Searching for: ${query} in ${region} (Riot API Region: ${riotRegion})`);
 
-    // ✅ Step 1: Split Summoner Name and Tagline
-    const [gameName, tagLine] = query.includes("#") ? query.split("#") : [query, ""];
-    if (!gameName || !tagLine) {
-      console.log("❌ Error: Missing tagline in query:", query);
-      return NextResponse.json({ 
-        error: "Summoner name must include tagline (e.g., ExampleUser#EUW).",
-        message: "Please format your search as 'Username#Tagline'"
-      }, { status: 400 });
+    // ✅ Step 1: Split Summoner Name and Tagline or use defaults
+    let gameName, tagLine;
+    
+    if (query.includes("#")) {
+      [gameName, tagLine] = query.split("#");
+    } else {
+      // If no tagline is provided, use the name as gameName and region as tagLine
+      gameName = query;
+      tagLine = region.toUpperCase().replace(/[0-9]/g, '');
+      console.log(`ℹ️ No tagline provided, using default: ${gameName}#${tagLine}`);
+    }
+    
+    if (!gameName) {
+      return NextResponse.json({ error: "Summoner name is required." }, { status: 400 });
     }
 
     // ✅ Step 2: Get Account Info from Riot API
