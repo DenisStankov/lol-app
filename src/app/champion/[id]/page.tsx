@@ -59,6 +59,7 @@ interface ChampionData {
     costBurn: string
     range: number[]
     rangeBurn: string
+    tags: string[]
     image: {
       full: string
     }
