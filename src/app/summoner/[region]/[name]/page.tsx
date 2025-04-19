@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/card";
 import { Crown, Swords, Target, Trophy } from "lucide-react";
-import Image from "next/image";
 import axios from "axios";
 import Navigation from "@/components/navigation";
 import ProfileIcon from "@/components/ProfileIcon";

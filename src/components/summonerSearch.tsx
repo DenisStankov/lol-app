@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Search, History, ChevronRight, Clock, User } from "lucide-react";
-import Image from "next/image";
 import { Card, CardContent } from "@/components/card";
 import { Input } from "@/components/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select";

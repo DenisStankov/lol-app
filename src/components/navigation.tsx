@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import axios from "axios"
 import ProfileIcon from "@/components/ProfileIcon"
 
@@ -196,20 +196,6 @@ export default function Navigation() {
     console.log("No valid name found, using default");
     return "Summoner";
   }
-
-  // Utility function to get the profile icon URL
-  const getProfileIconUrl = (iconId: number) => {
-    try {
-      if (!iconId || iconId < 0) {
-        // No logging, just return default
-        return '/api/profileIcon?iconId=29';
-      }
-      return `/api/profileIcon?iconId=${iconId}`;
-    } catch {
-      // No logging, just return default
-      return '/api/profileIcon?iconId=29';
-    }
-  };
 
   return (
     <nav className="bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-zinc-800/50">
