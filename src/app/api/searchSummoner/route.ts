@@ -45,7 +45,11 @@ export async function GET(req: Request) {
     // ✅ Step 1: Split Summoner Name and Tagline
     const [gameName, tagLine] = query.includes("#") ? query.split("#") : [query, ""];
     if (!gameName || !tagLine) {
-      return NextResponse.json({ error: "Summoner name must include tagline (e.g., ExampleUser#EUW)." }, { status: 400 });
+      console.log("❌ Error: Missing tagline in query:", query);
+      return NextResponse.json({ 
+        error: "Summoner name must include tagline (e.g., ExampleUser#EUW).",
+        message: "Please format your search as 'Username#Tagline'"
+      }, { status: 400 });
     }
 
     // ✅ Step 2: Get Account Info from Riot API

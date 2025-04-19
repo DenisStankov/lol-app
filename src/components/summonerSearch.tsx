@@ -33,6 +33,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
   const [recentSearches, setRecentSearches] = useState<RecentSummoner[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [searchError, setSearchError] = useState("");
   const router = useRouter();
 
   // Load recent searches from localStorage
@@ -54,9 +55,17 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
   const fetchSummoners = useCallback(async () => {
     if (query.length < 3) {
       setResults([]);
+      setSearchError("");
       return;
     }
 
+    if (!query.includes("#")) {
+      setSearchError("Please enter summoner name with tagline (e.g., Username#EUW)");
+      setResults([]);
+      return;
+    }
+    
+    setSearchError("");
     setLoading(true);
 
     try {
@@ -65,6 +74,11 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
       setShowResults(true);
     } catch (err) {
       console.error("❌ Search Error:", err);
+      if (axios.isAxiosError(err) && err.response?.status === 400) {
+        setSearchError(err.response.data.message || "Please enter a valid summoner name with tagline (e.g., Username#EUW)");
+      } else {
+        setSearchError("Summoner not found. Try a different name or region.");
+      }
       setResults([]);
     } finally {
       setLoading(false);
@@ -138,13 +152,18 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
           <div className="relative w-full md:w-4/5">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#C89B3C]" />
             <Input
-              placeholder="Search summoner..."
+              placeholder="Search summoner... (e.g., Username#EUW)"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={handleInputFocus}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
               className="pl-12 pr-4 py-2.5 h-10 w-full bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C] focus:border-[#C89B3C]/70 text-base rounded-xl font-medium tracking-wide shadow-inner"
             />
+            {searchError && (
+              <div className="absolute left-0 right-0 mt-1 px-2 py-1 text-sm text-red-400 bg-red-900/30 rounded border border-red-500/30">
+                {searchError}
+              </div>
+            )}
           </div>
 
           {/* Region Select Dropdown - Improved styling */}
