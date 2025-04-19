@@ -1,0 +1,20 @@
+Create a modern, dark-themed League of Legends champions page with the following elements:
+
+1. A sleek navigation bar at the top with "LoLytics" logo
+2. A dark header section with gold/bronze accents showing "CHAMPIONS" title
+3. A search bar and role filter buttons (Tank, Fighter, Mage, Assassin, Marksman, Support)
+4. A responsive grid layout showing champion cards with:
+   - Champion splash art as background
+   - Champion name in gold/bronze text
+   - Champion title in smaller light gray text
+   - Role tags in small pill badges
+   - Subtle hover effects with a gold/bronze border glow
+
+5. Color palette:
+   - Dark backgrounds: #0A1428, #091428, #1E2328
+   - Gold/bronze accents: #C89B3C, #785A28
+   - Text colors: white, light gray, gold
+
+The design should feel premium and match the League of Legends aesthetic with clean, modern UI elements. Show approximately 15-20 champions in the grid to demonstrate the layout.
+
+Make it photorealistic and high-fidelity, like a professional UI design for a gaming website. 
