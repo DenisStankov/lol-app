@@ -759,7 +759,7 @@ export default function ChampionDetailsPage() {
               <div className="space-y-4">
                 {championData.spells.map((counter) => (
                   <Link 
-                    href={`/champion/${counter.id}?role=${counter.tags[0]}`} 
+                    href={`/champion/${counter.id}`}
                     key={counter.id}
                     className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-800"
                   >
@@ -775,7 +775,7 @@ export default function ChampionDetailsPage() {
                       </div>
                       <div>
                         <p className="text-white font-medium">{counter.name}</p>
-                        <p className="text-zinc-400 text-xs">{roleData[counter.tags[0]]?.label || counter.tags[0]}</p>
+                        <p className="text-zinc-400 text-xs">Counter</p>
                       </div>
                     </div>
                     <div className="text-red-400 font-medium">{championData.info.difficulty.toFixed(1)}%</div>
@@ -793,7 +793,7 @@ export default function ChampionDetailsPage() {
                 <div className="space-y-4">
                   {championData.spells.map((synergyPartner) => (
                     <Link 
-                      href={`/champion/${synergyPartner.id}?role=${synergyPartner.tags[0]}`} 
+                      href={`/champion/${synergyPartner.id}`}
                       key={synergyPartner.id}
                       className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-800"
                     >
@@ -809,7 +809,7 @@ export default function ChampionDetailsPage() {
                         </div>
                         <div>
                           <p className="text-white font-medium">{synergyPartner.name}</p>
-                          <p className="text-zinc-400 text-xs">{roleData[synergyPartner.tags[0]]?.label || synergyPartner.tags[0]}</p>
+                          <p className="text-zinc-400 text-xs">Synergy</p>
                         </div>
                       </div>
                       <div className="text-green-400 font-medium">{championData.info.difficulty.toFixed(1)}%</div>
