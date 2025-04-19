@@ -54,8 +54,11 @@ interface ChampionData {
     tooltip: string
     maxrank: number
     cooldown: number[]
+    cooldownBurn: string
     cost: number[]
+    costBurn: string
     range: number[]
+    rangeBurn: string
     image: {
       full: string
     }
