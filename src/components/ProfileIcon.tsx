@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import axios from 'axios';
 
 interface ProfileIconProps {
   iconId: number | string | undefined;
@@ -21,18 +22,50 @@ export default function ProfileIcon({
   const [src, setSrc] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [latestVersion, setLatestVersion] = useState<string>('13.24.1'); // Default version
   
+  // First, fetch the latest version from Riot
+  useEffect(() => {
+    const fetchLatestVersion = async () => {
+      try {
+        const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
+        if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+          setLatestVersion(response.data[0]);
+          console.log(`✅ Fetched latest DDragon version: ${response.data[0]}`);
+        }
+      } catch (error) {
+        console.error('Failed to fetch latest DDragon version, using default', error);
+      }
+    };
+    
+    fetchLatestVersion();
+  }, []);
+  
+  // Then use the version to build the icon URL
   useEffect(() => {
     // Reset states when iconId changes
     setIsLoading(true);
     setHasError(false);
     
-    // Use the id provided or fallback
-    const id = iconId || fallbackIcon;
+    if (!iconId && !fallbackIcon) {
+      setHasError(true);
+      setIsLoading(false);
+      return;
+    }
     
-    // Set the API URL
-    setSrc(`/api/profileIcon?iconId=${id}`);
-  }, [iconId, fallbackIcon]);
+    // Ensure iconId is a number (not a string "null" or "undefined")
+    const numericIconId = iconId && typeof iconId !== 'undefined' && iconId !== 'null' && iconId !== 'undefined' 
+      ? iconId 
+      : fallbackIcon;
+      
+    // Log for debugging
+    console.log(`🖼️ Loading profile icon: ${numericIconId} using version ${latestVersion}`);
+    
+    // Create direct DDragon URL
+    const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/profileicon/${numericIconId}.png`;
+    setSrc(iconUrl);
+    
+  }, [iconId, fallbackIcon, latestVersion]);
 
   return (
     <div className={`relative ${className}`}>
@@ -53,13 +86,18 @@ export default function ProfileIcon({
         onLoad={() => {
           setIsLoading(false);
           setHasError(false);
+          console.log(`✅ Successfully loaded icon: ${iconId || fallbackIcon}`);
         }}
-        onError={() => {
+        onError={(e) => {
+          console.error(`❌ Failed to load icon: ${iconId}`, e);
           setIsLoading(false);
           setHasError(true);
-          // Try the fallback icon if the original one failed
+          
+          // If the current icon failed and it's not already the fallback,
+          // try the fallback icon instead
           if (iconId !== fallbackIcon) {
-            setSrc(`/api/profileIcon?iconId=${fallbackIcon}`);
+            console.log(`⚠️ Trying fallback icon: ${fallbackIcon}`);
+            setSrc(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/profileicon/${fallbackIcon}.png`);
           }
         }}
       />

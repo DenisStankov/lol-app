@@ -199,10 +199,13 @@ export async function GET(request: NextRequest) {
             console.log("📊 Summoner data by gameName/tagLine:", summonerData);
             console.log("🖼️ Profile Icon ID:", summonerData.profileIconId);
             
-            // Ensure profileIconId exists (default to 29 if missing)
-            if (!summonerData.profileIconId) {
-              console.log("⚠️ No profileIconId found, using default");
+            // Ensure profileIconId exists and is a valid number (default to 29 if missing or invalid)
+            if (!summonerData.profileIconId || typeof summonerData.profileIconId !== 'number' || isNaN(summonerData.profileIconId)) {
+              console.log("⚠️ Invalid profileIconId found, using default");
               summonerData.profileIconId = 29;
+            } else {
+              // Ensure it's a number, not a string
+              summonerData.profileIconId = Number(summonerData.profileIconId);
             }
           }
         } catch (error) {

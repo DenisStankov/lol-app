@@ -94,7 +94,7 @@ export default function SummonerProfile() {
                 </div>
                 {process.env.NODE_ENV === 'development' && (
                   <div className="text-xs text-zinc-500">
-                    Icon ID: {summoner?.profileIconId || 'Not available'}
+                    Icon ID: {summoner?.profileIconId !== undefined ? summoner.profileIconId : 'Not available'}
                   </div>
                 )}
               </div>
