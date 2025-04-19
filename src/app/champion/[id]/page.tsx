@@ -236,9 +236,9 @@ export default function ChampionDetailsPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column */}
-          <div className="col-span-1">
+          <div className="col-span-1 space-y-6">
             {/* Champion Stats */}
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 mb-6">
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
               <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">Champion Stats</h3>
               
               <div className="space-y-4">
@@ -369,12 +369,190 @@ export default function ChampionDetailsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Runes Section */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-[#C89B3C]">Runes</h3>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setSelectedRuneBuild(num - 1)}
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                        selectedRuneBuild === num - 1
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex gap-3 items-start mb-3 p-2 bg-zinc-800/30 rounded-md">
+                  <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500 border border-blue-400 flex items-center justify-center text-white text-lg font-bold">
+                    ?
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{championData.name}</p>
+                    <div className="flex gap-2 items-center text-sm">
+                      <span className="text-green-400">6.0% WR</span>
+                      <span className="text-zinc-500">•</span>
+                      <span className="text-blue-400">6.0% PR</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Primary Runes */}
+                <div className="mb-4">
+                  <div className="grid grid-cols-7 gap-1 mb-3">
+                    {[...Array(7)].map((_, i) => (
+                      <div key={`prim-${i}`} className="aspect-square rounded-md bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 mb-3">
+                    {[...Array(7)].map((_, i) => (
+                      <div key={`prim2-${i}`} className="aspect-square rounded-md bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 mb-3">
+                    {[...Array(7)].map((_, i) => (
+                      <div key={`prim3-${i}`} className="aspect-square rounded-md bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={`prim4-${i}`} className="aspect-square rounded-md bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Secondary Runes */}
+                <div className="mb-3 mt-6">
+                  <div className="flex gap-3 items-start mb-3 p-2 bg-zinc-800/30 rounded-md">
+                    <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500 border border-blue-400 flex items-center justify-center text-white text-lg font-bold">
+                      ?
+                    </div>
+                    <p className="text-white font-medium">{championData.name}</p>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 mb-3">
+                    {[...Array(7)].map((_, i) => (
+                      <div key={`sec-${i}`} className="aspect-square rounded-md bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 mb-3">
+                    {[...Array(7)].map((_, i) => (
+                      <div key={`sec2-${i}`} className="aspect-square rounded-md bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1 mb-3">
+                    {[...Array(7)].map((_, i) => (
+                      <div key={`sec3-${i}`} className="aspect-square rounded-md bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={`sec4-${i}`} className="aspect-square rounded-md bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Shards */}
+                <div className="mt-4">
+                  <p className="text-zinc-300 font-semibold mb-2 text-sm">Shards</p>
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="bg-zinc-800 rounded-md p-2 text-center">
+                      <p className="text-zinc-400 mb-1">Offense</p>
+                      <p className="text-white">8 / 7 / 6 / 5 / 4</p>
+                    </div>
+                    <div className="bg-zinc-800 rounded-md p-2 text-center">
+                      <p className="text-zinc-400 mb-1">Flex</p>
+                      <p className="text-white">8 / 7 / 6 / 5 / 4</p>
+                    </div>
+                    <div className="bg-zinc-800 rounded-md p-2 text-center">
+                      <p className="text-zinc-400 mb-1">Defense</p>
+                      <p className="text-white">8 / 7 / 6 / 5 / A</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Hard Counters Section */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">Hard Counters</h3>
+              <div className="space-y-2">
+                {['Switcheroo!', 'Zap!', 'Flame Chompers!', 'Super Mega Death Rocket!'].map((name, index) => (
+                  <div 
+                    key={`counter-${index}`}
+                    className="flex items-center justify-between bg-zinc-800/60 p-3 rounded-md hover:bg-zinc-800 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500/30 border border-blue-500/60 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">{name}</p>
+                        <p className="text-zinc-400 text-xs">Counter</p>
+                      </div>
+                    </div>
+                    <div className="text-red-400 font-medium">6.0%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Best ADCs/Supports */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
+              <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">
+                Best {championData.tags.includes("MARKSMAN") ? "Supports" : "ADCs"}
+              </h3>
+              <div className="space-y-2">
+                {['Switcheroo!', 'Zap!', 'Flame Chompers!', 'Super Mega Death Rocket!'].map((name, index) => (
+                  <div 
+                    key={`synergy-${index}`}
+                    className="flex items-center justify-between bg-zinc-800/60 p-3 rounded-md hover:bg-zinc-800 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500/30 border border-blue-500/60 flex items-center justify-center">
+                        <div className="text-blue-400 text-lg font-bold">?</div>
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">{name}</p>
+                        <p className="text-zinc-400 text-xs">Synergy</p>
+                      </div>
+                    </div>
+                    <div className="text-green-400 font-medium">6.0%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           
-          {/* Main content - left 2/3 */}
-          <div className="lg:col-span-2 space-y-8">
+          {/* Main content - right 2/3 */}
+          <div className="lg:col-span-2 space-y-6">
             {/* Lore Section */}
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 mb-8">
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
               <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">Lore</h3>
               <p className="text-zinc-300 leading-relaxed">{championData.lore}</p>
             </div>
@@ -466,354 +644,10 @@ export default function ChampionDetailsPage() {
               </div>
             </div>
             
-            {/* Item builds */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
-              <h2 className="text-xl font-bold mb-4 text-white">Recommended Build</h2>
-              
-              {/* Starting items */}
-              <div className="mb-6">
-                <h3 className="text-zinc-300 font-semibold mb-3 text-sm uppercase tracking-wider">Starting Items</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {championData.spells.map((item) => (
-                    <div key={item.id} className="relative group">
-                      <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden border border-zinc-700">
-                        <Image
-                          src={item.image.full}
-                          alt={item.name}
-                          width={48}
-                          height={48}
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="absolute bottom-0 right-0 bg-green-900/80 text-green-300 text-[10px] px-1 rounded">
-                        {championData.info.difficulty.toFixed(1)}%
-                      </div>
-                      
-                      {/* Tooltip */}
-                      <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-48 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-zinc-400 text-xs mt-1">{item.description}</p>
-                        <div className="text-amber-400 text-xs mt-1">Cost: {item.cost.join(" / ")}</div>
-                        <div className="flex justify-between mt-1 text-xs">
-                          <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
-                          <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Core build */}
-              <div className="mb-6">
-                <h3 className="text-zinc-300 font-semibold mb-3 text-sm uppercase tracking-wider">Core Items</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {championData.spells.map((item) => (
-                    <div key={item.id} className="relative group">
-                      <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden border border-zinc-700">
-                        <Image
-                          src={item.image.full}
-                          alt={item.name}
-                          width={48}
-                          height={48}
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="absolute bottom-0 right-0 bg-green-900/80 text-green-300 text-[10px] px-1 rounded">
-                        {championData.info.difficulty.toFixed(1)}%
-                      </div>
-                      
-                      {/* Tooltip */}
-                      <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-48 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-zinc-400 text-xs mt-1">{item.description}</p>
-                        <div className="text-amber-400 text-xs mt-1">Cost: {item.cost.join(" / ")}</div>
-                        <div className="flex justify-between mt-1 text-xs">
-                          <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
-                          <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Boots */}
-              <div className="mb-6">
-                <h3 className="text-zinc-300 font-semibold mb-3 text-sm uppercase tracking-wider">Boots</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {championData.spells.map((item) => (
-                    <div key={item.id} className="relative group">
-                      <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden border border-zinc-700">
-                        <Image
-                          src={item.image.full}
-                          alt={item.name}
-                          width={48}
-                          height={48}
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="absolute bottom-0 right-0 bg-green-900/80 text-green-300 text-[10px] px-1 rounded">
-                        {championData.info.difficulty.toFixed(1)}%
-                      </div>
-                      
-                      {/* Tooltip */}
-                      <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-48 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-zinc-400 text-xs mt-1">{item.description}</p>
-                        <div className="text-amber-400 text-xs mt-1">Cost: {item.cost.join(" / ")}</div>
-                        <div className="flex justify-between mt-1 text-xs">
-                          <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
-                          <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Situational items */}
-              <div>
-                <h3 className="text-zinc-300 font-semibold mb-3 text-sm uppercase tracking-wider">Situational Items</h3>
-                <div className="flex gap-2 flex-wrap">
-                  {championData.spells.map((item) => (
-                    <div key={item.id} className="relative group">
-                      <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden border border-zinc-700">
-                        <Image
-                          src={item.image.full}
-                          alt={item.name}
-                          width={48}
-                          height={48}
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="absolute bottom-0 right-0 bg-green-900/80 text-green-300 text-[10px] px-1 rounded">
-                        {championData.info.difficulty.toFixed(1)}%
-                      </div>
-                      
-                      {/* Tooltip */}
-                      <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-48 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-sm pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="font-semibold">{item.name}</p>
-                        <p className="text-zinc-400 text-xs mt-1">{item.description}</p>
-                        <div className="text-amber-400 text-xs mt-1">Cost: {item.cost.join(" / ")}</div>
-                        <div className="flex justify-between mt-1 text-xs">
-                          <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
-                          <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Sidebar - right 1/3 */}
-          <div className="space-y-8">
-            {/* Rune builds */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
+            {/* Skill Order Section */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">Runes</h2>
-                <div className="flex gap-2">
-                  {championData.spells.map((build, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedRuneBuild(index)}
-                      className={`w-6 h-6 rounded-full ${
-                        selectedRuneBuild === index
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
-                      } flex items-center justify-center text-xs`}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {championData.spells[selectedRuneBuild] && (
-                <div>
-                  <div className="flex gap-2 items-start mb-4">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-800">
-                      <Image
-                        src={championData.spells[selectedRuneBuild].image.full}
-                        alt={championData.spells[selectedRuneBuild].name}
-                        width={48}
-                        height={48}
-                        className="object-cover"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-white font-medium">{championData.spells[selectedRuneBuild].name}</p>
-                      <div className="flex gap-1 items-center text-sm text-zinc-400">
-                        <span className="text-green-400">{championData.info.difficulty.toFixed(1)}% WR</span>
-                        <span>•</span>
-                        <span>{championData.info.difficulty.toFixed(1)}% PR</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Primary runes */}
-                  <div className="mb-6">
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {championData.spells[selectedRuneBuild].cooldown.map((rune) => (
-                        <div key={rune} className="relative group">
-                          <div className="w-10 h-10 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
-                            <Image
-                              src={`${rune}`}
-                              alt={`${rune}`}
-                              width={40}
-                              height={40}
-                              className="object-cover"
-                            />
-                          </div>
-                          
-                          {/* Tooltip */}
-                          <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-40 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-xs pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p className="font-semibold">{rune}</p>
-                            <div className="flex justify-between mt-1">
-                              <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
-                              <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Secondary path */}
-                  <div className="mb-6">
-                    <div className="flex gap-2 items-start mb-2">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-800">
-                        <Image
-                          src={championData.spells[selectedRuneBuild].image.full}
-                          alt={championData.spells[selectedRuneBuild].name}
-                          width={40}
-                          height={40}
-                          className="object-cover"
-                        />
-                      </div>
-                      <p className="text-white font-medium">{championData.spells[selectedRuneBuild].name}</p>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {championData.spells[selectedRuneBuild].cooldown.map((rune) => (
-                        <div key={rune} className="relative group">
-                          <div className="w-10 h-10 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700">
-                            <Image
-                              src={`${rune}`}
-                              alt={`${rune}`}
-                              width={40}
-                              height={40}
-                              className="object-cover"
-                            />
-                          </div>
-                          
-                          {/* Tooltip */}
-                          <div className="absolute left-1/2 bottom-full mb-2 -translate-x-1/2 w-40 bg-zinc-800 border border-zinc-700 rounded-md p-2 z-30 text-white text-xs pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p className="font-semibold">{rune}</p>
-                            <div className="flex justify-between mt-1">
-                              <span className="text-green-400">Win: {championData.info.difficulty.toFixed(1)}%</span>
-                              <span className="text-blue-400">Pick: {championData.info.difficulty.toFixed(1)}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  {/* Shards */}
-                  <div>
-                    <p className="text-zinc-300 font-semibold mb-2 text-sm">Shards</p>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="bg-zinc-800 rounded-md p-2 text-center">
-                        <p className="text-zinc-400 mb-1">Offense</p>
-                        <p className="text-white">{championData.spells[selectedRuneBuild].cooldown.join(" / ")}</p>
-                      </div>
-                      <div className="bg-zinc-800 rounded-md p-2 text-center">
-                        <p className="text-zinc-400 mb-1">Flex</p>
-                        <p className="text-white">{championData.spells[selectedRuneBuild].cooldown.join(" / ")}</p>
-                      </div>
-                      <div className="bg-zinc-800 rounded-md p-2 text-center">
-                        <p className="text-zinc-400 mb-1">Defense</p>
-                        <p className="text-white">{championData.spells[selectedRuneBuild].cooldown.join(" / ")}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Counters */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
-              <h2 className="text-xl font-bold mb-4 text-white">Hard Counters</h2>
-              <div className="space-y-4">
-                {championData.spells.map((counter) => (
-                  <Link 
-                    href={`/champion/${counter.id}`}
-                    key={counter.id}
-                    className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-800"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-700">
-                        <Image
-                          src={counter.image.full}
-                          alt={counter.name}
-                          width={40}
-                          height={40}
-                          className="object-cover"
-                        />
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">{counter.name}</p>
-                        <p className="text-zinc-400 text-xs">Counter</p>
-                      </div>
-                    </div>
-                    <div className="text-red-400 font-medium">{championData.info.difficulty.toFixed(1)}%</div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-            
-            {/* Synergies (only for ADC/Support) */}
-            {championData.spells.map((synergyChamp) => (
-              <div key={synergyChamp.id} className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
-                <h2 className="text-xl font-bold mb-4 text-white">
-                  {championData.tags[0] === "BOTTOM" ? "Best Supports" : "Best ADCs"}
-                </h2>
-                <div className="space-y-4">
-                  {championData.spells.map((synergyPartner) => (
-                    <Link 
-                      href={`/champion/${synergyPartner.id}`}
-                      key={synergyPartner.id}
-                      className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-800"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-700">
-                          <Image
-                            src={synergyPartner.image.full}
-                            alt={synergyPartner.name}
-                            width={40}
-                            height={40}
-                            className="object-cover"
-                          />
-                        </div>
-                        <div>
-                          <p className="text-white font-medium">{synergyPartner.name}</p>
-                          <p className="text-zinc-400 text-xs">Synergy</p>
-                        </div>
-                      </div>
-                      <div className="text-green-400 font-medium">{championData.info.difficulty.toFixed(1)}%</div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-            
-            {/* Skill order */}
-            <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">Skill Order</h2>
+                <h2 className="text-xl font-bold text-[#C89B3C]">Skill Order</h2>
                 <button className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
                   <Info size={14} />
                   <span>Tips</span>
