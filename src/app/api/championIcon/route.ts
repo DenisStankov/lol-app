@@ -11,14 +11,10 @@ export async function GET(req: NextRequest) {
   // Try fetching from different versions until one works
   for (const version of VERSIONS) {
     try {
-      console.log(`Attempting to fetch champion ${championId} from version ${version}`);
-      
       const response = await axios.get(
         `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championId}.png`, 
         { responseType: 'arraybuffer' }
       );
-      
-      console.log(`✅ Successfully fetched champion ${championId} from version ${version}`);
       
       // Return the image with appropriate headers
       return new NextResponse(response.data, {
@@ -28,15 +24,13 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch (error) {
-      console.error(`❌ Failed to fetch champion ${championId} from version ${version}:`, 
-        error instanceof Error ? error.message : String(error));
+      // Silently continue to the next version without logging error
       // Continue to the next version
     }
   }
   
-  // If all versions fail, try to return a default champion
+  // If all versions fail, try to return a default champion (Aatrox)
   try {
-    console.log('Falling back to default champion icon (Aatrox)');
     const fallbackResponse = await axios.get(
       'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/Aatrox.png',
       { responseType: 'arraybuffer' }
@@ -49,8 +43,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ Even fallback champion icon failed:', 
-      error instanceof Error ? error.message : String(error));
+    // Silently catch the error without logging
     
     // Return 404 if everything fails
     return NextResponse.json({ error: 'Champion icon not found' }, { status: 404 });

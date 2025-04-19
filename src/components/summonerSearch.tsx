@@ -45,7 +45,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
           setRecentSearches(parsed.slice(0, 5)); // Show top 5 most recent
         }
       } catch (err) {
-        console.error("Failed to load recent searches", err);
+        // Silently handle error
       }
     }
   }, [showRecentSearches]);

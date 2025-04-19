@@ -6,19 +6,15 @@ const VERSIONS = ['13.24.1', '13.23.1', '13.22.1', '13.10.1', '12.23.1'];
 
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
-  const iconId = searchParams.get('iconId') || '29'; // Default to icon 29 if none provided
+  const iconId = searchParams.get('iconId') || '1'; // Default to icon 1 if none provided
   
   // Try fetching from different versions until one works
   for (const version of VERSIONS) {
     try {
-      console.log(`Attempting to fetch icon ${iconId} from version ${version}`);
-      
       const response = await axios.get(
         `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${iconId}.png`, 
         { responseType: 'arraybuffer' }
       );
-      
-      console.log(`✅ Successfully fetched icon ${iconId} from version ${version}`);
       
       // Return the image with appropriate headers
       return new NextResponse(response.data, {
@@ -28,17 +24,14 @@ export async function GET(req: NextRequest) {
         },
       });
     } catch (error) {
-      console.error(`❌ Failed to fetch icon ${iconId} from version ${version}:`, 
-        error instanceof Error ? error.message : String(error));
-      // Continue to the next version
+      // Silently continue to the next version without logging error
     }
   }
   
-  // If all versions fail, try to return the default icon
+  // If all versions fail, try to return a default icon (1)
   try {
-    console.log('Falling back to default icon 29');
     const fallbackResponse = await axios.get(
-      'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png',
+      'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/1.png',
       { responseType: 'arraybuffer' }
     );
     
@@ -49,8 +42,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ Even fallback icon failed:', 
-      error instanceof Error ? error.message : String(error));
+    // Silently catch the error without logging
     
     // Return 404 if everything fails
     return NextResponse.json({ error: 'Profile icon not found' }, { status: 404 });

@@ -197,24 +197,19 @@ export default function Navigation() {
     return "Summoner";
   }
 
-  // Get profile icon URL
+  // Utility function to get the profile icon URL
   const getProfileIconUrl = (iconId: number) => {
     try {
-      // Make sure we have a valid icon ID
-      if (!iconId || isNaN(iconId)) {
-        console.error("Invalid profile icon ID:", iconId);
-        return null;
+      if (!iconId || iconId < 0) {
+        // No logging, just return default
+        return 'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png';
       }
-      
-      // Use default Data Dragon URL format
-      const url = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/profileicon/${iconId}.png`;
-      console.log("Profile icon URL:", url);
-      return url;
+      return `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${iconId}.png`;
     } catch (error) {
-      console.error("Error generating profile icon URL:", error);
-      return null;
+      // No logging, just return default
+      return 'https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png';
     }
-  }
+  };
 
   return (
     <nav className="bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-zinc-800/50">
@@ -258,8 +253,7 @@ export default function Navigation() {
                           alt={getDisplayName()} 
                           className="bg-[#0A1428]"
                           onError={(e) => {
-                            console.error("Failed to load profile icon:", user.profileIconId);
-                            console.error("Image error event:", e);
+                            // Silently handle image loading error
                             // Manually fallback to initials by removing the image source
                             e.currentTarget.src = '';
                           }}
@@ -361,8 +355,7 @@ export default function Navigation() {
                           alt={getDisplayName()}
                           className="bg-[#0A1428]"
                           onError={(e) => {
-                            console.error("Failed to load profile icon:", user.profileIconId);
-                            console.error("Image error event:", e);
+                            // Silently handle image loading error
                             // Manually fallback to initials by removing the image source
                             e.currentTarget.src = '';
                           }}
