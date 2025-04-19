@@ -51,12 +51,12 @@ export default function ChampionsPage() {
       try {
         // Get latest version
         const versionResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json");
-        const latestVersion = versionResponse.data[0];
-        setLatestVersion(latestVersion);
+        const fetchedVersion = versionResponse.data[0];
+        setLatestVersion(fetchedVersion);
         
         // Fetch champions data
         const response = await axios.get(
-          `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`
+          `https://ddragon.leagueoflegends.com/cdn/${fetchedVersion}/data/en_US/champion.json`
         );
         
         // Convert object of champions to array
@@ -131,6 +131,13 @@ export default function ChampionsPage() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <Navigation />
+      
+      {/* Version badge for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 bg-zinc-800 text-[#C89B3C] px-3 py-1 rounded-full text-xs font-mono z-50">
+          Data Dragon v{latestVersion}
+        </div>
+      )}
       
       {/* Featured Champion Header */}
       {featured && !loading && (
