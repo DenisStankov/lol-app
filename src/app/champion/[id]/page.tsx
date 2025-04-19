@@ -393,11 +393,11 @@ export default function ChampionDetailsPage() {
 
               <div>
                 <div className="flex gap-3 items-start mb-3 p-2 bg-zinc-800/30 rounded-md">
-                  <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500 border border-blue-400 flex items-center justify-center text-white text-lg font-bold">
-                    ?
+                  <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500/20 border border-blue-400/40 flex items-center justify-center">
+                    <div className="text-blue-400 text-lg font-bold">?</div>
                   </div>
                   <div>
-                    <p className="text-white font-medium">{championData.name}</p>
+                    <p className="text-white font-medium">Zap!</p>
                     <div className="flex gap-2 items-center text-sm">
                       <span className="text-green-400">6.0% WR</span>
                       <span className="text-zinc-500">•</span>
@@ -441,10 +441,10 @@ export default function ChampionDetailsPage() {
                 {/* Secondary Runes */}
                 <div className="mb-3 mt-6">
                   <div className="flex gap-3 items-start mb-3 p-2 bg-zinc-800/30 rounded-md">
-                    <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500 border border-blue-400 flex items-center justify-center text-white text-lg font-bold">
-                      ?
+                    <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500/20 border border-blue-400/40 flex items-center justify-center">
+                      <div className="text-blue-400 text-lg font-bold">?</div>
                     </div>
-                    <p className="text-white font-medium">{championData.name}</p>
+                    <p className="text-white font-medium">Zap!</p>
                   </div>
 
                   <div className="grid grid-cols-7 gap-1 mb-3">
@@ -491,7 +491,7 @@ export default function ChampionDetailsPage() {
                     </div>
                     <div className="bg-zinc-800 rounded-md p-2 text-center">
                       <p className="text-zinc-400 mb-1">Defense</p>
-                      <p className="text-white">8 / 7 / 6 / 5 / A</p>
+                      <p className="text-white">8 / 7 / 6 / 5 / 4</p>
                     </div>
                   </div>
                 </div>
@@ -508,7 +508,7 @@ export default function ChampionDetailsPage() {
                     className="flex items-center justify-between bg-zinc-800/60 p-3 rounded-md hover:bg-zinc-800 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500/30 border border-blue-500/60 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500/20 border border-blue-500/40 flex items-center justify-center">
                         <div className="text-blue-400 text-lg font-bold">?</div>
                       </div>
                       <div>
@@ -522,29 +522,51 @@ export default function ChampionDetailsPage() {
               </div>
             </div>
 
-            {/* Best ADCs/Supports */}
+            {/* Skill Order Section (moved from main content to left column) */}
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">
-                Best {championData.tags.includes("MARKSMAN") ? "Supports" : "ADCs"}
-              </h3>
-              <div className="space-y-2">
-                {['Switcheroo!', 'Zap!', 'Flame Chompers!', 'Super Mega Death Rocket!'].map((name, index) => (
-                  <div 
-                    key={`synergy-${index}`}
-                    className="flex items-center justify-between bg-zinc-800/60 p-3 rounded-md hover:bg-zinc-800 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-md overflow-hidden bg-blue-500/30 border border-blue-500/60 flex items-center justify-center">
-                        <div className="text-blue-400 text-lg font-bold">?</div>
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">{name}</p>
-                        <p className="text-zinc-400 text-xs">Synergy</p>
-                      </div>
-                    </div>
-                    <div className="text-green-400 font-medium">6.0%</div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-[#C89B3C]">Skill Order</h3>
+                <button className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
+                  <Info size={14} />
+                  <span>Tips</span>
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                {championData.spells.length > 0 && (
+                  <div className="flex flex-col space-y-2">
+                    {['Q', 'W', 'E', 'R'].map((key, idx) => {
+                      const spell = championData.spells[idx];
+                      if (!spell) return null;
+                      
+                      let abilityColor;
+                      switch(key) {
+                        case 'Q': abilityColor = '#1E88E5'; break;
+                        case 'W': abilityColor = '#43A047'; break;
+                        case 'E': abilityColor = '#FB8C00'; break;
+                        case 'R': abilityColor = '#E53935'; break;
+                        default: abilityColor = '#757575';
+                      }
+                      
+                      return (
+                        <div key={key} className="flex items-center space-x-2">
+                          <div 
+                            className="w-8 h-8 flex items-center justify-center rounded text-white font-bold"
+                            style={{ backgroundColor: abilityColor }}
+                          >
+                            {key}
+                          </div>
+                          <div className="text-sm text-zinc-300">{spell.name}</div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                )}
+                
+                <div className="mt-4 bg-zinc-800/50 rounded-lg p-3">
+                  <p className="text-zinc-300 text-sm mb-2">Max Order:</p>
+                  <p className="text-white font-medium">Q → E → W</p>
+                </div>
               </div>
             </div>
           </div>
@@ -568,7 +590,8 @@ export default function ChampionDetailsPage() {
                     <Image 
                       src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/passive/${championData.passive.image.full}`}
                       alt={championData.passive.name}
-                      fill
+                      width={48}
+                      height={48}
                       className="object-cover"
                     />
                   </div>
@@ -596,7 +619,8 @@ export default function ChampionDetailsPage() {
                             <Image 
                               src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/spell/${spell.image.full}`}
                               alt={spell.name}
-                              fill
+                              width={48}
+                              height={48}
                               className="object-cover"
                             />
                           </div>
@@ -641,50 +665,6 @@ export default function ChampionDetailsPage() {
                     </div>
                   );
                 })}
-              </div>
-            </div>
-            
-            {/* Skill Order Section */}
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-[#C89B3C]">Skill Order</h2>
-                <button className="text-zinc-400 hover:text-white flex items-center gap-1 text-sm">
-                  <Info size={14} />
-                  <span>Tips</span>
-                </button>
-              </div>
-              
-              <div className="mb-4">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(18, minmax(0, 1fr))', gap: '0.25rem' }}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map((level) => (
-                    <div key={level} className="w-full h-8 flex items-center justify-center text-xs text-zinc-400 bg-zinc-800/50 rounded">
-                      {level}
-                    </div>
-                  ))}
-                  
-                  {championData.spells.map((skill, index) => {
-                    const isHighlighted = 
-                      (skill.id === 'R' && (index === 5 || index === 10 || index === 16)) || 
-                      (skill.id === championData.spells[0].id && index !== 5 && index !== 10 && index !== 16);
-                    
-                    return (
-                      <div 
-                        key={`skill-${index}`} 
-                        className={`w-full h-8 flex items-center justify-center text-xs rounded ${
-                          isHighlighted 
-                            ? 'bg-blue-600/50 text-white font-bold' 
-                            : 'bg-zinc-800 text-zinc-300'
-                        }`}
-                      >
-                        {skill.name}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              
-              <div className="text-zinc-400 text-sm">
-                <p>Max order: {champMaxOrder(championData.spells.map(skill => skill.id))}</p>
               </div>
             </div>
           </div>
