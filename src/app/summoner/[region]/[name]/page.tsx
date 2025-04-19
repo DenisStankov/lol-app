@@ -8,6 +8,8 @@ import { Crown, Swords, Target, Trophy } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
 import Navigation from "@/components/navigation";
+import ProfileIcon from "@/components/ProfileIcon";
+import ChampionIcon from "@/components/ChampionIcon";
 
 export default function SummonerProfile() {
   const { region, name } = useParams(); // ✅ Get dynamic params from URL
@@ -73,13 +75,12 @@ export default function SummonerProfile() {
             <div className="relative group">
               <div className="absolute -inset-1 bg-[#C89B3C]/20 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
               <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-[#C89B3C]/20">
-                <Image
-                  src={`/api/profileIcon?iconId=${summoner?.profileIconId || 29}`}
+                <ProfileIcon
+                  iconId={summoner?.profileIconId}
                   alt="Summoner Icon"
                   width={128}
                   height={128}
-                  className="object-cover"
-                  unoptimized
+                  className="object-cover w-full h-full"
                 />
               </div>
             </div>
@@ -92,6 +93,11 @@ export default function SummonerProfile() {
                 <div className="px-3 py-1 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm font-medium">
                   Level {summoner?.summonerLevel}
                 </div>
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="text-xs text-zinc-500">
+                    Icon ID: {summoner?.profileIconId || 'Not available'}
+                  </div>
+                )}
               </div>
               <Button className="bg-[#C89B3C]/10 text-[#C89B3C] hover:bg-[#C89B3C]/20 border-0">
                 Update Profile
@@ -140,13 +146,12 @@ export default function SummonerProfile() {
                       }`}
                   >
                     <div className="w-16 h-16 rounded-lg bg-zinc-800/50 overflow-hidden">
-                      <Image
-                        src={`/api/championIcon?championId=${match.champion}`}
+                      <ChampionIcon
+                        championId={match.champion}
                         alt="Champion"
                         width={64}
                         height={64}
                         className="w-full h-full object-cover"
-                        unoptimized
                       />
                     </div>
                     <div className="flex-1">

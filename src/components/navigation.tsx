@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import axios from "axios"
+import ProfileIcon from "@/components/ProfileIcon"
 
 interface UserInfo {
   sub: string
@@ -246,17 +247,16 @@ export default function Navigation() {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 transition-colors">
                     <Avatar className="h-7 w-7 border-2 border-[#C89B3C]/70">
-                      {user?.profileIconId && getProfileIconUrl(user.profileIconId) ? (
-                        <AvatarImage 
-                          src={getProfileIconUrl(user.profileIconId) || ''} 
-                          alt={getDisplayName()} 
-                          className="bg-[#0A1428]"
-                          onError={(e) => {
-                            // Silently handle image loading error
-                            // Manually fallback to initials by removing the image source
-                            e.currentTarget.src = '';
-                          }}
-                        />
+                      {user?.profileIconId ? (
+                        <div className="w-full h-full">
+                          <ProfileIcon 
+                            iconId={user.profileIconId}
+                            alt={getDisplayName()}
+                            width={28}
+                            height={28}
+                            className="w-full h-full"
+                          />
+                        </div>
                       ) : (
                         <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
                           {getInitials(getDisplayName())}
@@ -348,17 +348,16 @@ export default function Navigation() {
                 <div className="mt-3 pt-3 border-t border-zinc-700">
                   <div className="flex items-center gap-2 px-3 py-2">
                     <Avatar className="h-8 w-8 border-2 border-[#C89B3C]/70">
-                      {user?.profileIconId && getProfileIconUrl(user.profileIconId) ? (
-                        <AvatarImage 
-                          src={getProfileIconUrl(user.profileIconId) || ''} 
-                          alt={getDisplayName()}
-                          className="bg-[#0A1428]"
-                          onError={(e) => {
-                            // Silently handle image loading error
-                            // Manually fallback to initials by removing the image source
-                            e.currentTarget.src = '';
-                          }}
-                        />
+                      {user?.profileIconId ? (
+                        <div className="w-full h-full">
+                          <ProfileIcon 
+                            iconId={user.profileIconId}
+                            alt={getDisplayName()}
+                            width={32}
+                            height={32}
+                            className="w-full h-full"
+                          />
+                        </div>
                       ) : (
                         <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
                           {getInitials(getDisplayName())}
