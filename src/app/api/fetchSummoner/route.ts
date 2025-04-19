@@ -189,17 +189,11 @@ export async function GET(request: NextRequest) {
               }
             );
             
-            // The Riot API uses 'name' but our frontend expects 'summonerName',
-            // and we want to preserve the provided gameName/tagLine
             summonerData = {
               ...summonerResponse.data,
-              // Ensure our frontend property names are consistent
-              name: summonerResponse.data.name,
               summonerName: gameName,
               tagLine: tagLine,
-              puuid: accountResponse.data.puuid,
-              // Ensure profileIconId is present
-              profileIconId: summonerResponse.data.profileIconId || 29
+              puuid: accountResponse.data.puuid
             };
             
             console.log("📊 Summoner data by gameName/tagLine:", summonerData);
@@ -236,29 +230,8 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Final check to ensure essential properties exist before returning
-    if (summonerData) {
-      // Ensure consistent property names used by the frontend
-      const normalizedData = {
-        ...summonerData,
-        // If summonerName is missing but name exists, use name
-        summonerName: summonerData.summonerName || summonerData.name || "Unknown Summoner", 
-        // Ensure at least a default tag line
-        tagLine: summonerData.tagLine || "???",
-        // Ensure profileIconId exists (default to 29)
-        profileIconId: summonerData.profileIconId || 29,
-        // Ensure summonerLevel exists
-        summonerLevel: summonerData.summonerLevel || 1
-      };
-      
-      console.log("✅ Returning normalized summoner data:", normalizedData);
-      return NextResponse.json(normalizedData);
-    }
-    
-    return NextResponse.json(
-      { error: 'Summoner not found', details: 'Could not find summoner with the provided information' },
-      { status: 404 }
-    );
+    console.log("✅ Returning summoner data:", summonerData);
+    return NextResponse.json(summonerData);
     
   } catch (error) {
     console.error('❌ Error in fetchSummoner:', error instanceof Error ? error.message : String(error));
