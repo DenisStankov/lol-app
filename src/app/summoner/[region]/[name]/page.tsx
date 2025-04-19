@@ -74,11 +74,15 @@ export default function SummonerProfile() {
               <div className="absolute -inset-1 bg-[#C89B3C]/20 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
               <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-[#C89B3C]/20">
                 <Image
-                  src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/profileicon/${summoner?.profileIconId}.png`}
+                  src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/${summoner?.profileIconId || 29}.png`}
                   alt="Summoner Icon"
                   width={128}
                   height={128}
                   className="object-cover"
+                  onError={(e) => {
+                    console.error("Failed to load profile icon, using default");
+                    e.currentTarget.src = "https://ddragon.leagueoflegends.com/cdn/13.24.1/img/profileicon/29.png";
+                  }}
                 />
               </div>
             </div>
@@ -140,11 +144,15 @@ export default function SummonerProfile() {
                   >
                     <div className="w-16 h-16 rounded-lg bg-zinc-800/50 overflow-hidden">
                       <Image
-                        src={`https://ddragon.leagueoflegends.com/cdn/14.3.1/img/champion/${match.champion}.png`}
+                        src={`https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${match.champion}.png`}
                         alt="Champion"
                         width={64}
                         height={64}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.error("Failed to load champion icon");
+                          // No replacement image needed as the container has a background
+                        }}
                       />
                     </div>
                     <div className="flex-1">
