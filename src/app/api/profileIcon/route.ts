@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
           'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
         },
       });
-    } catch (error) {
+    } catch (_) {
       // Continue to the next version
     }
   }

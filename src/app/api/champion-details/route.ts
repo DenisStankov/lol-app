@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
         loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${id}_0.jpg`,
         square: `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${id}.png`,
         passive: `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/passive/${championData.passive.image.full}`,
-        spells: championData.spells.map((spell: any) => 
+        spells: championData.spells.map((spell: { image: { full: string } }) => 
           `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/spell/${spell.image.full}`
         )
       },

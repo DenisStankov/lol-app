@@ -4,8 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Info, Shield, Sword, Heart, Zap, Activity, BarChart2, Coffee, Layers, Tag } from "lucide-react"
-import { Tab } from "@headlessui/react"
+import { ArrowLeft, Info, Shield, Sword, Heart, Zap, Activity, Layers } from "lucide-react"
 import Navigation from "@/components/navigation"
 
 // Define our champion data interface based on the Riot API
@@ -124,7 +123,6 @@ export default function ChampionDetailsPage() {
   const [championData, setChampionData] = useState<ChampionData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedAbility, setSelectedAbility] = useState<number>(-1)
   const [selectedRuneBuild, setSelectedRuneBuild] = useState<number>(0)
   
   // Fetch champion data
@@ -141,7 +139,7 @@ export default function ChampionDetailsPage() {
         const data = await response.json()
         setChampionData(data)
         setLoading(false)
-      } catch (err) {
+      } catch (_) {
         setError('Failed to load champion data. Please try again later.')
         setLoading(false)
       }
@@ -187,8 +185,6 @@ export default function ChampionDetailsPage() {
       </div>
     )
   }
-  
-  const currentAbility = championData.spells.find(ability => ability.id === mapAbilityToKey(selectedAbility)) || championData.spells[0]
   
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
