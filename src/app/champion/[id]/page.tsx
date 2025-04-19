@@ -142,7 +142,6 @@ export default function ChampionDetailsPage() {
         setChampionData(data)
         setLoading(false)
       } catch (err) {
-        console.error('Error fetching champion data:', err)
         setError('Failed to load champion data. Please try again later.')
         setLoading(false)
       }
@@ -786,31 +785,31 @@ export default function ChampionDetailsPage() {
             </div>
             
             {/* Synergies (only for ADC/Support) */}
-            {championData.spells.map((synergy) => (
-              <div key={synergy.id} className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
+            {championData.spells.map((synergyChamp) => (
+              <div key={synergyChamp.id} className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">
                 <h2 className="text-xl font-bold mb-4 text-white">
                   {championData.tags[0] === "BOTTOM" ? "Best Supports" : "Best ADCs"}
                 </h2>
                 <div className="space-y-4">
-                  {championData.spells.map((synergy) => (
+                  {championData.spells.map((synergyPartner) => (
                     <Link 
-                      href={`/champion/${synergy.id}?role=${synergy.tags[0]}`} 
-                      key={synergy.id}
+                      href={`/champion/${synergyPartner.id}?role=${synergyPartner.tags[0]}`} 
+                      key={synergyPartner.id}
                       className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-800"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full overflow-hidden bg-zinc-700">
                           <Image
-                            src={synergy.image.full}
-                            alt={synergy.name}
+                            src={synergyPartner.image.full}
+                            alt={synergyPartner.name}
                             width={40}
                             height={40}
                             className="object-cover"
                           />
                         </div>
                         <div>
-                          <p className="text-white font-medium">{synergy.name}</p>
-                          <p className="text-zinc-400 text-xs">{roleData[synergy.tags[0]]?.label || synergy.tags[0]}</p>
+                          <p className="text-white font-medium">{synergyPartner.name}</p>
+                          <p className="text-zinc-400 text-xs">{roleData[synergyPartner.tags[0]]?.label || synergyPartner.tags[0]}</p>
                         </div>
                       </div>
                       <div className="text-green-400 font-medium">{championData.info.difficulty.toFixed(1)}%</div>
@@ -818,7 +817,7 @@ export default function ChampionDetailsPage() {
                   ))}
                 </div>
               </div>
-            )}
+            ))}
             
             {/* Skill order */}
             <div className="bg-zinc-900/60 border border-zinc-800 rounded-lg p-4">

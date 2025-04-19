@@ -19,15 +19,12 @@ const RIOT_ACCOUNT_REGIONS: Record<string, string> = {
 
 export async function GET(req: Request) {
   if (!RIOT_API_KEY) {
-    console.error("❌ API key is missing.");
     return NextResponse.json({ error: "API key missing in environment variables" }, { status: 500 });
   }
 
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("query")?.trim();
   const region = searchParams.get("region")?.trim();
-
-  console.log("🛠 DEBUG: Searching Summoner:", query, "Region:", region);
 
   if (!query || !region) {
     return NextResponse.json({ error: "Summoner name and region are required." }, { status: 400 });
@@ -40,8 +37,6 @@ export async function GET(req: Request) {
   }
 
   try {
-    console.log(`🔍 Searching for: ${query} in ${region} (Riot API Region: ${riotRegion})`);
-
     // ✅ Step 1: Split Summoner Name and Tagline or use defaults
     let gameName, tagLine;
     
@@ -51,7 +46,6 @@ export async function GET(req: Request) {
       // If no tagline is provided, use the name as gameName and region as tagLine
       gameName = query;
       tagLine = region.toUpperCase().replace(/[0-9]/g, '');
-      console.log(`ℹ️ No tagline provided, using default: ${gameName}#${tagLine}`);
     }
     
     if (!gameName) {
@@ -87,10 +81,8 @@ export async function GET(req: Request) {
     });
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("❌ Riot API Error:", error.response?.data || error.message);
       return NextResponse.json({ error: error.response?.data?.status?.message || "Summoner not found or unauthorized." }, { status: error.response?.status || 403 });
     } else {
-      console.error("❌ Unexpected Error:", error);
       return NextResponse.json({ error: "An unexpected error occurred." }, { status: 500 });
     }
   }
