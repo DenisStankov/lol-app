@@ -629,7 +629,7 @@ export default function ChampionDetailsPage() {
                 <div className="grid grid-cols-5 gap-2">
                   {[
                     { name: "Bloodthirster", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3072.png", condition: "vs Burst" },
-                    { name: "Lord Dominik&apos;s", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3036.png", condition: "vs Tanks" },
+                    { name: "Lord Dominik's", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3036.png", condition: "vs Tanks" },
                     { name: "Guardian Angel", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3026.png", condition: "Safety" },
                     { name: "Mortal Reminder", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3033.png", condition: "vs Healing" },
                     { name: "Mercurial Scimitar", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3139.png", condition: "vs CC" }
