@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Info, Shield, Sword, Heart, Zap, Activity, Layers } from "lucide-react"
+import { ArrowLeft, Shield, Sword, Heart, Zap, Activity, Layers } from "lucide-react"
 import Navigation from "@/components/navigation"
 
 // Define our champion data interface based on the Riot API
