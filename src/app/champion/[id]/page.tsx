@@ -317,15 +317,15 @@ export default function ChampionDetailsPage() {
             </div>
             
             {/* Runes Section */}
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-[#C89B3C]">Runes</h3>
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-bold text-[#C89B3C]">Runes</h3>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4].map((num) => (
                     <button
                       key={num}
                       onClick={() => setSelectedRuneBuild(num - 1)}
-                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                      className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
                         selectedRuneBuild === num - 1
                           ? 'bg-blue-500 text-white'
                           : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'
@@ -337,175 +337,155 @@ export default function ChampionDetailsPage() {
                 </div>
               </div>
 
-              <div>
-                {/* Keystone Selection */}
-                <div className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-md mb-4">
-                  <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-amber-500/40 to-amber-700/40 border-2 border-amber-500/50">
-                    <Image 
-                      src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png"
-                      alt="Conqueror"
-                      fill
-                      className="object-cover p-1"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">Conqueror</p>
-                    <div className="flex gap-2 items-center text-sm">
-                      <span className="text-green-400">54.2% WR</span>
-                      <span className="text-zinc-500">•</span>
-                      <span className="text-blue-400">92.7% PR</span>
-                    </div>
-                  </div>
-                </div>
-
+              <div className="flex gap-4">
                 {/* Primary Path */}
-                <div className="mb-5">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="relative w-5 h-5 rounded-full overflow-hidden bg-amber-600/50">
-                        <Image 
-                          src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7201_Precision.png"
-                          alt="Precision"
-                          fill
-                          className="object-cover scale-75"
-                        />
-                      </div>
-                      <div className="bg-amber-500/20 px-2 py-1 rounded text-xs font-semibold text-amber-300">PRECISION</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="relative w-4 h-4 rounded-full overflow-hidden bg-amber-600/50">
+                      <Image 
+                        src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7201_Precision.png"
+                        alt="Precision"
+                        fill
+                        className="object-cover scale-75"
+                      />
                     </div>
+                    <div className="text-xs text-amber-300 font-semibold">PRECISION</div>
                   </div>
-                  
-                  <div className="grid grid-cols-4 gap-2 mb-3">
+
+                  {/* Keystone Row */}
+                  <div className="grid grid-cols-4 gap-1 mb-2">
                     {[
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/FleetFootwork/FleetFootwork.png"
                     ].map((iconSrc, i) => (
-                      <div key={`keystone-${i}`} className={`relative aspect-square rounded-full ${i === 0 ? 'bg-gradient-to-br from-amber-500/40 to-amber-700/40 border-2 border-amber-500/50' : 'bg-zinc-800/70 border border-zinc-700'} flex items-center justify-center overflow-hidden`}>
+                      <div key={`keystone-${i}`} className={`relative aspect-square rounded-full ${i === 0 ? 'bg-gradient-to-br from-amber-500/40 to-amber-700/40 border border-amber-500/50' : 'bg-zinc-800/70'} flex items-center justify-center overflow-hidden`}>
                         <Image 
                           src={iconSrc}
                           alt={`Rune ${i}`}
                           fill
-                          className={`object-cover p-1 ${i !== 0 ? 'opacity-50' : ''}`}
+                          className={`object-cover p-1 ${i !== 0 ? 'opacity-40' : ''}`}
                         />
                       </div>
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mb-3">
+                  {/* Row 1 */}
+                  <div className="grid grid-cols-3 gap-1 mb-1">
                     {[
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Overheal.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Triumph.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PresenceOfMind/PresenceOfMind.png"
                     ].map((iconSrc, i) => (
-                      <div key={`row1-${i}`} className={`relative aspect-square rounded-full ${i === 1 ? 'bg-amber-500/30 border border-amber-500/60' : 'bg-zinc-800/70 border border-zinc-700'} flex items-center justify-center overflow-hidden`}>
+                      <div key={`row1-${i}`} className={`relative aspect-square rounded-full ${i === 1 ? 'bg-amber-500/30 border border-amber-500/60' : 'bg-zinc-800/70'} flex items-center justify-center overflow-hidden`}>
                         <Image 
                           src={iconSrc}
                           alt={`Row 1 Rune ${i}`}
                           fill
-                          className={`object-cover p-1 ${i !== 1 ? 'opacity-50' : ''}`}
+                          className={`object-cover p-1 ${i !== 1 ? 'opacity-40' : ''}`}
                         />
                       </div>
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mb-3">
+                  {/* Row 2 */}
+                  <div className="grid grid-cols-3 gap-1 mb-1">
                     {[
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity/LegendAlacrity.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendTenacity/LegendTenacity.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendBloodline/LegendBloodline.png"
                     ].map((iconSrc, i) => (
-                      <div key={`row2-${i}`} className={`relative aspect-square rounded-full ${i === 0 ? 'bg-amber-500/30 border border-amber-500/60' : 'bg-zinc-800/70 border border-zinc-700'} flex items-center justify-center overflow-hidden`}>
+                      <div key={`row2-${i}`} className={`relative aspect-square rounded-full ${i === 0 ? 'bg-amber-500/30 border border-amber-500/60' : 'bg-zinc-800/70'} flex items-center justify-center overflow-hidden`}>
                         <Image 
                           src={iconSrc}
                           alt={`Row 2 Rune ${i}`}
                           fill
-                          className={`object-cover p-1 ${i !== 0 ? 'opacity-50' : ''}`}
+                          className={`object-cover p-1 ${i !== 0 ? 'opacity-40' : ''}`}
                         />
                       </div>
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  {/* Row 3 */}
+                  <div className="grid grid-cols-3 gap-1">
                     {[
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CutDown/CutDown.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LastStand/LastStand.png"
                     ].map((iconSrc, i) => (
-                      <div key={`row3-${i}`} className={`relative aspect-square rounded-full ${i === 2 ? 'bg-amber-500/30 border border-amber-500/60' : 'bg-zinc-800/70 border border-zinc-700'} flex items-center justify-center overflow-hidden`}>
+                      <div key={`row3-${i}`} className={`relative aspect-square rounded-full ${i === 2 ? 'bg-amber-500/30 border border-amber-500/60' : 'bg-zinc-800/70'} flex items-center justify-center overflow-hidden`}>
                         <Image 
                           src={iconSrc}
                           alt={`Row 3 Rune ${i}`}
                           fill
-                          className={`object-cover p-1 ${i !== 2 ? 'opacity-50' : ''}`}
+                          className={`object-cover p-1 ${i !== 2 ? 'opacity-40' : ''}`}
                         />
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Secondary Path */}
-                <div className="mb-5">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="relative w-5 h-5 rounded-full overflow-hidden bg-green-600/50">
-                        <Image 
-                          src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7204_Resolve.png"
-                          alt="Resolve"
-                          fill
-                          className="object-cover scale-75"
-                        />
-                      </div>
-                      <div className="bg-green-500/20 px-2 py-1 rounded text-xs font-semibold text-green-300">RESOLVE</div>
+                {/* Secondary Path + Shards */}
+                <div className="flex-1">
+                  {/* Secondary Path Header */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="relative w-4 h-4 rounded-full overflow-hidden bg-green-600/50">
+                      <Image 
+                        src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7204_Resolve.png"
+                        alt="Resolve"
+                        fill
+                        className="object-cover scale-75"
+                      />
                     </div>
+                    <div className="text-xs text-green-300 font-semibold">RESOLVE</div>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-2 mb-3">
+                  {/* Secondary Row 1 */}
+                  <div className="grid grid-cols-3 gap-1 mb-1">
                     {[
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/SecondWind/SecondWind.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/BonePlating/BonePlating.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Conditioning/Conditioning.png"
                     ].map((iconSrc, i) => (
-                      <div key={`sec-row1-${i}`} className={`relative aspect-square rounded-full ${i === 0 ? 'bg-green-500/30 border border-green-500/60' : 'bg-zinc-800/70 border border-zinc-700'} flex items-center justify-center overflow-hidden`}>
+                      <div key={`sec-row1-${i}`} className={`relative aspect-square rounded-full ${i === 0 ? 'bg-green-500/30 border border-green-500/60' : 'bg-zinc-800/70'} flex items-center justify-center overflow-hidden`}>
                         <Image 
                           src={iconSrc}
                           alt={`Secondary Row 1 Rune ${i}`}
                           fill
-                          className={`object-cover p-1 ${i !== 0 ? 'opacity-50' : ''}`}
+                          className={`object-cover p-1 ${i !== 0 ? 'opacity-40' : ''}`}
                         />
                       </div>
                     ))}
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mb-3">
+                  {/* Secondary Row 2 */}
+                  <div className="grid grid-cols-3 gap-1 mb-3">
                     {[
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Overgrowth/Overgrowth.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Revitalize/Revitalize.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Unflinching/Unflinching.png"
                     ].map((iconSrc, i) => (
-                      <div key={`sec-row2-${i}`} className={`relative aspect-square rounded-full ${i === 2 ? 'bg-green-500/30 border border-green-500/60' : 'bg-zinc-800/70 border border-zinc-700'} flex items-center justify-center overflow-hidden`}>
+                      <div key={`sec-row2-${i}`} className={`relative aspect-square rounded-full ${i === 2 ? 'bg-green-500/30 border border-green-500/60' : 'bg-zinc-800/70'} flex items-center justify-center overflow-hidden`}>
                         <Image 
                           src={iconSrc}
                           alt={`Secondary Row 2 Rune ${i}`}
                           fill
-                          className={`object-cover p-1 ${i !== 2 ? 'opacity-50' : ''}`}
+                          className={`object-cover p-1 ${i !== 2 ? 'opacity-40' : ''}`}
                         />
                       </div>
                     ))}
                   </div>
-                </div>
 
-                {/* Shards */}
-                <div className="mb-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="bg-blue-500/20 px-2 py-1 rounded text-xs font-semibold text-blue-300">STAT SHARDS</div>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="bg-zinc-800/70 rounded p-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-zinc-400">Offense</span>
-                        <div className="relative w-4 h-4 rounded-full bg-red-500/30 border border-red-500/60 flex items-center justify-center overflow-hidden">
+                  {/* Shards */}
+                  <div>
+                    <div className="flex items-center mb-1">
+                      <div className="text-xs text-blue-300 font-semibold">SHARDS</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-1 text-xs">
+                      <div className="flex items-center gap-1 bg-zinc-800/50 rounded px-1 py-0.5">
+                        <div className="relative w-4 h-4 rounded-full overflow-hidden bg-red-500/20 border border-red-500/40">
                           <Image 
                             src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsAdaptiveForceIcon.png"
                             alt="Adaptive Force"
@@ -513,14 +493,11 @@ export default function ChampionDetailsPage() {
                             className="object-cover"
                           />
                         </div>
+                        <span className="truncate">Adaptive</span>
                       </div>
-                      <p className="text-white font-medium">Adaptive Force</p>
-                    </div>
-                    
-                    <div className="bg-zinc-800/70 rounded p-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-zinc-400">Flex</span>
-                        <div className="relative w-4 h-4 rounded-full bg-blue-500/30 border border-blue-500/60 flex items-center justify-center overflow-hidden">
+                      
+                      <div className="flex items-center gap-1 bg-zinc-800/50 rounded px-1 py-0.5">
+                        <div className="relative w-4 h-4 rounded-full overflow-hidden bg-blue-500/20 border border-blue-500/40">
                           <Image 
                             src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsArmorIcon.png"
                             alt="Armor"
@@ -528,14 +505,11 @@ export default function ChampionDetailsPage() {
                             className="object-cover"
                           />
                         </div>
+                        <span className="truncate">Armor</span>
                       </div>
-                      <p className="text-white font-medium">Armor</p>
-                    </div>
-                    
-                    <div className="bg-zinc-800/70 rounded p-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-zinc-400">Defense</span>
-                        <div className="relative w-4 h-4 rounded-full bg-green-500/30 border border-green-500/60 flex items-center justify-center overflow-hidden">
+                      
+                      <div className="flex items-center gap-1 bg-zinc-800/50 rounded px-1 py-0.5">
+                        <div className="relative w-4 h-4 rounded-full overflow-hidden bg-green-500/20 border border-green-500/40">
                           <Image 
                             src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/StatMods/StatModsHealthScalingIcon.png"
                             alt="Health"
@@ -543,18 +517,45 @@ export default function ChampionDetailsPage() {
                             className="object-cover"
                           />
                         </div>
+                        <span className="truncate">Health</span>
                       </div>
-                      <p className="text-white font-medium">Health</p>
                     </div>
                   </div>
+                </div>
+              </div>
+              
+              {/* Rune Stats at Bottom */}
+              <div className="flex items-center mt-3 pt-2 border-t border-zinc-800/50">
+                <div className="flex-1 flex items-center gap-2">
+                  <div className="relative w-8 h-8 rounded-md overflow-hidden bg-gradient-to-br from-amber-500/40 to-amber-700/40 border border-amber-500/50">
+                    <Image 
+                      src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png"
+                      alt="Conqueror"
+                      fill
+                      className="object-cover p-1"
+                    />
+                  </div>
+                  <div className="text-xs">
+                    <p className="text-white font-medium">Conqueror</p>
+                    <div className="flex gap-2 items-center text-xs">
+                      <span className="text-green-400">54.2%</span>
+                      <span className="text-zinc-500 text-[10px]">•</span>
+                      <span className="text-blue-400">92.7%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-zinc-500 flex gap-1">
+                  <span className="rounded px-1 bg-green-900/20 text-green-400">Win</span>
+                  <span className="rounded px-1 bg-blue-900/20 text-blue-400">Pick</span>
                 </div>
               </div>
             </div>
 
             {/* Hard Counters Section */}
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
-              <h3 className="text-xl font-bold mb-4 text-[#C89B3C]">Hard Counters</h3>
-              <div className="space-y-3">
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+              <h3 className="text-lg font-bold mb-3 text-[#C89B3C]">Hard Counters</h3>
+              <div className="space-y-2">
                 {[
                   { name: 'Jax', winRate: '54.8%', image: 'https://ddragon.leagueoflegends.com/cdn/14.8.1/img/champion/Jax.png' },
                   { name: 'Fiora', winRate: '53.2%', image: 'https://ddragon.leagueoflegends.com/cdn/14.8.1/img/champion/Fiora.png' },
@@ -563,10 +564,10 @@ export default function ChampionDetailsPage() {
                 ].map((counter) => (
                   <div 
                     key={counter.name}
-                    className="flex items-center justify-between bg-zinc-800/60 p-3 rounded-md hover:bg-zinc-700 transition-colors cursor-pointer"
+                    className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-700 transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-12 h-12 rounded-full overflow-hidden border border-red-400/30">
+                    <div className="flex items-center gap-2">
+                      <div className="relative w-8 h-8 rounded-full overflow-hidden border border-red-400/30">
                         <Image 
                           src={counter.image}
                           alt={counter.name}
@@ -575,127 +576,108 @@ export default function ChampionDetailsPage() {
                         />
                       </div>
                       <div>
-                        <p className="text-white font-medium">{counter.name}</p>
+                        <p className="text-white text-sm font-medium">{counter.name}</p>
                         <p className="text-zinc-400 text-xs">Counter</p>
                       </div>
                     </div>
-                    <div className="text-red-400 font-medium">{counter.winRate}</div>
+                    <div className="text-red-400 font-medium text-sm">{counter.winRate}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Skill Order Section */}
-            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-[#C89B3C]">Skill Order</h3>
-                <div className="text-zinc-400 text-sm">54.2% Win Rate</div>
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-bold text-[#C89B3C]">Skill Order</h3>
+                <div className="text-zinc-400 text-xs">54.2% Win Rate</div>
               </div>
               
-              <div className="mb-6">
-                {/* Skills Summary */}
-                <div className="grid grid-cols-4 gap-3 mb-4">
+              <div className="mb-4">
+                {/* Skill Summary & Max Order */}
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-800/50">
+                  <div className="flex gap-1 text-xs text-zinc-400">Max:</div>
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 flex items-center justify-center rounded bg-blue-500 text-white text-xs font-bold">Q</div>
+                    <span className="mx-1 text-zinc-600">→</span>
+                    <div className="w-6 h-6 flex items-center justify-center rounded bg-green-500 text-white text-xs font-bold">W</div>
+                    <span className="mx-1 text-zinc-600">→</span>
+                    <div className="w-6 h-6 flex items-center justify-center rounded bg-amber-500 text-white text-xs font-bold">E</div>
+                  </div>
+                </div>
+
+                {/* Skills Leveling Overview */}
+                <div className="grid grid-cols-4 gap-x-1 gap-y-0.5 mb-3">
+                  {/* Headers */}
+                  <div className="text-xs text-center font-medium text-zinc-400">Q</div>
+                  <div className="text-xs text-center font-medium text-zinc-400">W</div>
+                  <div className="text-xs text-center font-medium text-zinc-400">E</div>
+                  <div className="text-xs text-center font-medium text-zinc-400">R</div>
+                  
+                  {/* Level Indicators for each ability */}
+                  <div>
+                    {[1, 3, 5, 7, 9].map(level => (
+                      <div key={`q-${level}`} className="flex items-center justify-center">
+                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold mb-0.5">
+                          {level}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div>
+                    {[2, 4, 8, 12, 13].map(level => (
+                      <div key={`w-${level}`} className="flex items-center justify-center">
+                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 text-white text-[10px] font-bold mb-0.5">
+                          {level}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div>
+                    {[10, 14, 15, 16, 17].map(level => (
+                      <div key={`e-${level}`} className="flex items-center justify-center">
+                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold mb-0.5">
+                          {level}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div>
+                    {[6, 11, 18].map(level => (
+                      <div key={`r-${level}`} className="flex items-center justify-center">
+                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold mb-0.5">
+                          {level}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="h-5 mb-0.5"></div>
+                    <div className="h-5 mb-0.5"></div>
+                  </div>
+                </div>
+                
+                {/* Abilities Description */}
+                <div className="bg-zinc-800/30 rounded-md p-2 flex gap-2 overflow-auto">
                   {[
                     { key: 'Q', name: championData.spells[0]?.name || 'Dark Flight', color: '#1E88E5' },
                     { key: 'W', name: championData.spells[1]?.name || 'Infernal Chains', color: '#43A047' },
                     { key: 'E', name: championData.spells[2]?.name || 'Umbral Dash', color: '#FB8C00' },
                     { key: 'R', name: championData.spells[3]?.name || 'World Ender', color: '#E53935' }
                   ].map((ability) => (
-                    <div key={ability.key} className="bg-zinc-800/50 rounded-md p-2 flex flex-col items-center">
+                    <div key={ability.key} className="flex items-center gap-1 min-w-max">
                       <div 
-                        className="w-8 h-8 flex items-center justify-center rounded text-white font-bold mb-1"
+                        className="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded text-white text-xs font-bold"
                         style={{ backgroundColor: ability.color }}
                       >
                         {ability.key}
                       </div>
-                      <div className="text-center">
-                        <div className="text-zinc-300 text-xs truncate max-w-full" title={ability.name}>
-                          {ability.name}
-                        </div>
+                      <div className="text-zinc-300 text-xs truncate">
+                        {ability.name}
                       </div>
                     </div>
                   ))}
-                </div>
-
-                {/* Skill Level Grid */}
-                <div className="mb-4 border border-zinc-800 rounded-lg overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-zinc-800/80">
-                        <th className="p-2 text-left text-zinc-400 w-8">Lvl</th>
-                        {[...Array(18)].map((_, i) => (
-                          <th key={`level-${i}`} className="p-2 text-center text-zinc-400 w-6">
-                            {i + 1}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-t border-zinc-800/50 bg-zinc-800/20">
-                        <td className="p-2 text-center font-bold text-blue-400">Q</td>
-                        {[1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((active, i) => (
-                          <td key={`q-${i}`} className="p-2">
-                            <div className="flex justify-center">
-                              <div className={`w-4 h-4 rounded-full ${active ? 'bg-blue-500' : 'bg-zinc-700'} flex items-center justify-center`}>
-                                {active ? <span className="text-[10px] text-white">•</span> : null}
-                              </div>
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                      <tr className="border-t border-zinc-800/50 bg-zinc-800/40">
-                        <td className="p-2 text-center font-bold text-green-400">W</td>
-                        {[0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0].map((active, i) => (
-                          <td key={`w-${i}`} className="p-2">
-                            <div className="flex justify-center">
-                              <div className={`w-4 h-4 rounded-full ${active ? 'bg-green-500' : 'bg-zinc-700'} flex items-center justify-center`}>
-                                {active ? <span className="text-[10px] text-white">•</span> : null}
-                              </div>
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                      <tr className="border-t border-zinc-800/50 bg-zinc-800/20">
-                        <td className="p-2 text-center font-bold text-amber-400">E</td>
-                        {[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0].map((active, i) => (
-                          <td key={`e-${i}`} className="p-2">
-                            <div className="flex justify-center">
-                              <div className={`w-4 h-4 rounded-full ${active ? 'bg-amber-500' : 'bg-zinc-700'} flex items-center justify-center`}>
-                                {active ? <span className="text-[10px] text-white">•</span> : null}
-                              </div>
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                      <tr className="border-t border-zinc-800/50 bg-zinc-800/40">
-                        <td className="p-2 text-center font-bold text-red-400">R</td>
-                        {[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1].map((active, i) => (
-                          <td key={`r-${i}`} className="p-2">
-                            <div className="flex justify-center">
-                              <div className={`w-4 h-4 rounded-full ${active ? 'bg-red-500' : 'bg-zinc-700'} flex items-center justify-center`}>
-                                {active ? <span className="text-[10px] text-white">•</span> : null}
-                              </div>
-                            </div>
-                          </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                
-                {/* Max Order */}
-                <div className="bg-zinc-800/50 rounded-lg p-3">
-                  <div className="flex justify-between mb-2">
-                    <p className="text-zinc-300 text-sm">Max Order:</p>
-                    <p className="text-zinc-400 text-xs">92.7% of matches</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 flex items-center justify-center rounded bg-blue-500 text-white font-bold">Q</div>
-                    <span className="text-zinc-400">→</span>
-                    <div className="w-8 h-8 flex items-center justify-center rounded bg-green-500 text-white font-bold">W</div>
-                    <span className="text-zinc-400">→</span>
-                    <div className="w-8 h-8 flex items-center justify-center rounded bg-amber-500 text-white font-bold">E</div>
-                  </div>
                 </div>
               </div>
             </div>
