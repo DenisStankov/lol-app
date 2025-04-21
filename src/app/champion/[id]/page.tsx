@@ -552,6 +552,150 @@ export default function ChampionDetailsPage() {
               </div>
             </div>
 
+            {/* Build Section - NEW */}
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-[#C89B3C]">Recommended Build</h3>
+                <div className="text-zinc-400 text-xs">59.1% Win Rate</div>
+              </div>
+              
+              {/* Starter Items */}
+              <div className="mb-4">
+                <div className="flex items-center mb-2">
+                  <div className="w-1 h-4 bg-blue-500 rounded-full mr-2"></div>
+                  <h4 className="text-sm font-semibold text-zinc-300">Starter Items</h4>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { name: "Doran's Blade", cost: 450, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/1055.png" },
+                    { name: "Health Potion", cost: 50, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/2003.png" }
+                  ].map((item) => (
+                    <div key={item.name} className="flex flex-col items-center">
+                      <div className="relative w-12 h-12 border border-zinc-700 rounded-md overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
+                        <Image 
+                          src={item.image}
+                          alt={item.name}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="mt-1 text-center">
+                        <div className="text-xs text-zinc-400">{item.cost}g</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Core Items */}
+              <div className="mb-4">
+                <div className="flex items-center mb-2">
+                  <div className="w-1 h-4 bg-amber-500 rounded-full mr-2"></div>
+                  <h4 className="text-sm font-semibold text-zinc-300">Core Build</h4>
+                </div>
+                <div className="flex gap-2 flex-wrap mb-1">
+                  {[
+                    { name: "Kraken Slayer", cost: 3400, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/6672.png", order: 1 },
+                    { name: "Runaan's Hurricane", cost: 2600, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3085.png", order: 2 },
+                    { name: "Infinity Edge", cost: 3400, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3031.png", order: 3 }
+                  ].map((item) => (
+                    <div key={item.name} className="relative flex flex-col items-center">
+                      <div className="absolute -top-1 -left-1 w-5 h-5 bg-amber-600 rounded-full flex items-center justify-center text-xs font-bold text-white">{item.order}</div>
+                      <div className="relative w-14 h-14 border border-amber-700/50 rounded-md overflow-hidden bg-gradient-to-br from-amber-950/30 to-zinc-900 flex items-center justify-center">
+                        <Image 
+                          src={item.image}
+                          alt={item.name}
+                          width={45}
+                          height={45}
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="mt-1 text-center">
+                        <div className="text-xs text-zinc-400">{item.cost}g</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="text-xs text-zinc-500 mt-1">Total: 9,400g</div>
+              </div>
+              
+              {/* Situational Items */}
+              <div className="mb-2">
+                <div className="flex items-center mb-2">
+                  <div className="w-1 h-4 bg-purple-500 rounded-full mr-2"></div>
+                  <h4 className="text-sm font-semibold text-zinc-300">Situational Items</h4>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {[
+                    { name: "Bloodthirster", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3072.png", condition: "vs Burst" },
+                    { name: "Lord Dominik's", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3036.png", condition: "vs Tanks" },
+                    { name: "Guardian Angel", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3026.png", condition: "Safety" },
+                    { name: "Mortal Reminder", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3033.png", condition: "vs Healing" },
+                    { name: "Mercurial Scimitar", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3139.png", condition: "vs CC" }
+                  ].map((item) => (
+                    <div key={item.name} className="flex flex-col items-center">
+                      <div className="relative w-12 h-12 border border-zinc-700 rounded-md overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
+                        <Image 
+                          src={item.image}
+                          alt={item.name}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="mt-1 text-center">
+                        <div className="text-[10px] text-zinc-500">{item.condition}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Boots Options */}
+              <div className="pt-3 border-t border-zinc-800/50 mt-4">
+                <div className="flex items-center mb-2">
+                  <div className="w-1 h-4 bg-green-500 rounded-full mr-2"></div>
+                  <h4 className="text-sm font-semibold text-zinc-300">Boots</h4>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2 bg-zinc-800/50 p-2 rounded-md flex-1">
+                    <div className="relative w-10 h-10 border border-green-700/30 rounded-md overflow-hidden bg-gradient-to-br from-green-950/20 to-zinc-900 flex items-center justify-center">
+                      <Image 
+                        src="https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3006.png"
+                        alt="Berserker's Greaves"
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium text-zinc-300">Berserker's Greaves</div>
+                      <div className="text-[10px] text-zinc-500">Attack Speed</div>
+                    </div>
+                    <div className="ml-auto text-green-400 text-xs font-medium">89.7%</div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 bg-zinc-800/50 p-2 rounded-md flex-1">
+                    <div className="relative w-10 h-10 border border-zinc-700/30 rounded-md overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
+                      <Image 
+                        src="https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3047.png"
+                        alt="Plated Steelcaps"
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                      />
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium text-zinc-300">Plated Steelcaps</div>
+                      <div className="text-[10px] text-zinc-500">vs AD Threats</div>
+                    </div>
+                    <div className="ml-auto text-zinc-400 text-xs font-medium">7.2%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Hard Counters Section */}
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
               <h3 className="text-lg font-bold mb-3 text-[#C89B3C]">Hard Counters</h3>
@@ -593,82 +737,134 @@ export default function ChampionDetailsPage() {
                 <div className="text-zinc-400 text-xs">54.2% Win Rate</div>
               </div>
               
-              <div className="mb-4">
-                {/* Skill Summary & Max Order */}
-                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-800/50">
-                  <div className="flex gap-1 text-xs text-zinc-400">Max:</div>
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 flex items-center justify-center rounded bg-blue-500 text-white text-xs font-bold">Q</div>
-                    <span className="mx-1 text-zinc-600">→</span>
-                    <div className="w-6 h-6 flex items-center justify-center rounded bg-green-500 text-white text-xs font-bold">W</div>
-                    <span className="mx-1 text-zinc-600">→</span>
-                    <div className="w-6 h-6 flex items-center justify-center rounded bg-amber-500 text-white text-xs font-bold">E</div>
-                  </div>
+              {/* Skill Max Priority */}
+              <div className="flex items-center gap-3 mb-4 bg-zinc-800/30 p-3 rounded-lg">
+                <div className="text-sm font-medium text-zinc-400">Max Priority:</div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded bg-blue-500 text-white flex items-center justify-center font-bold">Q</div>
+                  <span className="text-xl text-zinc-600">→</span>
+                  <div className="w-8 h-8 rounded bg-green-500 text-white flex items-center justify-center font-bold">W</div>
+                  <span className="text-xl text-zinc-600">→</span>
+                  <div className="w-8 h-8 rounded bg-amber-500 text-white flex items-center justify-center font-bold">E</div>
                 </div>
-
-                {/* Skills Leveling Overview */}
-                <div className="grid grid-cols-4 gap-x-1 gap-y-0.5 mb-3">
-                  {/* Headers */}
-                  <div className="text-xs text-center font-medium text-zinc-400">Q</div>
-                  <div className="text-xs text-center font-medium text-zinc-400">W</div>
-                  <div className="text-xs text-center font-medium text-zinc-400">E</div>
-                  <div className="text-xs text-center font-medium text-zinc-400">R</div>
+                <div className="ml-auto text-sm font-medium text-zinc-300">(Always max R when possible)</div>
+              </div>
+              
+              {/* Skill Leveling Table */}
+              <div className="mb-4 overflow-x-auto">
+                <div className="inline-grid grid-cols-19 gap-x-0 min-w-full">
+                  {/* Level Headers */}
+                  <div className="text-center text-xs font-medium bg-zinc-800/50 p-1 rounded-tl-md">Lvl</div>
+                  {[...Array(18)].map((_, i) => (
+                    <div key={`level-${i+1}`} className={`text-center text-xs font-medium bg-zinc-800/50 p-1 ${i === 17 ? 'rounded-tr-md' : ''}`}>{i + 1}</div>
+                  ))}
                   
-                  {/* Level Indicators for each ability */}
-                  <div>
-                    {[1, 3, 5, 7, 9].map(level => (
-                      <div key={`q-${level}`} className="flex items-center justify-center">
-                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold mb-0.5">
-                          {level}
-                        </div>
-                      </div>
-                    ))}
+                  {/* Skill Q */}
+                  <div className="text-center text-xs font-medium bg-blue-500/20 p-1 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded bg-blue-500 text-white flex items-center justify-center text-xs font-bold">Q</div>
                   </div>
+                  {[1, 3, 5, 7, 9].includes(1) && <div className="bg-blue-500 text-white text-xs font-medium p-1 text-center">1</div>}
+                  {[1, 3, 5, 7, 9].includes(2) && <div className="bg-blue-500 text-white text-xs font-medium p-1 text-center">2</div>}
+                  {[1, 3, 5, 7, 9].includes(3) && <div className="bg-blue-500 text-white text-xs font-medium p-1 text-center">3</div>}
+                  {[1, 3, 5, 7, 9].includes(4) && <div className="bg-blue-500 text-white text-xs font-medium p-1 text-center">4</div>}
+                  {[1, 3, 5, 7, 9].includes(5) && <div className="bg-blue-500 text-white text-xs font-medium p-1 text-center">5</div>}
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-blue-500 text-white text-xs font-medium p-1 text-center">9</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
                   
-                  <div>
-                    {[2, 4, 8, 12, 13].map(level => (
-                      <div key={`w-${level}`} className="flex items-center justify-center">
-                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 text-white text-[10px] font-bold mb-0.5">
-                          {level}
-                        </div>
-                      </div>
-                    ))}
+                  {/* Skill W */}
+                  <div className="text-center text-xs font-medium bg-green-500/20 p-1 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded bg-green-500 text-white flex items-center justify-center text-xs font-bold">W</div>
                   </div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-green-500 text-white text-xs font-medium p-1 text-center">2</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-green-500 text-white text-xs font-medium p-1 text-center">4</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-green-500 text-white text-xs font-medium p-1 text-center">8</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-green-500 text-white text-xs font-medium p-1 text-center">12</div>
+                  <div className="bg-green-500 text-white text-xs font-medium p-1 text-center">13</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
                   
-                  <div>
-                    {[10, 14, 15, 16, 17].map(level => (
-                      <div key={`e-${level}`} className="flex items-center justify-center">
-                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold mb-0.5">
-                          {level}
-                        </div>
-                      </div>
-                    ))}
+                  {/* Skill E */}
+                  <div className="text-center text-xs font-medium bg-amber-500/20 p-1 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded bg-amber-500 text-white flex items-center justify-center text-xs font-bold">E</div>
                   </div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-amber-500 text-white text-xs font-medium p-1 text-center">10</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-amber-500 text-white text-xs font-medium p-1 text-center">14</div>
+                  <div className="bg-amber-500 text-white text-xs font-medium p-1 text-center">15</div>
+                  <div className="bg-amber-500 text-white text-xs font-medium p-1 text-center">16</div>
+                  <div className="bg-amber-500 text-white text-xs font-medium p-1 text-center">17</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
                   
-                  <div>
-                    {[6, 11, 18].map(level => (
-                      <div key={`r-${level}`} className="flex items-center justify-center">
-                        <div className="w-5 h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold mb-0.5">
-                          {level}
-                        </div>
-                      </div>
-                    ))}
-                    <div className="h-5 mb-0.5"></div>
-                    <div className="h-5 mb-0.5"></div>
+                  {/* Skill R */}
+                  <div className="text-center text-xs font-medium bg-red-500/20 p-1 rounded-bl-md flex items-center justify-center">
+                    <div className="w-5 h-5 rounded bg-red-500 text-white flex items-center justify-center text-xs font-bold">R</div>
                   </div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-red-500 text-white text-xs font-medium p-1 text-center">6</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-red-500 text-white text-xs font-medium p-1 text-center">11</div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-zinc-800/30 p-1"></div>
+                  <div className="bg-red-500 text-white text-xs font-medium p-1 text-center rounded-br-md">18</div>
                 </div>
-                
-                {/* Abilities Description */}
-                <div className="bg-zinc-800/30 rounded-md p-2 flex gap-2 overflow-auto">
+              </div>
+              
+              {/* Ability Quick Reference */}
+              <div className="bg-zinc-800/30 rounded-md p-2">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                   {[
-                    { key: 'Q', name: championData.spells[0]?.name || 'Dark Flight', color: '#1E88E5' },
-                    { key: 'W', name: championData.spells[1]?.name || 'Infernal Chains', color: '#43A047' },
-                    { key: 'E', name: championData.spells[2]?.name || 'Umbral Dash', color: '#FB8C00' },
-                    { key: 'R', name: championData.spells[3]?.name || 'World Ender', color: '#E53935' }
+                    { key: 'Q', color: '#1E88E5', name: championData.spells[0]?.name || 'First Ability' },
+                    { key: 'W', color: '#43A047', name: championData.spells[1]?.name || 'Second Ability' },
+                    { key: 'E', color: '#FB8C00', name: championData.spells[2]?.name || 'Third Ability' },
+                    { key: 'R', color: '#E53935', name: championData.spells[3]?.name || 'Ultimate' }
                   ].map((ability) => (
-                    <div key={ability.key} className="flex items-center gap-1 min-w-max">
+                    <div key={ability.key} className="flex items-center gap-2">
                       <div 
-                        className="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded text-white text-xs font-bold"
+                        className="w-6 h-6 flex-shrink-0 flex items-center justify-center rounded text-white text-xs font-bold"
                         style={{ backgroundColor: ability.color }}
                       >
                         {ability.key}
