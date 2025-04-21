@@ -695,80 +695,133 @@ export default function ChampionDetailsPage() {
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-6">
               <h3 className="text-xl font-bold mb-6 text-[#C89B3C]">Abilities</h3>
               
+              {/* Ability Quick Summary */}
+              <div className="flex items-center justify-center mb-6 bg-zinc-800/50 rounded-lg p-3">
+                <div className="flex items-center gap-1">
+                  <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-zinc-300">P</span>
+                  </div>
+                  <div className="text-zinc-500 font-bold">→</div>
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">Q</span>
+                  </div>
+                  <div className="text-zinc-500 font-bold">→</div>
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">W</span>
+                  </div>
+                  <div className="text-zinc-500 font-bold">→</div>
+                  <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">E</span>
+                  </div>
+                  <div className="text-zinc-500 font-bold">→</div>
+                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">R</span>
+                  </div>
+                </div>
+              </div>
+              
               {/* Passive */}
               <div className="mb-8">
-                <div className="flex items-start gap-4 mb-4">
+                <div className="border-l-4 border-zinc-600 pl-2 mb-4">
+                  <h4 className="text-lg font-bold text-zinc-300">Passive Ability</h4>
+                </div>
+                <div className="flex items-start gap-4 p-4 bg-zinc-800/30 rounded-lg transition-transform hover:scale-[1.01]">
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-md overflow-hidden border border-zinc-700 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-md overflow-hidden border-2 border-zinc-700 flex items-center justify-center bg-black/20">
                       <Image 
                         src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/passive/${championData.passive.image.full}`}
                         alt={championData.passive.name}
-                        width={48}
-                        height={48}
+                        width={60}
+                        height={60}
                         className="object-cover"
                       />
                     </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-zinc-800 border border-zinc-600 flex items-center justify-center">
-                      <span className="text-xs font-bold text-zinc-300">P</span>
+                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-zinc-700 border-2 border-zinc-600 flex items-center justify-center">
+                      <span className="text-sm font-bold text-zinc-300">P</span>
                     </div>
                   </div>
                   <div>
                     <div className="text-sm text-zinc-400 mb-1">Passive</div>
-                    <h4 className="text-lg font-bold">{championData.passive.name}</h4>
+                    <h4 className="text-xl font-bold">{championData.passive.name}</h4>
                     <p className="text-zinc-300 mt-2">{formatDescription(championData.passive.description)}</p>
                   </div>
                 </div>
               </div>
               
               {/* Active Abilities */}
-              <div className="space-y-8">
+              <div className="space-y-6">
+                <div className="border-l-4 border-[#C89B3C] pl-2 mb-4">
+                  <h4 className="text-lg font-bold text-zinc-300">Active Abilities</h4>
+                </div>
+                
                 {championData.spells.map((spell, index) => {
                   const abilityColor = getAbilityColor(index);
                   const abilityKey = mapAbilityToKey(index);
                   
                   return (
-                    <div key={spell.id}>
-                      <div className="flex items-start gap-4 mb-2">
+                    <div key={spell.id} className="p-4 bg-zinc-800/30 rounded-lg transition-transform hover:scale-[1.01]">
+                      <div className="flex items-start gap-4">
                         <div className="relative">
-                          <div className="w-16 h-16 rounded-md overflow-hidden border border-zinc-700 flex items-center justify-center">
+                          <div className="w-20 h-20 rounded-md overflow-hidden border-2 border-zinc-700 flex items-center justify-center bg-black/20">
                             <Image 
                               src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/spell/${spell.image.full}`}
                               alt={spell.name}
-                              width={48}
-                              height={48}
+                              width={60}
+                              height={60}
                               className="object-cover"
                             />
                           </div>
                           <div 
-                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center"
-                            style={{ backgroundColor: abilityColor.bg, border: `1px solid ${abilityColor.bg}` }}
+                            className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center border-2"
+                            style={{ backgroundColor: abilityColor.bg, borderColor: `${abilityColor.bg}80` }}
                           >
-                            <span className="text-xs font-bold" style={{ color: abilityColor.text }}>{abilityKey}</span>
+                            <span className="text-sm font-bold" style={{ color: abilityColor.text }}>{abilityKey}</span>
                           </div>
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm text-zinc-400 mb-1">Ability {index + 1}</div>
-                          <h4 className="text-lg font-bold">{spell.name}</h4>
+                          <div className="flex justify-between items-center mb-1">
+                            <div className="text-sm text-zinc-400">Ability {index + 1}</div>
+                            <div className="text-xs text-zinc-500 bg-zinc-800/70 px-2 py-0.5 rounded">Max this {index === 0 ? "1st" : index === 1 ? "2nd" : index === 2 ? "3rd" : "4th"}</div>
+                          </div>
+                          <h4 className="text-xl font-bold">{spell.name}</h4>
                           <p className="text-zinc-300 mt-2">{formatDescription(spell.description)}</p>
                           
                           <div className="grid grid-cols-3 gap-2 mt-3">
                             {spell.cooldownBurn && (
-                              <div className="bg-zinc-800/50 rounded p-2">
-                                <div className="text-xs text-zinc-400 mb-1">Cooldown</div>
+                              <div className="bg-zinc-800/70 rounded p-2">
+                                <div className="text-xs text-zinc-400 mb-1 flex items-center gap-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                  </svg>
+                                  Cooldown
+                                </div>
                                 <div className="text-sm text-white font-medium">{spell.cooldownBurn}s</div>
                               </div>
                             )}
                             
                             {spell.costBurn && (
-                              <div className="bg-zinc-800/50 rounded p-2">
-                                <div className="text-xs text-zinc-400 mb-1">Cost</div>
+                              <div className="bg-zinc-800/70 rounded p-2">
+                                <div className="text-xs text-zinc-400 mb-1 flex items-center gap-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M20.2 7.8l-7.7 7.7-4-4-5.7 5.7" />
+                                    <path d="M15 7h6v6" />
+                                  </svg>
+                                  Cost
+                                </div>
                                 <div className="text-sm text-white font-medium">{spell.costBurn} {championData.partype}</div>
                               </div>
                             )}
                             
                             {spell.rangeBurn && spell.rangeBurn !== "self" && (
-                              <div className="bg-zinc-800/50 rounded p-2">
-                                <div className="text-xs text-zinc-400 mb-1">Range</div>
+                              <div className="bg-zinc-800/70 rounded p-2">
+                                <div className="text-xs text-zinc-400 mb-1 flex items-center gap-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <polyline points="19 12 12 19 5 12"></polyline>
+                                  </svg>
+                                  Range
+                                </div>
                                 <div className="text-sm text-white font-medium">{spell.rangeBurn}</div>
                               </div>
                             )}
