@@ -567,7 +567,7 @@ export default function ChampionDetailsPage() {
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {[
-                    { name: "Doran's Blade", cost: 450, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/1055.png" },
+                    { name: "Doran&apos;s Blade", cost: 450, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/1055.png" },
                     { name: "Health Potion", cost: 50, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/2003.png" }
                   ].map((item) => (
                     <div key={item.name} className="flex flex-col items-center">
@@ -597,7 +597,7 @@ export default function ChampionDetailsPage() {
                 <div className="flex gap-2 flex-wrap mb-1">
                   {[
                     { name: "Kraken Slayer", cost: 3400, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/6672.png", order: 1 },
-                    { name: "Runaan's Hurricane", cost: 2600, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3085.png", order: 2 },
+                    { name: "Runaan&apos;s Hurricane", cost: 2600, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3085.png", order: 2 },
                     { name: "Infinity Edge", cost: 3400, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3031.png", order: 3 }
                   ].map((item) => (
                     <div key={item.name} className="relative flex flex-col items-center">
@@ -663,14 +663,14 @@ export default function ChampionDetailsPage() {
                     <div className="relative w-10 h-10 border border-green-700/30 rounded-md overflow-hidden bg-gradient-to-br from-green-950/20 to-zinc-900 flex items-center justify-center">
                       <Image 
                         src="https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3006.png"
-                        alt="Berserker's Greaves"
+                        alt="Berserker&apos;s Greaves"
                         width={32}
                         height={32}
                         className="object-cover"
                       />
                     </div>
                     <div>
-                      <div className="text-xs font-medium text-zinc-300">Berserker's Greaves</div>
+                      <div className="text-xs font-medium text-zinc-300">Berserker&apos;s Greaves</div>
                       <div className="text-[10px] text-zinc-500">Attack Speed</div>
                     </div>
                     <div className="ml-auto text-green-400 text-xs font-medium">89.7%</div>
