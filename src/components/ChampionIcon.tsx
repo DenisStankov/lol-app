@@ -31,7 +31,6 @@ export default function ChampionIcon({
         const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
           setLatestVersion(response.data[0]);
-          console.log(`✅ Fetched latest DDragon version for champions: ${response.data[0]}`);
         }
       } catch (error) {
         console.error('Failed to fetch latest DDragon version for champions, using default', error);
@@ -55,9 +54,6 @@ export default function ChampionIcon({
     
     // Use the ID provided or fallback
     const champion = championId || fallbackChampion;
-    
-    // Log for debugging
-    console.log(`🦸 Loading champion icon: ${champion} using version ${latestVersion}`);
     
     // Create direct DDragon URL
     const championUrl = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${champion}.png`;
@@ -84,17 +80,14 @@ export default function ChampionIcon({
         onLoad={() => {
           setIsLoading(false);
           setHasError(false);
-          console.log(`✅ Successfully loaded champion: ${championId || fallbackChampion}`);
         }}
-        onError={(e) => {
-          console.error(`❌ Failed to load champion: ${championId}`, e);
+        onError={() => {
           setIsLoading(false);
           setHasError(true);
           
           // If the champion failed and it's not already the fallback,
           // try the fallback champion instead
           if (championId !== fallbackChampion) {
-            console.log(`⚠️ Trying fallback champion: ${fallbackChampion}`);
             setSrc(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${fallbackChampion}.png`);
           }
         }}

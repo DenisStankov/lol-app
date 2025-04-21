@@ -75,12 +75,9 @@ export interface DataDragonRunePath {
  */
 export async function getCurrentPatch(): Promise<string> {
   try {
-    console.log("Fetching current patch version...");
-    
     // Check cache first
     const cachedVersions = dataCache['versions'] as CacheEntry<string[]> | undefined;
     if (cachedVersions && Date.now() - cachedVersions.timestamp < CACHE_DURATION) {
-      console.log("Using cached version data");
       return cachedVersions.data[0];
     }
     
@@ -90,7 +87,6 @@ export async function getCurrentPatch(): Promise<string> {
       timestamp: Date.now()
     };
     
-    console.log(`Current patch: ${response.data[0]}`);
     return response.data[0];
   } catch (error) {
     console.error("Error fetching current patch:", error);
@@ -106,18 +102,15 @@ export async function getChampionsList(patch: string): Promise<Record<string, Da
     const cacheKey = `champions-${patch}`;
     const cachedChampions = dataCache[cacheKey] as CacheEntry<Record<string, DataDragonChampion>> | undefined;
     if (cachedChampions && Date.now() - cachedChampions.timestamp < CACHE_DURATION) {
-      console.log(`Using cached champion list for patch ${patch}`);
       return cachedChampions.data;
     }
     
-    console.log(`Fetching champion list for patch ${patch}...`);
     const response = await axios.get<{ data: Record<string, DataDragonChampion> }>(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
     dataCache[cacheKey] = {
       data: response.data.data,
       timestamp: Date.now()
     };
     
-    console.log(`Fetched ${Object.keys(response.data.data).length} champions`);
     return response.data.data;
   } catch (error) {
     console.error(`Error fetching champion list for patch ${patch}:`, error);
@@ -133,11 +126,9 @@ export async function getChampionDetails(champId: string, patch: string): Promis
     const cacheKey = `champion-${champId}-${patch}`;
     const cachedChampion = dataCache[cacheKey] as CacheEntry<DataDragonChampion> | undefined;
     if (cachedChampion && Date.now() - cachedChampion.timestamp < CACHE_DURATION) {
-      console.log(`Using cached details for ${champId}`);
       return cachedChampion.data;
     }
     
-    console.log(`Fetching champion details for ${champId} on patch ${patch}...`);
     const response = await axios.get<{ data: Record<string, DataDragonChampion> }>(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion/${champId}.json`);
     
     if (!response.data.data || !response.data.data[champId]) {
@@ -149,7 +140,6 @@ export async function getChampionDetails(champId: string, patch: string): Promis
       timestamp: Date.now()
     };
     
-    console.log(`Successfully fetched details for ${champId}`);
     return response.data.data[champId];
   } catch (error) {
     console.error(`Error fetching champion details for ${champId}:`, error);
@@ -165,18 +155,15 @@ export async function getItemsData(patch: string): Promise<Record<string, DataDr
     const cacheKey = `items-${patch}`;
     const cachedItems = dataCache[cacheKey] as CacheEntry<Record<string, DataDragonItemData>> | undefined;
     if (cachedItems && Date.now() - cachedItems.timestamp < CACHE_DURATION) {
-      console.log(`Using cached items data for patch ${patch}`);
       return cachedItems.data;
     }
     
-    console.log(`Fetching items data for patch ${patch}...`);
     const response = await axios.get<{ data: Record<string, DataDragonItemData> }>(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/item.json`);
     dataCache[cacheKey] = {
       data: response.data.data,
       timestamp: Date.now()
     };
     
-    console.log(`Fetched ${Object.keys(response.data.data).length} items`);
     return response.data.data;
   } catch (error) {
     console.error(`Error fetching items data for patch ${patch}:`, error);
@@ -192,18 +179,15 @@ export async function getRunesData(patch: string): Promise<DataDragonRunePath[]>
     const cacheKey = `runes-${patch}`;
     const cachedRunes = dataCache[cacheKey] as CacheEntry<DataDragonRunePath[]> | undefined;
     if (cachedRunes && Date.now() - cachedRunes.timestamp < CACHE_DURATION) {
-      console.log(`Using cached runes data for patch ${patch}`);
       return cachedRunes.data;
     }
     
-    console.log(`Fetching runes data for patch ${patch}...`);
     const response = await axios.get<DataDragonRunePath[]>(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/runesReforged.json`);
     dataCache[cacheKey] = {
       data: response.data,
       timestamp: Date.now()
     };
     
-    console.log(`Fetched ${response.data.length} rune paths`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching runes data for patch ${patch}:`, error);
