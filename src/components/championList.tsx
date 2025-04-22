@@ -252,7 +252,6 @@ const TIER_COLORS = {
 };
 
 export default function TopChampions() {
-  const [hoveredChamp, setHoveredChamp] = useState<string | null>(null)
   const [champions, setChampions] = useState<Champion[]>([])
   const [patchVersion, setPatchVersion] = useState("")
   const [loading, setLoading] = useState(true)
