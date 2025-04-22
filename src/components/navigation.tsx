@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, LogOut, User, ChevronDown, Settings, BarChart2, Shield } from "lucide-react"
+import { Menu, X, LogOut, User, ChevronDown, Settings, BarChart2, Shield, Home, Trophy, Activity, Crown } from "lucide-react"
 import { getLogoutUrl } from "@/lib/auth-utils"
 import { getAuthUrl } from "@/lib/auth-config"
 import {
@@ -149,11 +149,11 @@ export default function Navigation() {
   }
 
   const navigation = [
-    { name: "Home", href: "/" },
-    { name: "Champions", href: "/champions" },
-    { name: "Tier List", href: "/tier-list" },
-    { name: "Leaderboards", href: "/leaderboards" },
-    { name: "Stats", href: "/stats" },
+    { name: "Home", href: "/", icon: <Home className="w-4 h-4" /> },
+    { name: "Champions", href: "/champions", icon: <Trophy className="w-4 h-4" /> },
+    { name: "Tier List", href: "/tier-list", icon: <Crown className="w-4 h-4" /> },
+    { name: "Leaderboards", href: "/leaderboards", icon: <Activity className="w-4 h-4" /> },
+    { name: "Stats", href: "/stats", icon: <BarChart2 className="w-4 h-4" /> },
   ]
 
   // Get initials for avatar fallback
@@ -198,30 +198,36 @@ export default function Navigation() {
   }
 
   return (
-    <nav className="bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-zinc-800/50">
+    <nav className="bg-zinc-900/90 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-800/50 shadow-lg shadow-black/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <Link href="/" className="flex items-center gap-2">
-                <span className="font-bold text-[#C89B3C] text-xl">LoLytics</span>
+              <Link href="/" className="flex items-center gap-2 group">
+                <span className="font-bold text-[#C89B3C] text-xl tracking-tight group-hover:text-[#D5B45C] transition-colors">LoLytics</span>
               </Link>
             </div>
             <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                {navigation.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      pathname === item.href
-                        ? "bg-[#C89B3C]/20 text-[#C89B3C]"
-                        : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
-                    } transition-colors`}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
+              <div className="ml-10 flex items-baseline space-x-2">
+                {navigation.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
+                        isActive
+                          ? "bg-[#C89B3C]/20 text-[#C89B3C] ring-1 ring-[#C89B3C]/30"
+                          : "text-zinc-300 hover:bg-zinc-800/80 hover:text-white"
+                      } transition-all duration-200 ease-in-out`}
+                    >
+                      <span className={isActive ? "text-[#C89B3C]" : "text-zinc-400"}>
+                        {item.icon}
+                      </span>
+                      {item.name}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -231,8 +237,8 @@ export default function Navigation() {
             {!isLoading &&
               (user ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 transition-colors">
-                    <Avatar className="h-7 w-7 border-2 border-[#C89B3C]/70">
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 hover:border-[#C89B3C]/50 transition-all duration-200">
+                    <Avatar className="h-7 w-7 border-2 border-[#C89B3C]/70 ring-2 ring-zinc-800">
                       {user?.profileIconId ? (
                         <div className="w-full h-full">
                           <ProfileIcon 
@@ -252,26 +258,26 @@ export default function Navigation() {
                     <span className="text-zinc-200 font-medium text-sm">{getDisplayName()}</span>
                     <ChevronDown className="h-4 w-4 text-zinc-400" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border border-zinc-800 text-zinc-200">
-                    <div className="px-2 py-2.5 border-b border-zinc-800">
+                  <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border border-zinc-800 text-zinc-200 animate-in fade-in-50 slide-in-from-top-5 duration-200">
+                    <div className="px-2 py-2.5 border-b border-zinc-800 bg-gradient-to-r from-zinc-900 to-zinc-900/80">
                       <p className="text-xs font-medium text-zinc-400">Signed in as</p>
                       <p className="text-sm font-semibold text-[#C89B3C]">{getDisplayName()}</p>
                     </div>
-                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800">
+                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800 hover:text-[#C89B3C] transition-colors">
                       <User className="w-4 h-4 text-zinc-400" />
                       <span>Profile</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800">
+                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800 hover:text-[#C89B3C] transition-colors">
                       <BarChart2 className="w-4 h-4 text-zinc-400" />
                       <span>My Stats</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800">
+                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800 hover:text-[#C89B3C] transition-colors">
                       <Settings className="w-4 h-4 text-zinc-400" />
                       <span>Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-zinc-800" />
                     <DropdownMenuItem
-                      className="flex items-center gap-2 text-[#E84057] hover:bg-zinc-800 focus:bg-zinc-800"
+                      className="flex items-center gap-2 text-[#E84057] hover:bg-zinc-800 focus:bg-zinc-800 transition-colors"
                       asChild
                     >
                       <a href={getLogoutUrl()}>
@@ -284,7 +290,7 @@ export default function Navigation() {
               ) : (
                 <a
                   href={getAuthUrl()}
-                  className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-[#C89B3C] to-[#785A28] text-zinc-900 hover:from-[#D5B45C] hover:to-[#8E6B32] transition-colors shadow-md"
+                  className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-[#C89B3C] to-[#785A28] text-zinc-900 hover:from-[#D5B45C] hover:to-[#8E6B32] transition-colors shadow-md hover:shadow-lg hover:shadow-[#C89B3C]/10 transform hover:-translate-y-0.5 transition-all duration-200"
                 >
                   <Shield className="w-4 h-4" />
                   <span>Login with Riot</span>
@@ -296,7 +302,7 @@ export default function Navigation() {
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="bg-zinc-800 inline-flex items-center justify-center p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700 focus:outline-none"
+              className="bg-zinc-800 inline-flex items-center justify-center p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#C89B3C]/30 transition-all"
             >
               <span className="sr-only">Open main menu</span>
               {mobileMenuOpen ? (
@@ -311,29 +317,35 @@ export default function Navigation() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden">
+        <div className="md:hidden animate-in slide-in-from-top-5 duration-200">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-zinc-900 border-b border-zinc-800">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  pathname === item.href
-                    ? "bg-[#C89B3C]/20 text-[#C89B3C]"
-                    : "text-zinc-300 hover:bg-zinc-700 hover:text-white"
-                }`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium ${
+                    isActive
+                      ? "bg-[#C89B3C]/20 text-[#C89B3C] ring-1 ring-[#C89B3C]/30"
+                      : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                  } transition-all`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className={isActive ? "text-[#C89B3C]" : "text-zinc-400"}>
+                    {item.icon}
+                  </span>
+                  {item.name}
+                </Link>
+              );
+            })}
 
             {/* Mobile auth buttons */}
             {!isLoading &&
               (user ? (
                 <div className="mt-3 pt-3 border-t border-zinc-700">
                   <div className="flex items-center gap-2 px-3 py-2">
-                    <Avatar className="h-8 w-8 border-2 border-[#C89B3C]/70">
+                    <Avatar className="h-8 w-8 border-2 border-[#C89B3C]/70 ring-2 ring-zinc-800">
                       {user?.profileIconId ? (
                         <div className="w-full h-full">
                           <ProfileIcon 
@@ -354,7 +366,7 @@ export default function Navigation() {
                   </div>
                   <Link
                     href="/profile"
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800 hover:text-[#C89B3C] transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <User className="w-4 h-4 text-zinc-400" />
@@ -362,7 +374,7 @@ export default function Navigation() {
                   </Link>
                   <Link
                     href="/my-stats"
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800 hover:text-[#C89B3C] transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <BarChart2 className="w-4 h-4 text-zinc-400" />
@@ -370,7 +382,7 @@ export default function Navigation() {
                   </Link>
                   <Link
                     href="/settings"
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800"
+                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800 hover:text-[#C89B3C] transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Settings className="w-4 h-4 text-zinc-400" />
@@ -378,7 +390,7 @@ export default function Navigation() {
                   </Link>
                   <a
                     href={getLogoutUrl()}
-                    className="flex items-center gap-2 px-3 py-2 mt-2 rounded-md text-base font-medium text-[#E84057] hover:bg-zinc-800"
+                    className="flex items-center gap-2 px-3 py-2 mt-2 rounded-md text-base font-medium text-[#E84057] hover:bg-zinc-800 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Logout</span>
@@ -387,7 +399,7 @@ export default function Navigation() {
               ) : (
                 <a
                   href={getAuthUrl()}
-                  className="flex items-center justify-center gap-2 mx-2 mt-3 px-4 py-2.5 rounded-md text-base font-medium bg-gradient-to-r from-[#C89B3C] to-[#785A28] text-zinc-900 hover:from-[#D5B45C] hover:to-[#8E6B32]"
+                  className="flex items-center justify-center gap-2 mx-2 mt-3 px-4 py-2.5 rounded-md text-base font-medium bg-gradient-to-r from-[#C89B3C] to-[#785A28] text-zinc-900 hover:from-[#D5B45C] hover:to-[#8E6B32] shadow-md"
                 >
                   <Shield className="w-5 h-5" />
                   <span>Login with Riot</span>
