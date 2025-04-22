@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Trophy, Loader2, ChevronRight } from 'lucide-react'
+import { Trophy, Loader2, ChevronRight, ArrowUp, ArrowDown, Star } from 'lucide-react'
 import { Card } from "@/components/card"
 import Image from "next/image"
 import axios from "axios"
@@ -18,6 +18,7 @@ interface Champion {
   difficulty: string
   image: string
   primaryPosition?: string // Added for position-based filtering
+  tier?: string // For tier classification like S, A, B tier
 }
 
 // Define interface for champion data from Riot's API
@@ -33,7 +34,7 @@ interface RiotChampionData {
   [key: string]: unknown;
 }
 
-// Define the roles we want to display
+// Define the roles we want to display with more accurate icons
 const POSITIONS = [
   { key: "TOP", label: "Top", icon: (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
@@ -62,13 +63,192 @@ const POSITIONS = [
   ) },
 ];
 
-// Map for assigning champions to positions based on tags and other heuristics
-const ROLE_MAPPINGS: Record<string, string[]> = {
+// More accurate position-to-champion mappings based on common meta
+const ROLE_MAPPINGS = {
+  // Primary roles for specific champions from the dpm.lol meta
+  SPECIFIC_CHAMPIONS: {
+    "Aatrox": "TOP",
+    "Ahri": "MIDDLE",
+    "Akali": "MIDDLE",
+    "Akshan": "MIDDLE",
+    "Alistar": "UTILITY",
+    "Amumu": "JUNGLE",
+    "Anivia": "MIDDLE",
+    "Annie": "MIDDLE",
+    "Aphelios": "BOTTOM",
+    "Ashe": "BOTTOM",
+    "AurelionSol": "MIDDLE",
+    "Azir": "MIDDLE",
+    "Bard": "UTILITY",
+    "Belveth": "JUNGLE",
+    "Blitzcrank": "UTILITY",
+    "Brand": "UTILITY",
+    "Braum": "UTILITY",
+    "Briar": "JUNGLE",
+    "Caitlyn": "BOTTOM",
+    "Camille": "TOP",
+    "Cassiopeia": "MIDDLE",
+    "Chogath": "TOP",
+    "Corki": "MIDDLE",
+    "Darius": "TOP",
+    "Diana": "JUNGLE",
+    "DrMundo": "TOP",
+    "Draven": "BOTTOM",
+    "Ekko": "JUNGLE",
+    "Elise": "JUNGLE",
+    "Evelynn": "JUNGLE",
+    "Ezreal": "BOTTOM",
+    "Fiddlesticks": "JUNGLE",
+    "Fiora": "TOP",
+    "Fizz": "MIDDLE",
+    "Galio": "MIDDLE",
+    "Gangplank": "TOP",
+    "Garen": "TOP",
+    "Gnar": "TOP",
+    "Gragas": "JUNGLE",
+    "Graves": "JUNGLE",
+    "Gwen": "TOP",
+    "Hecarim": "JUNGLE",
+    "Heimerdinger": "MIDDLE",
+    "Illaoi": "TOP",
+    "Irelia": "TOP",
+    "Ivern": "JUNGLE",
+    "Janna": "UTILITY",
+    "JarvanIV": "JUNGLE",
+    "Jax": "TOP",
+    "Jayce": "TOP",
+    "Jhin": "BOTTOM",
+    "Jinx": "BOTTOM",
+    "Kaisa": "BOTTOM",
+    "Kalista": "BOTTOM",
+    "Karma": "UTILITY",
+    "Karthus": "JUNGLE",
+    "Kassadin": "MIDDLE",
+    "Katarina": "MIDDLE",
+    "Kayle": "TOP",
+    "Kayn": "JUNGLE",
+    "Kennen": "TOP",
+    "Khazix": "JUNGLE",
+    "Kindred": "JUNGLE",
+    "Kled": "TOP",
+    "KogMaw": "BOTTOM",
+    "KSante": "TOP",
+    "Leblanc": "MIDDLE",
+    "LeeSin": "JUNGLE",
+    "Leona": "UTILITY",
+    "Lillia": "JUNGLE",
+    "Lissandra": "MIDDLE",
+    "Lucian": "BOTTOM",
+    "Lulu": "UTILITY",
+    "Lux": "UTILITY",
+    "Malphite": "TOP",
+    "Malzahar": "MIDDLE",
+    "Maokai": "UTILITY",
+    "MasterYi": "JUNGLE",
+    "Milio": "UTILITY",
+    "MissFortune": "BOTTOM",
+    "MonkeyKing": "JUNGLE",
+    "Mordekaiser": "TOP",
+    "Morgana": "UTILITY",
+    "Nami": "UTILITY",
+    "Nasus": "TOP",
+    "Nautilus": "UTILITY",
+    "Neeko": "MIDDLE",
+    "Nidalee": "JUNGLE",
+    "Nilah": "BOTTOM",
+    "Nocturne": "JUNGLE",
+    "Nunu": "JUNGLE",
+    "Olaf": "JUNGLE",
+    "Orianna": "MIDDLE",
+    "Ornn": "TOP",
+    "Pantheon": "UTILITY",
+    "Poppy": "JUNGLE",
+    "Pyke": "UTILITY",
+    "Qiyana": "MIDDLE",
+    "Quinn": "TOP",
+    "Rakan": "UTILITY",
+    "Rammus": "JUNGLE",
+    "RekSai": "JUNGLE",
+    "Rell": "UTILITY",
+    "Renata": "UTILITY",
+    "Renekton": "TOP",
+    "Rengar": "JUNGLE",
+    "Riven": "TOP",
+    "Rumble": "TOP",
+    "Ryze": "MIDDLE",
+    "Samira": "BOTTOM",
+    "Sejuani": "JUNGLE",
+    "Senna": "UTILITY",
+    "Seraphine": "UTILITY",
+    "Sett": "TOP",
+    "Shaco": "JUNGLE",
+    "Shen": "TOP",
+    "Shyvana": "JUNGLE",
+    "Singed": "TOP",
+    "Sion": "TOP",
+    "Sivir": "BOTTOM",
+    "Skarner": "JUNGLE",
+    "Smolder": "BOTTOM",
+    "Sona": "UTILITY",
+    "Soraka": "UTILITY",
+    "Swain": "MIDDLE",
+    "Sylas": "MIDDLE",
+    "Syndra": "MIDDLE",
+    "TahmKench": "TOP",
+    "Taliyah": "JUNGLE",
+    "Talon": "MIDDLE",
+    "Taric": "UTILITY",
+    "Teemo": "TOP",
+    "Thresh": "UTILITY",
+    "Tristana": "BOTTOM",
+    "Trundle": "JUNGLE",
+    "Tryndamere": "TOP",
+    "TwistedFate": "MIDDLE",
+    "Twitch": "BOTTOM",
+    "Udyr": "JUNGLE",
+    "Urgot": "TOP",
+    "Varus": "BOTTOM",
+    "Vayne": "BOTTOM",
+    "Veigar": "MIDDLE",
+    "Velkoz": "MIDDLE",
+    "Vex": "MIDDLE",
+    "Vi": "JUNGLE",
+    "Viego": "JUNGLE",
+    "Viktor": "MIDDLE",
+    "Vladimir": "MIDDLE",
+    "Volibear": "JUNGLE",
+    "Warwick": "JUNGLE",
+    "Xayah": "BOTTOM",
+    "Xerath": "MIDDLE",
+    "XinZhao": "JUNGLE",
+    "Yasuo": "MIDDLE",
+    "Yone": "MIDDLE",
+    "Yorick": "TOP",
+    "Yuumi": "UTILITY",
+    "Zac": "JUNGLE",
+    "Zed": "MIDDLE",
+    "Zeri": "BOTTOM",
+    "Ziggs": "MIDDLE",
+    "Zilean": "UTILITY",
+    "Zoe": "MIDDLE",
+    "Zyra": "UTILITY",
+  },
+  // Fallback role mappings by champion type
   "TOP": ["Fighter", "Tank", "Juggernaut"],
   "JUNGLE": ["Assassin", "Fighter", "Tank"],
   "MIDDLE": ["Mage", "Assassin"],
   "BOTTOM": ["Marksman"],
-  "UTILITY": ["Support", "Tank", "Enchanter"]
+  "UTILITY": ["Support", "Enchanter"]
+};
+
+// Tier colors for champion ratings (similar to dpm.lol)
+const TIER_COLORS = {
+  "S+": "#FF2D55", // Bright red
+  "S": "#FF9500",  // Orange
+  "A": "#FFCC00",  // Yellow
+  "B": "#34C759",  // Green
+  "C": "#5AC8FA",  // Light blue
+  "D": "#AF52DE",  // Purple
 };
 
 export default function TopChampions() {
@@ -98,10 +278,12 @@ export default function TopChampions() {
           winRate: number, 
           pickRate: number, 
           banRate: number, 
+          tier?: string,
           roles?: Record<string, {
             winRate: number, 
             pickRate: number, 
-            banRate: number
+            banRate: number,
+            tier?: string
           }>
         }> = {};
         
@@ -121,33 +303,50 @@ export default function TopChampions() {
             banRate: 2 + Math.random() * 12, // Fallback random ban rate between 2-14%
           }
           
-          // Determine champion's primary position based on champion tags or stats
+          // Determine champion's primary position based on champion-specific mapping, stats, or tags
           let primaryPosition = "";
+          let tier = "";
           
-          // If we have role-specific stats from the API, use the role with highest pickRate
-          if (stats.roles) {
+          // First check the specific champion mapping
+          if (ROLE_MAPPINGS.SPECIFIC_CHAMPIONS[champ.id]) {
+            primaryPosition = ROLE_MAPPINGS.SPECIFIC_CHAMPIONS[champ.id];
+          }
+          
+          // If no specific mapping, check role-specific stats from the API
+          if (!primaryPosition && stats.roles) {
             let highestPickRate = 0;
             Object.entries(stats.roles).forEach(([role, roleStats]) => {
               if (roleStats.pickRate > highestPickRate) {
                 highestPickRate = roleStats.pickRate;
                 primaryPosition = role;
+                tier = roleStats.tier || "";
               }
             });
           }
           
-          // If no role-specific stats, assign position based on champion tags
+          // If still no position, use fallback based on champion tags
           if (!primaryPosition) {
             for (const [position, tags] of Object.entries(ROLE_MAPPINGS)) {
-              if (champ.tags.some(tag => tags.includes(tag))) {
+              if (position !== "SPECIFIC_CHAMPIONS" && champ.tags.some(tag => tags.includes(tag))) {
                 primaryPosition = position;
                 break;
               }
             }
           }
           
-          // Default fallback if no position determined
+          // Last resort default
           if (!primaryPosition) {
             primaryPosition = "TOP"; // Default fallback
+          }
+          
+          // Determine champion tier if not already set
+          if (!tier) {
+            if (stats.winRate >= 54) tier = "S+";
+            else if (stats.winRate >= 52) tier = "S";
+            else if (stats.winRate >= 50) tier = "A";
+            else if (stats.winRate >= 48) tier = "B";
+            else if (stats.winRate >= 45) tier = "C";
+            else tier = "D";
           }
           
           return {
@@ -159,8 +358,9 @@ export default function TopChampions() {
             banRate: parseFloat(stats.banRate.toFixed(1)),
             trend: stats.winRate > 50 ? "up" : "down",
             difficulty: getDifficulty(champ.info?.difficulty || 0),
-            image: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champ.id}_0.jpg`,
-            primaryPosition
+            image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/tiles/${champ.id}_0.jpg`,
+            primaryPosition,
+            tier
           }
         })
         
@@ -189,6 +389,32 @@ export default function TopChampions() {
       .filter(champion => champion.primaryPosition === position)
       .sort((a, b) => b.winRate - a.winRate)
       .slice(0, 3);
+  }
+
+  // Helper function to get tier style
+  const getTierStyle = (tier: string) => {
+    const color = TIER_COLORS[tier] || "#34C759";
+    return {
+      backgroundColor: `${color}20`,
+      color: color,
+      borderColor: `${color}50`
+    };
+  }
+
+  // Helper function to get tier badge content
+  const getTierBadge = (tier: string) => {
+    const style = getTierStyle(tier);
+    return (
+      <div className="absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1" 
+          style={style}>
+        {tier.includes('+') ? (
+          <>
+            {tier.replace('+', '')}
+            <Star className="w-3 h-3" />
+          </>
+        ) : tier}
+      </div>
+    );
   }
 
   if (loading) {
@@ -238,11 +464,11 @@ export default function TopChampions() {
             <button
               key={position.key}
               className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 ${
-                selectedPosition === position.key || selectedPosition === null 
+                selectedPosition === position.key || (selectedPosition === null && position.key === POSITIONS[0].key)
                   ? "border-[#C89B3C] text-[#C89B3C]" 
                   : "border-transparent text-zinc-400 hover:text-zinc-300 hover:border-zinc-700"
               } transition-all duration-200`}
-              onClick={() => setSelectedPosition(selectedPosition === position.key ? null : position.key)}
+              onClick={() => setSelectedPosition(position.key)}
             >
               <span className="text-current">{position.icon}</span>
               {position.label}
@@ -250,158 +476,95 @@ export default function TopChampions() {
           ))}
         </div>
 
-        {/* Adaptive content - Show either all roles or selected role */}
-        {selectedPosition ? (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {getTopChampionsByPosition(selectedPosition).map((champion) => (
-                <Card
-                  key={champion.id}
-                  className={`group relative overflow-hidden border-0 bg-zinc-900/50 hover:bg-zinc-900/80
-                    ${hoveredChamp === champion.id ? 'ring-1 ring-[#C89B3C]/50 scale-[1.02]' : 'scale-100'}
-                    transition-all duration-300 ease-out`}
-                  onMouseEnter={() => setHoveredChamp(champion.id)}
-                  onMouseLeave={() => setHoveredChamp(null)}
+        {/* Always show detailed view by default for the selected role (or first role if none selected) */}
+        <div className="space-y-8">
+          {(selectedPosition ? [selectedPosition] : POSITIONS.map(p => p.key)).map((position) => (
+            <div key={position}>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-[#C89B3C]">
+                    {POSITIONS.find(p => p.key === position)?.icon}
+                  </span>
+                  <h3 className="font-semibold text-zinc-100">
+                    {POSITIONS.find(p => p.key === position)?.label} Lane
+                  </h3>
+                </div>
+                <Link 
+                  href={`/tier-list?role=${position}`}
+                  className="text-xs text-[#C89B3C] hover:text-[#E5B954] transition-colors flex items-center gap-1"
                 >
-                  {/* Glowing border effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#C89B3C]/0 via-[#C89B3C]/10 to-[#C89B3C]/0 
-                    opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                  <div className="relative p-4">
-                    {/* Champion image and info */}
-                    <div className="flex gap-4">
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden">
-                        <Image
-                          src={champion.image || "/placeholder.svg"}
-                          alt={champion.name}
-                          width={64}
-                          height={64}
-                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  View tier list
+                  <ChevronRight className="w-3 h-3" />
+                </Link>
+              </div>
+              
+              {/* dpm.lol style champion cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {getTopChampionsByPosition(position).map((champion, index) => (
+                  <Link
+                    href={`/champion/${champion.id}`}
+                    key={champion.id}
+                    className={`group relative overflow-hidden rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-black/30 block`}
+                  >
+                    <div className="relative aspect-[16/9] overflow-hidden">
+                      {/* Champion image */}
+                      <Image
+                        src={champion.image || "/placeholder.svg"}
+                        alt={champion.name}
+                        width={320}
+                        height={180}
+                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                      />
+                      
+                      {/* Overlay gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                      
+                      {/* Rank badge (1, 2, 3) */}
+                      <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-zinc-900/80 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-[#C89B3C] border border-[#C89B3C]/30">
+                        {index + 1}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold text-zinc-100 group-hover:text-[#C89B3C] transition-colors">
+                      
+                      {/* Tier badge */}
+                      {getTierBadge(champion.tier || "B")}
+                      
+                      {/* Bottom content */}
+                      <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <h3 className="font-bold text-white text-lg truncate group-hover:text-[#C89B3C] transition-colors">
                           {champion.name}
                         </h3>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-zinc-400 text-xs">{champion.role}</span>
-                          <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                          <span className="text-zinc-400 text-xs">{champion.difficulty}</span>
-                        </div>
-                        {/* Win rate indicator */}
-                        <div className="flex items-center gap-2 mt-2">
-                          <div 
-                            className="h-1.5 bg-gradient-to-r from-[#C89B3C] to-[#C89B3C]/50 rounded-full transition-all duration-300"
-                            style={{ width: `${champion.winRate}%` }}
-                          />
-                          <span className="text-[#C89B3C] text-xs font-medium">
-                            {champion.winRate}%
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="grid grid-cols-3 gap-2 mt-3 p-2 rounded-lg bg-black/20">
-                      <div className="flex flex-col items-center gap-1">
-                        <div className={`text-sm font-medium ${champion.trend === "up" ? "text-green-400" : "text-red-400"}`}>
-                          {champion.winRate}%
-                        </div>
-                        <div className="text-xs text-zinc-500">Win Rate</div>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="text-sm font-medium text-blue-400">{champion.pickRate}%</div>
-                        <div className="text-xs text-zinc-500">Pick Rate</div>
-                      </div>
-                      <div className="flex flex-col items-center gap-1">
-                        <div className="text-sm font-medium text-red-400">{champion.banRate}%</div>
-                        <div className="text-xs text-zinc-500">Ban Rate</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Bottom gradient border */}
-                  <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r 
-                    from-transparent via-[#C89B3C]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Card>
-              ))}
-            </div>
-            <Link
-              href="/tier-list"
-              className="flex items-center justify-center gap-1 text-sm text-[#C89B3C] hover:text-[#E5B954] transition-colors mt-6 py-2 rounded-md border border-zinc-800 hover:border-[#C89B3C]/30 bg-zinc-900/40 hover:bg-zinc-900/60"
-            >
-              View full {POSITIONS.find(p => p.key === selectedPosition)?.label} champion tier list
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </>
-        ) : (
-          <>
-            {/* Show champions for all roles */}
-            <div className="space-y-8">
-              {POSITIONS.map((position) => (
-                <div key={position.key}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#C89B3C]">{position.icon}</span>
-                      <h3 className="font-semibold text-zinc-100">{position.label}</h3>
-                    </div>
-                    <button 
-                      onClick={() => setSelectedPosition(position.key)}
-                      className="text-xs text-[#C89B3C] hover:text-[#E5B954] transition-colors"
-                    >
-                      View more
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {getTopChampionsByPosition(position.key).map((champion) => (
-                      <Card
-                        key={champion.id}
-                        className="group relative overflow-hidden border-0 bg-zinc-900/50 hover:bg-zinc-900/80 transition-all duration-300"
-                        onMouseEnter={() => setHoveredChamp(champion.id)}
-                        onMouseLeave={() => setHoveredChamp(null)}
-                      >
-                        <div className="p-3 flex items-center gap-3">
-                          <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                            <Image
-                              src={champion.image || "/placeholder.svg"}
-                              alt={champion.name}
-                              width={48}
-                              height={48}
-                              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        
+                        {/* Stats row */}
+                        <div className="flex items-center gap-3 mt-1">
+                          <div className="flex items-center gap-1">
+                            <span className={`text-sm font-medium ${champion.trend === "up" ? "text-green-400" : "text-red-400"}`}>
+                              {champion.winRate}%
+                            </span>
+                            {champion.trend === "up" ? 
+                              <ArrowUp className="w-3 h-3 text-green-400" /> : 
+                              <ArrowDown className="w-3 h-3 text-red-400" />
+                            }
                           </div>
-                          <div className="min-w-0">
-                            <h3 className="text-base font-semibold text-zinc-100 truncate group-hover:text-[#C89B3C] transition-colors">
-                              {champion.name}
-                            </h3>
-                            <div className="flex items-center gap-2">
-                              <div 
-                                className="h-1.5 w-16 bg-gradient-to-r from-[#C89B3C] to-[#C89B3C]/50 rounded-full"
-                                style={{ width: `${Math.min(champion.winRate * 1.5, 85)}px` }}
-                              />
-                              <span className="text-[#C89B3C] text-xs font-medium">
-                                {champion.winRate}%
-                              </span>
-                            </div>
+                          <div className="w-px h-3 bg-zinc-700"></div>
+                          <div className="text-xs text-zinc-400">
+                            Pick: <span className="text-blue-400">{champion.pickRate}%</span>
                           </div>
                         </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
             </div>
-            <Link
-              href="/tier-list"
-              className="flex items-center justify-center gap-1 text-sm text-[#C89B3C] hover:text-[#E5B954] transition-colors mt-6 py-2 rounded-md border border-zinc-800 hover:border-[#C89B3C]/30 bg-zinc-900/40 hover:bg-zinc-900/60"
-            >
-              View full tier list
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </>
-        )}
+          ))}
+        </div>
+        
+        <Link
+          href="/tier-list"
+          className="flex items-center justify-center gap-1 text-sm text-[#C89B3C] hover:text-[#E5B954] transition-colors mt-8 py-2 rounded-md border border-zinc-800 hover:border-[#C89B3C]/30 bg-zinc-900/40 hover:bg-zinc-900/60"
+        >
+          View complete champion tier list
+          <ChevronRight className="w-4 h-4" />
+        </Link>
     
         {/* Bottom gradient border */}
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r 
