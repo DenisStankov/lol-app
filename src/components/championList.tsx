@@ -231,9 +231,8 @@ const ROLE_MAPPINGS = {
     "Ziggs": "MIDDLE",
     "Zilean": "UTILITY",
     "Zoe": "MIDDLE",
-    "Zyra": "UTILITY",
-    [key: string]: string // Add index signature to allow string indexing
-  },
+    "Zyra": "UTILITY"
+  } as Record<string, string>, // Use type assertion instead of index signature
   // Fallback role mappings by champion type
   "TOP": ["Fighter", "Tank", "Juggernaut"],
   "JUNGLE": ["Assassin", "Fighter", "Tank"],
