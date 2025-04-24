@@ -357,7 +357,7 @@ export default function TopChampions() {
             banRate: parseFloat(stats.banRate.toFixed(1)),
             trend: stats.winRate > 50 ? "up" : "down",
             difficulty: getDifficulty(champ.info?.difficulty || 0),
-            image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/tiles/${champ.id}_0.jpg`,
+            image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champ.id}.png`,
             primaryPosition,
             tier
           }
@@ -387,7 +387,7 @@ export default function TopChampions() {
     return champions
       .filter(champion => champion.primaryPosition === position)
       .sort((a, b) => b.winRate - a.winRate)
-      .slice(0, 3);
+      .slice(0, 1);
   }
 
   // Helper function to get tier style
