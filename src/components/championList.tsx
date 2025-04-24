@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Trophy, Loader2, ChevronRight, ArrowUp, ArrowDown, Star } from 'lucide-react'
+import { Loader2, ChevronRight, Star } from 'lucide-react'
 import { Card } from "@/components/card"
 import Image from "next/image"
 import axios from "axios"
@@ -239,16 +239,6 @@ const ROLE_MAPPINGS = {
   "MIDDLE": ["Mage", "Assassin"],
   "BOTTOM": ["Marksman"],
   "UTILITY": ["Support", "Enchanter"]
-};
-
-// Tier colors for champion ratings (similar to dpm.lol)
-const TIER_COLORS: { [key: string]: string } = {
-  "S+": "#E5B954", // Gold for S+
-  "S": "#E5B954",  // Gold
-  "A": "#FFCC00",  // Yellow
-  "B": "#34C759",  // Green
-  "C": "#5AC8FA",  // Light blue
-  "D": "#AF52DE",  // Purple
 };
 
 export default function TopChampions() {
