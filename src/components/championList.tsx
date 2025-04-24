@@ -326,7 +326,7 @@ export default function TopChampions() {
           // If still no position, use fallback based on champion tags
           if (!primaryPosition) {
             for (const [position, tags] of Object.entries(ROLE_MAPPINGS)) {
-              if (position !== "SPECIFIC_CHAMPIONS" && champ.tags.some(tag => tags.includes(tag))) {
+              if (position !== "SPECIFIC_CHAMPIONS" && Array.isArray(tags) && champ.tags.some(tag => tags.includes(tag))) {
                 primaryPosition = position;
                 break;
               }
