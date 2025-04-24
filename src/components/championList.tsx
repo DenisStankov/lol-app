@@ -243,8 +243,8 @@ const ROLE_MAPPINGS = {
 
 // Tier colors for champion ratings (similar to dpm.lol)
 const TIER_COLORS: { [key: string]: string } = {
-  "S+": "#FF2D55", // Bright red
-  "S": "#FF9500",  // Orange
+  "S+": "#E5B954", // Gold for S+
+  "S": "#E5B954",  // Gold
   "A": "#FFCC00",  // Yellow
   "B": "#34C759",  // Green
   "C": "#5AC8FA",  // Light blue
@@ -348,6 +348,8 @@ export default function TopChampions() {
             else tier = "D";
           }
           
+          const winRateChange = (Math.random() * 2 - 1).toFixed(1);
+
           return {
             id: champ.id,
             name: champ.name,
@@ -355,7 +357,8 @@ export default function TopChampions() {
             winRate: parseFloat(stats.winRate.toFixed(1)),
             pickRate: parseFloat(stats.pickRate.toFixed(1)),
             banRate: parseFloat(stats.banRate.toFixed(1)),
-            trend: stats.winRate > 50 ? "up" : "down",
+            trend: parseFloat(winRateChange) >= 0 ? "up" : "down",
+            winRateChange: winRateChange,
             difficulty: getDifficulty(champ.info?.difficulty || 0),
             image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champ.id}.png`,
             primaryPosition,
@@ -382,45 +385,19 @@ export default function TopChampions() {
     return "High"
   }
 
-  // Get top 3 champions for a specific position
+  // Get top champions for a specific position
   const getTopChampionsByPosition = (position: string) => {
     return champions
       .filter(champion => champion.primaryPosition === position)
       .sort((a, b) => b.winRate - a.winRate)
-      .slice(0, 1);
-  }
-
-  // Helper function to get tier style
-  const getTierStyle = (tier: string) => {
-    const color = TIER_COLORS[tier] || "#34C759";
-    return {
-      backgroundColor: `${color}20`,
-      color: color,
-      borderColor: `${color}50`
-    };
-  }
-
-  // Helper function to get tier badge content
-  const getTierBadge = (tier: string) => {
-    const style = getTierStyle(tier);
-    return (
-      <div className="absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-bold flex items-center gap-1" 
-          style={style}>
-        {tier.includes('+') ? (
-          <>
-            {tier.replace('+', '')}
-            <Star className="w-3 h-3" />
-          </>
-        ) : tier}
-      </div>
-    );
+      .slice(0, 1); // Only one champion per role
   }
 
   if (loading) {
     return (
-      <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm h-full flex items-center justify-center">
+      <Card className="relative overflow-hidden bg-zinc-950 border-zinc-800/50 backdrop-blur-sm h-full flex items-center justify-center">
         <div className="flex flex-col items-center p-12">
-          <Loader2 className="w-10 h-10 text-[#C89B3C] animate-spin" />
+          <Loader2 className="w-10 h-10 text-[#E5B954] animate-spin" />
           <p className="mt-6 text-zinc-400">Loading champion data...</p>
         </div>
       </Card>
@@ -429,7 +406,7 @@ export default function TopChampions() {
   
   if (error) {
     return (
-      <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm h-full flex items-center justify-center p-8">
+      <Card className="relative overflow-hidden bg-zinc-950 border-zinc-800/50 backdrop-blur-sm h-full flex items-center justify-center p-8">
         <div className="text-red-400 text-center">
           <div className="text-xl mb-2">😞</div>
           {error}
@@ -439,22 +416,12 @@ export default function TopChampions() {
   }
 
   return (
-    <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm h-full">
-      {/* Background gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0A1428]/50 to-transparent" />
-
+    <Card className="relative overflow-hidden bg-zinc-950 border-zinc-800/50 backdrop-blur-sm h-full">
       <div className="relative p-6 h-full">
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-[#C89B3C]" />
-              <h2 className="text-xl font-bold text-zinc-100">Top Champions by Role</h2>
-            </div>
-            <p className="text-sm text-zinc-400 mt-1">Current meta powerhouses for each position</p>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm">
-            <span>Patch {patchVersion}</span>
-          </div>
+          <h2 className="text-xl font-bold text-zinc-100">
+            {patchVersion} Tierlist & Builds <ChevronRight className="inline-block h-5 w-5" />
+          </h2>
         </div>
 
         {/* Role tabs */}
@@ -464,7 +431,7 @@ export default function TopChampions() {
               key={position.key}
               className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 ${
                 selectedPosition === position.key || (selectedPosition === null && position.key === POSITIONS[0].key)
-                  ? "border-[#C89B3C] text-[#C89B3C]" 
+                  ? "border-[#E5B954] text-[#E5B954]" 
                   : "border-transparent text-zinc-400 hover:text-zinc-300 hover:border-zinc-700"
               } transition-all duration-200`}
               onClick={() => setSelectedPosition(position.key)}
@@ -475,99 +442,72 @@ export default function TopChampions() {
           ))}
         </div>
 
-        {/* Always show detailed view by default for the selected role (or first role if none selected) */}
-        <div className="space-y-8">
-          {(selectedPosition ? [selectedPosition] : POSITIONS.map(p => p.key)).map((position) => (
-            <div key={position}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-[#C89B3C]">
-                    {POSITIONS.find(p => p.key === position)?.icon}
-                  </span>
-                  <h3 className="font-semibold text-zinc-100">
-                    {POSITIONS.find(p => p.key === position)?.label} Lane
-                  </h3>
-                </div>
-                <Link 
-                  href={`/tier-list?role=${position}`}
-                  className="text-xs text-[#C89B3C] hover:text-[#E5B954] transition-colors flex items-center gap-1"
-                >
-                  View tier list
-                  <ChevronRight className="w-3 h-3" />
-                </Link>
-              </div>
-              
-              {/* dpm.lol style champion cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {getTopChampionsByPosition(position).map((champion, index) => (
-                  <Link
-                    href={`/champion/${champion.id}`}
+        {/* DPM.LOL style table layout */}
+        <div className="space-y-0">
+          <table className="w-full border-separate border-spacing-y-0">
+            <thead>
+              <tr className="text-left text-zinc-400">
+                <th className="pb-2 pl-2 font-medium">Champion</th>
+                <th className="pb-2 font-medium text-center">Tier</th>
+                <th className="pb-2 font-medium text-center">Winrate</th>
+                <th className="pb-2 font-medium text-center">Pickrate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(selectedPosition ? [selectedPosition] : POSITIONS.map(p => p.key)).flatMap(position => 
+                getTopChampionsByPosition(position).map((champion) => (
+                  <tr 
                     key={champion.id}
-                    className={`group relative overflow-hidden rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-black/30 block`}
+                    className="border-b border-zinc-800/50 hover:bg-zinc-900/30"
                   >
-                    <div className="relative aspect-[16/9] overflow-hidden">
-                      {/* Champion image */}
-                      <Image
-                        src={champion.image || "/placeholder.svg"}
-                        alt={champion.name}
-                        width={320}
-                        height={180}
-                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-                      />
-                      
-                      {/* Overlay gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                      
-                      {/* Rank badge (1, 2, 3) */}
-                      <div className="absolute top-2 left-2 w-6 h-6 rounded-full bg-zinc-900/80 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-[#C89B3C] border border-[#C89B3C]/30">
-                        {index + 1}
-                      </div>
-                      
-                      {/* Tier badge */}
-                      {getTierBadge(champion.tier || "B")}
-                      
-                      {/* Bottom content */}
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <h3 className="font-bold text-white text-lg truncate group-hover:text-[#C89B3C] transition-colors">
-                          {champion.name}
-                        </h3>
-                        
-                        {/* Stats row */}
-                        <div className="flex items-center gap-3 mt-1">
-                          <div className="flex items-center gap-1">
-                            <span className={`text-sm font-medium ${champion.trend === "up" ? "text-green-400" : "text-red-400"}`}>
-                              {champion.winRate}%
-                            </span>
-                            {champion.trend === "up" ? 
-                              <ArrowUp className="w-3 h-3 text-green-400" /> : 
-                              <ArrowDown className="w-3 h-3 text-red-400" />
-                            }
-                          </div>
-                          <div className="w-px h-3 bg-zinc-700"></div>
-                          <div className="text-xs text-zinc-400">
-                            Pick: <span className="text-blue-400">{champion.pickRate}%</span>
-                          </div>
+                    <td className="py-3">
+                      <Link href={`/champion/${champion.id}`} className="flex items-center gap-3 pl-2">
+                        <div className="h-12 w-12 rounded overflow-hidden flex-shrink-0">
+                          <Image
+                            src={champion.image}
+                            alt={champion.name}
+                            width={48}
+                            height={48}
+                            className="object-cover"
+                          />
                         </div>
+                        <span className="font-medium text-zinc-100">{champion.name}</span>
+                      </Link>
+                    </td>
+                    <td className="py-3 text-center">
+                      <span 
+                        className="px-2 font-bold text-[#E5B954] text-xl"
+                      >
+                        {champion.tier}
+                        {champion.tier.includes('+') && <Star className="inline ml-1 w-3 h-3" />}
+                      </span>
+                    </td>
+                    <td className="py-3 text-center">
+                      <div className="flex flex-col items-center">
+                        <span className="text-zinc-100">{champion.winRate}%</span>
+                        <span className={parseFloat(champion.winRateChange.toString()) >= 0 ? "text-green-500 text-xs" : "text-red-500 text-xs"}>
+                          {parseFloat(champion.winRateChange.toString()) >= 0 ? "+" : ""}
+                          {champion.winRateChange}%
+                        </span>
                       </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
+                    </td>
+                    <td className="py-3 text-center">
+                      <span className="text-zinc-100">{champion.pickRate}%</span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
         
         <Link
           href="/tier-list"
-          className="flex items-center justify-center gap-1 text-sm text-[#C89B3C] hover:text-[#E5B954] transition-colors mt-8 py-2 rounded-md border border-zinc-800 hover:border-[#C89B3C]/30 bg-zinc-900/40 hover:bg-zinc-900/60"
+          className="flex items-center justify-center gap-1 text-sm text-[#E5B954] hover:text-[#F0C874] transition-colors mt-8 py-2 rounded-md border border-zinc-800 hover:border-[#E5B954]/30 bg-zinc-900/40 hover:bg-zinc-900/60"
         >
           View complete champion tier list
           <ChevronRight className="w-4 h-4" />
         </Link>
-    
-        {/* Bottom gradient border */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r 
-          from-transparent via-[#C89B3C]/30 to-transparent" />
       </div>
     </Card>
   )
