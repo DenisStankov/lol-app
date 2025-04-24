@@ -468,8 +468,8 @@ export default function TopChampions() {
                       <span 
                         className="px-2 font-bold text-[#E5B954] text-xl"
                       >
-                        {champion.tier}
-                        {champion.tier.includes('+') && <Star className="inline ml-1 w-3 h-3" />}
+                        {champion.tier || "B"}
+                        {(champion.tier || "").includes('+') && <Star className="inline ml-1 w-3 h-3" />}
                       </span>
                     </td>
                     <td className="py-3 text-center">
