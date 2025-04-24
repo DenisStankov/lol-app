@@ -242,7 +242,7 @@ const ROLE_MAPPINGS = {
 };
 
 // Tier colors for champion ratings (similar to dpm.lol)
-const TIER_COLORS = {
+const TIER_COLORS: { [key: string]: string } = {
   "S+": "#FF2D55", // Bright red
   "S": "#FF9500",  // Orange
   "A": "#FFCC00",  // Yellow
