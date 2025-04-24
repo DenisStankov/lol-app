@@ -15,6 +15,7 @@ interface Champion {
   pickRate: number
   banRate: number
   trend: string
+  winRateChange: string
   difficulty: string
   image: string
   primaryPosition?: string // Added for position-based filtering
