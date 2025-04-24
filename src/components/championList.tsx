@@ -232,6 +232,7 @@ const ROLE_MAPPINGS = {
     "Zilean": "UTILITY",
     "Zoe": "MIDDLE",
     "Zyra": "UTILITY",
+    [key: string]: string // Add index signature to allow string indexing
   },
   // Fallback role mappings by champion type
   "TOP": ["Fighter", "Tank", "Juggernaut"],
