@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Fragment } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -119,6 +119,7 @@ export default function ChampionDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedRuneBuild, setSelectedRuneBuild] = useState<number>(0)
+  const [metaData, setMetaData] = useState<any>(null)
   
   // Fetch champion data
   useEffect(() => {
@@ -133,6 +134,14 @@ export default function ChampionDetailsPage() {
         
         const data = await response.json()
         setChampionData(data)
+        
+        // Fetch meta data
+        const metaResponse = await fetch(`/api/champion-meta?id=${champId}`)
+        if (metaResponse.ok) {
+          const metaData = await metaResponse.json()
+          setMetaData(metaData)
+        }
+        
         setLoading(false)
       } catch {
         setError('Failed to load champion data. Please try again later.')
@@ -343,13 +352,18 @@ export default function ChampionDetailsPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <div className="relative w-4 h-4 rounded-full overflow-hidden bg-amber-600/50">
                       <Image 
-                        src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7201_Precision.png"
-                        alt="Precision"
+                        src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/${metaData?.roleSpecificData?.runes?.primary?.name === 'Precision' ? '7201_Precision.png' : 
+                          metaData?.roleSpecificData?.runes?.primary?.name === 'Domination' ? '7200_Domination.png' :
+                          metaData?.roleSpecificData?.runes?.primary?.name === 'Sorcery' ? '7202_Sorcery.png' :
+                          metaData?.roleSpecificData?.runes?.primary?.name === 'Resolve' ? '7204_Resolve.png' :
+                          metaData?.roleSpecificData?.runes?.primary?.name === 'Inspiration' ? '7203_Whimsy.png' :
+                          '7201_Precision.png'}`}
+                        alt={metaData?.roleSpecificData?.runes?.primary?.name || "Precision"}
                         fill
                         className="object-cover scale-75"
                       />
                     </div>
-                    <div className="text-xs text-amber-300 font-semibold">PRECISION</div>
+                    <div className="text-xs text-amber-300 font-semibold">{metaData?.roleSpecificData?.runes?.primary?.name || "PRECISION"}</div>
                   </div>
 
                   {/* Keystone Row */}
@@ -360,12 +374,28 @@ export default function ChampionDetailsPage() {
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png",
                       "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/FleetFootwork/FleetFootwork.png"
                     ].map((iconSrc, i) => (
-                      <div key={`keystone-${i}`} className={`relative aspect-square rounded-full ${i === 0 ? 'bg-gradient-to-br from-amber-500/40 to-amber-700/40 border border-amber-500/50' : 'bg-zinc-800/70'} flex items-center justify-center overflow-hidden`}>
+                      <div key={`keystone-${i}`} className={`relative aspect-square rounded-full ${
+                        // Highlight the keystone that matches the meta data
+                        (metaData?.roleSpecificData?.runes?.primary?.keystone === 'Conqueror' && i === 0) ||
+                        (metaData?.roleSpecificData?.runes?.primary?.keystone === 'Press the Attack' && i === 1) ||
+                        (metaData?.roleSpecificData?.runes?.primary?.keystone === 'Lethal Tempo' && i === 2) ||
+                        (metaData?.roleSpecificData?.runes?.primary?.keystone === 'Fleet Footwork' && i === 3) ||
+                        (!metaData && i === 0)
+                        ? 'bg-gradient-to-br from-amber-500/40 to-amber-700/40 border border-amber-500/50' : 'bg-zinc-800/70'
+                      } flex items-center justify-center overflow-hidden`}>
                         <Image 
                           src={iconSrc}
                           alt={`Rune ${i}`}
                           fill
-                          className={`object-cover p-1 ${i !== 0 ? 'opacity-40' : ''}`}
+                          className={`object-cover p-1 ${
+                            // Dim the ones that don't match
+                            (metaData?.roleSpecificData?.runes?.primary?.keystone === 'Conqueror' && i === 0) ||
+                            (metaData?.roleSpecificData?.runes?.primary?.keystone === 'Press the Attack' && i === 1) ||
+                            (metaData?.roleSpecificData?.runes?.primary?.keystone === 'Lethal Tempo' && i === 2) ||
+                            (metaData?.roleSpecificData?.runes?.primary?.keystone === 'Fleet Footwork' && i === 3) ||
+                            (!metaData && i === 0)
+                            ? '' : 'opacity-40'
+                          }`}
                         />
                       </div>
                     ))}
@@ -432,13 +462,18 @@ export default function ChampionDetailsPage() {
                   <div className="flex items-center gap-2 mb-2">
                     <div className="relative w-4 h-4 rounded-full overflow-hidden bg-green-600/50">
                       <Image 
-                        src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/7204_Resolve.png"
-                        alt="Resolve"
+                        src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/${metaData?.roleSpecificData?.runes?.secondary?.name === 'Precision' ? '7201_Precision.png' : 
+                          metaData?.roleSpecificData?.runes?.secondary?.name === 'Domination' ? '7200_Domination.png' :
+                          metaData?.roleSpecificData?.runes?.secondary?.name === 'Sorcery' ? '7202_Sorcery.png' :
+                          metaData?.roleSpecificData?.runes?.secondary?.name === 'Resolve' ? '7204_Resolve.png' :
+                          metaData?.roleSpecificData?.runes?.secondary?.name === 'Inspiration' ? '7203_Whimsy.png' :
+                          '7204_Resolve.png'}`}
+                        alt={metaData?.roleSpecificData?.runes?.secondary?.name || "Resolve"}
                         fill
                         className="object-cover scale-75"
                       />
                     </div>
-                    <div className="text-xs text-green-300 font-semibold">RESOLVE</div>
+                    <div className="text-xs text-green-300 font-semibold">{metaData?.roleSpecificData?.runes?.secondary?.name || "RESOLVE"}</div>
                   </div>
                   
                   {/* Secondary Row 1 */}
@@ -530,17 +565,17 @@ export default function ChampionDetailsPage() {
                   <div className="relative w-8 h-8 rounded-md overflow-hidden bg-gradient-to-br from-amber-500/40 to-amber-700/40 border border-amber-500/50">
                     <Image 
                       src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png"
-                      alt="Conqueror"
+                      alt={metaData?.roleSpecificData?.runes?.primary?.keystone || "Conqueror"}
                       fill
                       className="object-cover p-1"
                     />
                   </div>
                   <div className="text-xs">
-                    <p className="text-white font-medium">Conqueror</p>
+                    <p className="text-white font-medium">{metaData?.roleSpecificData?.runes?.primary?.keystone || "Conqueror"}</p>
                     <div className="flex gap-2 items-center text-xs">
-                      <span className="text-green-400">54.2%</span>
+                      <span className="text-green-400">{metaData?.winRate || "54.2%"}</span>
                       <span className="text-zinc-500 text-[10px]">•</span>
-                      <span className="text-blue-400">92.7%</span>
+                      <span className="text-blue-400">{metaData?.pickRate || "92.7%"}</span>
                     </div>
                   </div>
                 </div>
@@ -556,7 +591,7 @@ export default function ChampionDetailsPage() {
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-[#C89B3C]">Recommended Build</h3>
-                <div className="text-zinc-400 text-xs">59.1% Win Rate</div>
+                <div className="text-zinc-400 text-xs">{metaData?.winRate || "59.1% Win Rate"}</div>
               </div>
               
               {/* Starter Items */}
@@ -566,14 +601,14 @@ export default function ChampionDetailsPage() {
                   <h4 className="text-sm font-semibold text-zinc-300">Starter Items</h4>
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {[
-                    { name: "Doran&apos;s Blade", cost: 450, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/1055.png" },
-                    { name: "Health Potion", cost: 50, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/2003.png" }
-                  ].map((item) => (
+                  {(metaData?.roleSpecificData?.build?.starter || [
+                    { name: "Doran's Blade", cost: 450, image: "1055.png" },
+                    { name: "Health Potion", cost: 50, image: "2003.png" }
+                  ]).map((item: any) => (
                     <div key={item.name} className="flex flex-col items-center">
                       <div className="relative w-12 h-12 border border-zinc-700 rounded-md overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
                         <Image 
-                          src={item.image}
+                          src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/${item.image}`}
                           alt={item.name}
                           width={40}
                           height={40}
@@ -595,16 +630,16 @@ export default function ChampionDetailsPage() {
                   <h4 className="text-sm font-semibold text-zinc-300">Core Build</h4>
                 </div>
                 <div className="flex gap-2 flex-wrap mb-1">
-                  {[
-                    { name: "Kraken Slayer", cost: 3400, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/6672.png", order: 1 },
-                    { name: "Runaan&apos;s Hurricane", cost: 2600, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3085.png", order: 2 },
-                    { name: "Infinity Edge", cost: 3400, image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3031.png", order: 3 }
-                  ].map((item) => (
+                  {(metaData?.roleSpecificData?.build?.core || [
+                    { name: "Kraken Slayer", cost: 3400, image: "6672.png", order: 1 },
+                    { name: "Runaan's Hurricane", cost: 2600, image: "3085.png", order: 2 },
+                    { name: "Infinity Edge", cost: 3400, image: "3031.png", order: 3 }
+                  ]).map((item: any, index: number) => (
                     <div key={item.name} className="relative flex flex-col items-center">
-                      <div className="absolute -top-1 -left-1 w-5 h-5 bg-amber-600 rounded-full flex items-center justify-center text-xs font-bold text-white">{item.order}</div>
+                      <div className="absolute -top-1 -left-1 w-5 h-5 bg-amber-600 rounded-full flex items-center justify-center text-xs font-bold text-white">{item.order || index + 1}</div>
                       <div className="relative w-14 h-14 border border-amber-700/50 rounded-md overflow-hidden bg-gradient-to-br from-amber-950/30 to-zinc-900 flex items-center justify-center">
                         <Image 
-                          src={item.image}
+                          src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/${item.image}`}
                           alt={item.name}
                           width={45}
                           height={45}
@@ -617,7 +652,9 @@ export default function ChampionDetailsPage() {
                     </div>
                   ))}
                 </div>
-                <div className="text-xs text-zinc-500 mt-1">Total: 9,400g</div>
+                <div className="text-xs text-zinc-500 mt-1">
+                  Total: {(metaData?.roleSpecificData?.build?.core || []).reduce((acc: number, item: any) => acc + (item.cost || 0), 0).toLocaleString()}g
+                </div>
               </div>
               
               {/* Situational Items */}
@@ -627,17 +664,17 @@ export default function ChampionDetailsPage() {
                   <h4 className="text-sm font-semibold text-zinc-300">Situational Items</h4>
                 </div>
                 <div className="grid grid-cols-5 gap-2">
-                  {[
-                    { name: "Bloodthirster", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3072.png", condition: "vs Burst" },
-                    { name: "Lord Dominik&apos;s", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3036.png", condition: "vs Tanks" },
-                    { name: "Guardian Angel", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3026.png", condition: "Safety" },
-                    { name: "Mortal Reminder", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3033.png", condition: "vs Healing" },
-                    { name: "Mercurial Scimitar", image: "https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3139.png", condition: "vs CC" }
-                  ].map((item) => (
+                  {(metaData?.roleSpecificData?.build?.situational || [
+                    { name: "Bloodthirster", image: "3072.png", condition: "vs Burst" },
+                    { name: "Lord Dominik's", image: "3036.png", condition: "vs Tanks" },
+                    { name: "Guardian Angel", image: "3026.png", condition: "Safety" },
+                    { name: "Mortal Reminder", image: "3033.png", condition: "vs Healing" },
+                    { name: "Mercurial Scimitar", image: "3139.png", condition: "vs CC" }
+                  ]).map((item: any) => (
                     <div key={item.name} className="flex flex-col items-center">
                       <div className="relative w-12 h-12 border border-zinc-700 rounded-md overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
                         <Image 
-                          src={item.image}
+                          src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/${item.image}`}
                           alt={item.name}
                           width={40}
                           height={40}
@@ -659,39 +696,26 @@ export default function ChampionDetailsPage() {
                   <h4 className="text-sm font-semibold text-zinc-300">Boots</h4>
                 </div>
                 <div className="flex gap-4">
-                  <div className="flex items-center gap-2 bg-zinc-800/50 p-2 rounded-md flex-1">
-                    <div className="relative w-10 h-10 border border-green-700/30 rounded-md overflow-hidden bg-gradient-to-br from-green-950/20 to-zinc-900 flex items-center justify-center">
-                      <Image 
-                        src="https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3006.png"
-                        alt="Berserker&apos;s Greaves"
-                        width={32}
-                        height={32}
-                        className="object-cover" 
-                      />
+                  {(metaData?.roleSpecificData?.build?.boots || [
+                    { name: "Berserker's Greaves", image: "3006.png", pickRate: "89.7%" }
+                  ]).map((boot: any, index: number) => (
+                    <div key={boot.name} className="flex items-center gap-2 bg-zinc-800/50 p-2 rounded-md flex-1">
+                      <div className="relative w-10 h-10 border border-green-700/30 rounded-md overflow-hidden bg-gradient-to-br from-green-950/20 to-zinc-900 flex items-center justify-center">
+                        <Image 
+                          src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/${boot.image}`}
+                          alt={boot.name}
+                          width={32}
+                          height={32}
+                          className="object-cover" 
+                        />
+                      </div>
+                      <div>
+                        <div className="text-xs font-medium text-zinc-300">{boot.name}</div>
+                        <div className="text-[10px] text-zinc-500">Attack Speed</div>
+                      </div>
+                      <div className="ml-auto text-green-400 text-xs font-medium">{boot.pickRate}</div>
                     </div>
-                    <div>
-                      <div className="text-xs font-medium text-zinc-300">Berserker&apos;s Greaves</div>
-                      <div className="text-[10px] text-zinc-500">Attack Speed</div>
-                    </div>
-                    <div className="ml-auto text-green-400 text-xs font-medium">89.7%</div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 bg-zinc-800/50 p-2 rounded-md flex-1">
-                    <div className="relative w-10 h-10 border border-zinc-700/30 rounded-md overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
-                      <Image 
-                        src="https://ddragon.leagueoflegends.com/cdn/14.8.1/img/item/3047.png"
-                        alt="Plated Steelcaps"
-                        width={32}
-                        height={32}
-                        className="object-cover"
-                      />
-                    </div>
-                    <div>
-                      <div className="text-xs font-medium text-zinc-300">Plated Steelcaps</div>
-                      <div className="text-[10px] text-zinc-500">vs AD Threats</div>
-                    </div>
-                    <div className="ml-auto text-zinc-400 text-xs font-medium">7.2%</div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -700,12 +724,12 @@ export default function ChampionDetailsPage() {
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
               <h3 className="text-lg font-bold mb-3 text-[#C89B3C]">Hard Counters</h3>
               <div className="space-y-2">
-                {[
-                  { name: 'Jax', winRate: '54.8%', image: 'https://ddragon.leagueoflegends.com/cdn/14.8.1/img/champion/Jax.png' },
-                  { name: 'Fiora', winRate: '53.2%', image: 'https://ddragon.leagueoflegends.com/cdn/14.8.1/img/champion/Fiora.png' },
-                  { name: 'Malphite', winRate: '52.6%', image: 'https://ddragon.leagueoflegends.com/cdn/14.8.1/img/champion/Malphite.png' },
-                  { name: 'Irelia', winRate: '51.4%', image: 'https://ddragon.leagueoflegends.com/cdn/14.8.1/img/champion/Irelia.png' }
-                ].map((counter) => (
+                {(metaData?.roleSpecificData?.counters || [
+                  { name: 'Jax', winRate: '54.8%', image: 'Jax.png' },
+                  { name: 'Fiora', winRate: '53.2%', image: 'Fiora.png' },
+                  { name: 'Malphite', winRate: '52.6%', image: 'Malphite.png' },
+                  { name: 'Irelia', winRate: '51.4%', image: 'Irelia.png' }
+                ]).map((counter: any) => (
                   <div 
                     key={counter.name}
                     className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-700 transition-colors cursor-pointer"
@@ -713,7 +737,7 @@ export default function ChampionDetailsPage() {
                     <div className="flex items-center gap-2">
                       <div className="relative w-8 h-8 rounded-full overflow-hidden border border-red-400/30">
                         <Image 
-                          src={counter.image}
+                          src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/champion/${counter.image}`}
                           alt={counter.name}
                           fill
                           className="object-cover"
@@ -734,18 +758,24 @@ export default function ChampionDetailsPage() {
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold text-[#C89B3C]">Skill Order</h3>
-                <div className="text-zinc-400 text-xs">54.2% Win Rate</div>
+                <div className="text-zinc-400 text-xs">{metaData?.winRate || "54.2% Win Rate"}</div>
               </div>
               
               {/* Skill Max Priority */}
               <div className="flex items-center gap-3 mb-4 bg-zinc-800/30 p-3 rounded-lg">
                 <div className="text-sm font-medium text-zinc-400">Max Priority:</div>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded bg-blue-500 text-white flex items-center justify-center font-bold">Q</div>
-                  <span className="text-xl text-zinc-600">→</span>
-                  <div className="w-8 h-8 rounded bg-green-500 text-white flex items-center justify-center font-bold">W</div>
-                  <span className="text-xl text-zinc-600">→</span>
-                  <div className="w-8 h-8 rounded bg-amber-500 text-white flex items-center justify-center font-bold">E</div>
+                  {(metaData?.roleSpecificData?.skillOrder?.maxPriority || ['Q', 'W', 'E']).map((skill: string, index: number) => (
+                    <Fragment key={skill}>
+                      <div className={`w-8 h-8 rounded ${
+                        skill === 'Q' ? 'bg-blue-500' : 
+                        skill === 'W' ? 'bg-green-500' :
+                        skill === 'E' ? 'bg-amber-500' :
+                        skill === 'R' ? 'bg-red-500' : 'bg-zinc-500'
+                      } text-white flex items-center justify-center font-bold`}>{skill}</div>
+                      {index < (metaData?.roleSpecificData?.skillOrder?.maxPriority?.length || 3) - 1 && <span className="text-xl text-zinc-600">→</span>}
+                    </Fragment>
+                  ))}
                 </div>
                 <div className="ml-auto text-sm font-medium text-zinc-300">(Always max R when possible)</div>
               </div>
