@@ -54,7 +54,7 @@ interface BuildData {
 interface ItemData {
   name: string;
   image: string;
-  cost: number;
+  cost?: number;
   condition?: string;
   order?: number;
 }
@@ -221,9 +221,9 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
             { name: "Infinity Edge", image: "3031.png", cost: 3400 }
           ],
           situational: [
-            { name: "Bloodthirster", image: "3072.png", condition: "vs Burst" },
-            { name: "Lord Dominik's", image: "3036.png", condition: "vs Tanks" },
-            { name: "Guardian Angel", image: "3026.png", condition: "Safety" }
+            { name: "Bloodthirster", image: "3072.png", condition: "vs Burst", cost: 3400 },
+            { name: "Lord Dominik's", image: "3036.png", condition: "vs Tanks", cost: 3000 },
+            { name: "Guardian Angel", image: "3026.png", condition: "Safety", cost: 2800 }
           ],
           boots: [
             { name: "Berserker's Greaves", image: "3006.png", pickRate: "89.7%" }
@@ -276,9 +276,9 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
             { name: "Sterak's Gage", image: "3053.png", cost: 3100 }
           ],
           situational: [
-            { name: "Thornmail", image: "3075.png", condition: "vs AD" },
-            { name: "Force of Nature", image: "4401.png", condition: "vs AP" },
-            { name: "Black Cleaver", image: "3071.png", condition: "vs Tanks" }
+            { name: "Thornmail", image: "3075.png", condition: "vs AD", cost: 2700 },
+            { name: "Force of Nature", image: "4401.png", condition: "vs AP", cost: 2900 },
+            { name: "Black Cleaver", image: "3071.png", condition: "vs Tanks", cost: 3100 }
           ],
           boots: [
             { name: "Plated Steelcaps", image: "3047.png", pickRate: "65.7%" }
@@ -330,9 +330,9 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
             { name: "Rabadon's Deathcap", image: "3089.png", cost: 3600 }
           ],
           situational: [
-            { name: "Zhonya's Hourglass", image: "3157.png", condition: "vs AD" },
-            { name: "Banshee's Veil", image: "3102.png", condition: "vs AP" },
-            { name: "Void Staff", image: "3135.png", condition: "vs MR" }
+            { name: "Zhonya's Hourglass", image: "3157.png", condition: "vs AD", cost: 2600 },
+            { name: "Banshee's Veil", image: "3102.png", condition: "vs AP", cost: 2600 },
+            { name: "Void Staff", image: "3135.png", condition: "vs MR", cost: 2800 }
           ],
           boots: [
             { name: "Sorcerer's Shoes", image: "3020.png", pickRate: "87.3%" }
@@ -384,9 +384,9 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
             { name: "Edge of Night", image: "3814.png", cost: 2900 }
           ],
           situational: [
-            { name: "Serylda's Grudge", image: "6694.png", condition: "vs Armor" },
-            { name: "Guardian Angel", image: "3026.png", condition: "Safety" },
-            { name: "Maw of Malmortius", image: "3156.png", condition: "vs AP" }
+            { name: "Serylda's Grudge", image: "6694.png", condition: "vs Armor", cost: 3200 },
+            { name: "Guardian Angel", image: "3026.png", condition: "Safety", cost: 2800 },
+            { name: "Maw of Malmortius", image: "3156.png", condition: "vs AP", cost: 2900 }
           ],
           boots: [
             { name: "Ionian Boots of Lucidity", image: "3158.png", pickRate: "56.7%" }
@@ -438,9 +438,9 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
             { name: "Warmog's Armor", image: "3083.png", cost: 3000 }
           ],
           situational: [
-            { name: "Force of Nature", image: "4401.png", condition: "vs AP" },
-            { name: "Randuin's Omen", image: "3143.png", condition: "vs Crit" },
-            { name: "Gargoyle Stoneplate", image: "3193.png", condition: "Teamfights" }
+            { name: "Force of Nature", image: "4401.png", condition: "vs AP", cost: 2900 },
+            { name: "Randuin's Omen", image: "3143.png", condition: "vs Crit", cost: 3000 },
+            { name: "Gargoyle Stoneplate", image: "3193.png", condition: "Teamfights", cost: 3200 }
           ],
           boots: [
             { name: "Plated Steelcaps", image: "3047.png", pickRate: "68.3%" }
@@ -492,9 +492,9 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
             { name: "Knight's Vow", image: "3109.png", cost: 2300 }
           ],
           situational: [
-            { name: "Mikael's Blessing", image: "3222.png", condition: "vs CC" },
-            { name: "Ardent Censer", image: "3504.png", condition: "with ADC" },
-            { name: "Chemtech Putrifier", image: "3011.png", condition: "vs Healing" }
+            { name: "Mikael's Blessing", image: "3222.png", condition: "vs CC", cost: 2300 },
+            { name: "Ardent Censer", image: "3504.png", condition: "with ADC", cost: 2300 },
+            { name: "Chemtech Putrifier", image: "3011.png", condition: "vs Healing", cost: 2300 }
           ],
           boots: [
             { name: "Mobility Boots", image: "3117.png", pickRate: "58.3%" }
@@ -547,9 +547,9 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
             { name: "Black Cleaver", image: "3071.png", cost: 3100 }
           ],
           situational: [
-            { name: "Death's Dance", image: "6333.png", condition: "vs AD" },
-            { name: "Maw of Malmortius", image: "3156.png", condition: "vs AP" },
-            { name: "Guardian Angel", image: "3026.png", condition: "Safety" }
+            { name: "Death's Dance", image: "6333.png", condition: "vs AD", cost: 3300 },
+            { name: "Maw of Malmortius", image: "3156.png", condition: "vs AP", cost: 2900 },
+            { name: "Guardian Angel", image: "3026.png", condition: "Safety", cost: 2800 }
           ],
           boots: [
             { name: "Mercury's Treads", image: "3111.png", pickRate: "52.3%" }
