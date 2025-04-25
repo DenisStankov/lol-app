@@ -863,14 +863,14 @@ export default function ChampionDetailsPage() {
                 <div className="mb-4">
                   <div className="text-sm font-medium text-zinc-200 mb-3">Max Order</div>
                   <div className="flex gap-3">
-                    {['Q', 'W', 'E', 'R'].map((ability, idx) => (
-                      <div key={ability} className={`relative w-10 h-10 rounded overflow-hidden border ${idx === 0 ? 'border-yellow-600 ring-1 ring-yellow-600/30' : 'border-zinc-700'}`}>
-                        <div className={`absolute inset-0 flex items-center justify-center ${idx === 0 ? 'bg-zinc-800' : 'bg-zinc-800/50'}`}>
-                          <span className={`text-lg font-bold ${idx === 0 ? 'text-yellow-600' : 'text-zinc-400'}`}>{ability}</span>
+                    {['Q', 'W', 'E', 'R'].map((ability, index) => (
+                      <div key={ability} className={`relative w-10 h-10 rounded overflow-hidden border ${index === 0 ? 'border-yellow-600 ring-1 ring-yellow-600/30' : 'border-zinc-700'}`}>
+                        <div className={`absolute inset-0 flex items-center justify-center ${index === 0 ? 'bg-zinc-800' : 'bg-zinc-800/50'}`}>
+                          <span className={`text-lg font-bold ${index === 0 ? 'text-yellow-600' : 'text-zinc-400'}`}>{ability}</span>
                         </div>
-                        {idx < 3 && (
+                        {index < 3 && (
                           <div className="absolute -top-2 -right-2 w-5 h-5 bg-zinc-900 rounded-full border border-zinc-700 flex items-center justify-center text-xs">
-                            {idx + 1}
+                            {index + 1}
                           </div>
                         )}
                       </div>
