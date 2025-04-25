@@ -42,6 +42,7 @@ interface RuneData {
     row2: string;
   };
   shards: string[];
+  winRate?: string;
 }
 
 interface BuildData {
