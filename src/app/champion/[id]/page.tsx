@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useEffect, Fragment } from "react"
+import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Shield, Sword, Heart, Zap, Activity, Layers, Droplet } from "lucide-react"
+import { ArrowLeft, Shield, Sword, Heart, Activity, Droplet } from "lucide-react"
 import Navigation from "@/components/navigation"
-import { Tooltip } from '@/components/ui/tooltip'
 
 // Define our champion data interface based on the Riot API
 interface ChampionData {
@@ -149,73 +148,13 @@ interface SkillOrderData {
   order: { level: number; skill: string }[];
 }
 
-// Helper function to format ability descriptions
-const formatDescription = (description: string) => {
-  // Replace HTML tags with proper formatting
-  return description
-    .replace(/<br>/g, ' ')
-    .replace(/<[^>]*>/g, '')
-    .replace(/\.(?! )/g, '. '); // Ensure periods are followed by a space
-};
-
-// Map ability index to keyboard key
-const mapAbilityToKey = (index: number) => {
-  switch (index) {
-    case 0: return 'Q';
-    case 1: return 'W';
-    case 2: return 'E';
-    case 3: return 'R';
-    default: return '';
-  }
-};
-
-// Get color for ability key label
-const getAbilityColor = (index: number) => {
-  switch (index) {
-    case 0: return { bg: '#1E88E5', text: '#fff' }; // Q - Blue
-    case 1: return { bg: '#43A047', text: '#fff' }; // W - Green
-    case 2: return { bg: '#FB8C00', text: '#fff' }; // E - Orange
-    case 3: return { bg: '#E53935', text: '#fff' }; // R - Red
-    default: return { bg: '#757575', text: '#fff' };
-  }
-};
-
-// Helper function to get the right keystone image URL
-function getKeystoneImageUrl(keystoneName: string | undefined): string {
-  if (!keystoneName) return "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png";
-  
-  const keystoneMap: {[key: string]: string} = {
-    "Press the Attack": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png",
-    "Lethal Tempo": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png",
-    "Fleet Footwork": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/FleetFootwork/FleetFootwork.png",
-    "Conqueror": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png",
-    "Electrocute": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Electrocute/Electrocute.png",
-    "Predator": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Predator/Predator.png",
-    "Dark Harvest": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/DarkHarvest/DarkHarvest.png",
-    "Hail of Blades": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/HailOfBlades/HailOfBlades.png",
-    "Summon Aery": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/SummonAery/SummonAery.png",
-    "Arcane Comet": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/ArcaneComet/ArcaneComet.png",
-    "Phase Rush": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/PhaseRush/PhaseRush.png",
-    "Grasp of the Undying": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/GraspOfTheUndying/GraspOfTheUndying.png",
-    "Aftershock": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/VeteranAftershock/VeteranAftershock.png",
-    "Guardian": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Guardian/Guardian.png",
-    "Glacial Augment": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png",
-    "Unsealed Spellbook": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/UnsealedSpellbook/UnsealedSpellbook.png",
-    "First Strike": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/FirstStrike/FirstStrike.png"
-  };
-  
-  return keystoneMap[keystoneName] || keystoneMap["Conqueror"];
-}
-
 export default function ChampionDetailsPage() {
   const params = useParams()
   const champId = params?.id as string
   const [championData, setChampionData] = useState<ChampionData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedRuneBuild, setSelectedRuneBuild] = useState<number>(0)
   const [metaData, setMetaData] = useState<ChampionMetaData | null>(null)
-  const [selectedAbility, setSelectedAbility] = useState<string>('passive')
 
   // Fetch champion data
   useEffect(() => {
