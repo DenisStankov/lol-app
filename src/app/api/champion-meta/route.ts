@@ -111,14 +111,18 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const { searchParams } = new URL(request.url);
-  const championId = searchParams.get('id');
+  const rawChampionId = searchParams.get('id');
   
-  if (!championId) {
+  if (!rawChampionId) {
     return NextResponse.json(
       { error: 'Champion ID is required' },
       { status: 400 }
     );
   }
+  
+  // Normalize champion ID to handle case sensitivity
+  const championId = normalizeChampionId(rawChampionId);
+  console.log(`Processing champion request: ${rawChampionId} (normalized to: ${championId})`);
   
   try {
     // Check if we have cached data
@@ -172,22 +176,59 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 // This would be replaced with a real implementation
 async function fetchChampionMetaData(championId: string): Promise<ChampionMetaData> {
-  // Get basic champion data to determine role
-  const response = await fetch(`https://ddragon.leagueoflegends.com/cdn/latest/data/en_US/champion/${championId}.json`);
-  const data = await response.json();
-  const champion = data.data[championId];
-  const tags = champion.tags || [];
-  
-  // Based on the champion's primary role, return appropriate data
-  const roleSpecificData = getRoleBasedMetaData(tags[0]);
-  
-  return {
-    championId,
-    winRate: (45 + Math.random() * 10).toFixed(1) + '%', // Simulated win rate
-    pickRate: (2 + Math.random() * 20).toFixed(1) + '%', // Simulated pick rate
-    banRate: (1 + Math.random() * 10).toFixed(1) + '%', // Simulated ban rate
-    roleSpecificData
-  };
+  try {
+    // Use a specific version instead of 'latest'
+    const version = "14.8.1"; // Specify a known working version
+    console.log(`Fetching data for champion: ${championId} with version ${version}`);
+    
+    // Get basic champion data to determine role
+    const response = await fetch(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${championId}.json`);
+    
+    // Check if response is ok before parsing
+    if (!response.ok) {
+      console.error(`Error fetching champion data: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch champion data: ${response.status}`);
+    }
+    
+    const textData = await response.text();
+    let data;
+    try {
+      data = JSON.parse(textData);
+    } catch (e) {
+      console.error("Failed to parse JSON response:", textData.substring(0, 100) + "...");
+      throw new Error("Invalid JSON response from Data Dragon API");
+    }
+    
+    if (!data.data || !data.data[championId]) {
+      console.error("Unexpected response format:", data);
+      throw new Error("Unexpected response format from Data Dragon API");
+    }
+    
+    const champion = data.data[championId];
+    const tags = champion.tags || [];
+    console.log(`Champion ${championId} has tags:`, tags);
+    
+    // Based on the champion's primary role, return appropriate data
+    const roleSpecificData = getRoleBasedMetaData(tags[0]);
+    
+    return {
+      championId,
+      winRate: (45 + Math.random() * 10).toFixed(1) + '%', // Simulated win rate
+      pickRate: (2 + Math.random() * 20).toFixed(1) + '%', // Simulated pick rate
+      banRate: (1 + Math.random() * 10).toFixed(1) + '%', // Simulated ban rate
+      roleSpecificData
+    };
+  } catch (error) {
+    console.error(`Error processing champion ${championId}:`, error);
+    // Return a default fallback data to prevent page crashes
+    return {
+      championId,
+      winRate: "50.0%",
+      pickRate: "10.0%",
+      banRate: "5.0%",
+      roleSpecificData: getRoleBasedMetaData("Fighter") // Default to Fighter build as fallback
+    };
+  }
 }
 
 // Get appropriate meta data based on champion role
@@ -574,4 +615,37 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
         }
       };
   }
+}
+
+// Helper function to normalize champion IDs
+function normalizeChampionId(championId: string): string {
+  // Special case mappings for champions with unusual capitalization
+  const specialCases: Record<string, string> = {
+    'khazix': 'Khazix', 
+    'chogath': 'Chogath',
+    'drmundo': 'DrMundo',
+    'velkoz': 'Velkoz',
+    'kogmaw': 'KogMaw',
+    'reksai': 'RekSai',
+    'tahmkench': 'TahmKench',
+    'aurelionsol': 'AurelionSol',
+    'leesin': 'LeeSin',
+    'masteryi': 'MasterYi',
+    'missfortune': 'MissFortune',
+    'twistedfate': 'TwistedFate',
+    'xinzhao': 'XinZhao',
+    'jarvaniv': 'JarvanIV',
+    'wukong': 'MonkeyKing' // Special case: Wukong is called MonkeyKing in the API
+  };
+
+  // Convert to lowercase for comparison
+  const lowercasedId = championId.toLowerCase();
+  
+  // Check for special cases
+  if (specialCases[lowercasedId]) {
+    return specialCases[lowercasedId];
+  }
+  
+  // Standard case: Capitalize first letter
+  return championId.charAt(0).toUpperCase() + championId.slice(1);
 } 

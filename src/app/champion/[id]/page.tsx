@@ -176,6 +176,42 @@ const getAbilityColor = (index: number) => {
   }
 };
 
+// Helper function to get the right keystone image URL
+function getKeystoneImageUrl(keystone?: string): string {
+  if (!keystone) return "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png";
+  
+  const keystoneMap: Record<string, string> = {
+    // Precision
+    "Conqueror": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png",
+    "Press the Attack": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png",
+    "Lethal Tempo": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LethalTempo/LethalTempoTemp.png",
+    "Fleet Footwork": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/FleetFootwork/FleetFootwork.png",
+    
+    // Domination
+    "Electrocute": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Electrocute/Electrocute.png",
+    "Predator": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/Predator/Predator.png",
+    "Dark Harvest": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/DarkHarvest/DarkHarvest.png",
+    "Hail of Blades": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/HailOfBlades/HailOfBlades.png",
+    
+    // Sorcery
+    "Arcane Comet": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/ArcaneComet/ArcaneComet.png",
+    "Phase Rush": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/PhaseRush/PhaseRush.png",
+    "Summon Aery": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Sorcery/SummonAery/SummonAery.png",
+    
+    // Resolve
+    "Grasp of the Undying": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/GraspOfTheUndying/GraspOfTheUndying.png",
+    "Aftershock": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/VeteranAftershock/VeteranAftershock.png",
+    "Guardian": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Guardian/Guardian.png",
+    
+    // Inspiration
+    "Glacial Augment": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/GlacialAugment/GlacialAugment.png",
+    "Unsealed Spellbook": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/UnsealedSpellbook/UnsealedSpellbook.png",
+    "First Strike": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Inspiration/FirstStrike/FirstStrike.png"
+  };
+  
+  return keystoneMap[keystone] || "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png";
+}
+
 export default function ChampionDetailsPage() {
   const params = useParams()
   const champId = params?.id as string
@@ -629,10 +665,14 @@ export default function ChampionDetailsPage() {
                 <div className="flex-1 flex items-center gap-2">
                   <div className="relative w-8 h-8 rounded-md overflow-hidden bg-gradient-to-br from-amber-500/40 to-amber-700/40 border border-amber-500/50">
                     <Image 
-                      src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png"
-                      alt={metaData?.roleSpecificData?.runes?.primary?.keystone || "Conqueror"}
+                      src={getKeystoneImageUrl(metaData?.roleSpecificData?.runes?.primary?.keystone)}
+                      alt={metaData?.roleSpecificData?.runes?.primary?.keystone || "Keystone"}
                       fill
                       className="object-cover p-1"
+                      onError={(e) => {
+                        console.error("Failed to load keystone image:", e);
+                        e.currentTarget.src = "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png";
+                      }}
                     />
                   </div>
                   <div className="text-xs">
