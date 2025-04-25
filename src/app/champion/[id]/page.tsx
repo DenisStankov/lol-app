@@ -891,7 +891,7 @@ export default function ChampionDetailsPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {['Q', 'W', 'E', 'R'].map((ability, index) => {
+                        {['Q', 'W', 'E', 'R'].map((ability) => {
                           // Example skill order pattern
                           let pattern;
                           if (ability === 'Q') {
