@@ -275,6 +275,7 @@ export default function ChampionDetailsPage() {
                   fill
                   className="object-cover"
                   priority
+                  unoptimized
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
               </div>
@@ -458,6 +459,7 @@ export default function ChampionDetailsPage() {
                               alt={item.name}
                               fill
                               className="object-cover p-1"
+                              unoptimized
                             />
                             {item.cost && (
                               <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
@@ -492,6 +494,7 @@ export default function ChampionDetailsPage() {
                               alt={item.name}
                               fill
                               className="object-cover p-1"
+                              unoptimized
                             />
                             {item.cost && (
                               <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
@@ -531,6 +534,7 @@ export default function ChampionDetailsPage() {
                               alt={boot.name}
                               fill
                               className="object-cover p-1"
+                              unoptimized
                             />
                             <div className="absolute bottom-0 right-0 bg-green-900/80 px-1 text-[10px] text-green-400 border-t border-l border-green-900/40 rounded-tl-md">
                               {boot.pickRate}%
@@ -563,6 +567,7 @@ export default function ChampionDetailsPage() {
                               alt={item.name}
                               fill
                               className="object-cover p-1"
+                              unoptimized
                             />
                             {item.cost && (
                               <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
@@ -612,6 +617,7 @@ export default function ChampionDetailsPage() {
                               alt="Keystone"
                               fill
                               className="object-cover"
+                              unoptimized
                             />
                           </div>
                           <div>
@@ -630,6 +636,7 @@ export default function ChampionDetailsPage() {
                                 alt={`Rune ${index + 1}`}
                                 fill
                                 className="object-cover"
+                                unoptimized
                               />
                             </div>
                             <div className="text-xs text-zinc-200">
@@ -657,6 +664,7 @@ export default function ChampionDetailsPage() {
                                 alt={`Rune ${index + 1}`}
                                 fill
                                 className="object-cover"
+                                unoptimized
                               />
                             </div>
                             <div className="text-xs text-zinc-200">
@@ -698,6 +706,7 @@ export default function ChampionDetailsPage() {
                             alt={counter.name}
                             fill
                             className="object-cover"
+                            unoptimized
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-zinc-800 via-transparent to-transparent"></div>
                           <div className="absolute bottom-0 left-0 right-0 p-2">
@@ -737,6 +746,7 @@ export default function ChampionDetailsPage() {
                         alt="Passive"
                         fill
                         className="object-cover"
+                        unoptimized
                       />
                     </div>
                     <div className="mt-1 text-xs text-zinc-400">P</div>
@@ -753,6 +763,7 @@ export default function ChampionDetailsPage() {
                           alt={spell.name}
                           fill
                           className="object-cover"
+                          unoptimized
                         />
                       </div>
                       <div className="mt-1 text-xs text-zinc-400">{['Q', 'W', 'E', 'R'][index]}</div>
@@ -771,6 +782,7 @@ export default function ChampionDetailsPage() {
                             alt={championData.passive.name}
                             fill
                             className="object-cover"
+                            unoptimized
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                         </div>
@@ -802,6 +814,7 @@ export default function ChampionDetailsPage() {
                                   alt={spell.name}
                                   fill
                                   className="object-cover"
+                                  unoptimized
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                               </div>
