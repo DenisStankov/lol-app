@@ -207,7 +207,8 @@ export default function ChampionDetailsPage() {
         }
         
         setLoading(false)
-      } catch {
+      } catch (error) {
+        console.error(`Error fetching champion data for ${champId}:`, error)
         setError('Failed to load champion data. Please try again later.')
         setLoading(false)
       }
