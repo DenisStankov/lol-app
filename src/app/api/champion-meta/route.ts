@@ -209,7 +209,7 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     console.log(`Champion ${championId} has tags:`, tags);
     
     // Based on the champion's primary role, return appropriate data
-    const roleSpecificData = getRoleBasedMetaData(tags[0]);
+    const roleSpecificData = getRoleBasedMetaData(tags[0], version);
     
     return {
       championId,
@@ -226,13 +226,13 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
       winRate: "50.0%",
       pickRate: "10.0%",
       banRate: "5.0%",
-      roleSpecificData: getRoleBasedMetaData("Fighter") // Default to Fighter build as fallback
+      roleSpecificData: getRoleBasedMetaData("Fighter", "14.8.1") // Default to Fighter build as fallback
     };
   }
 }
 
 // Get appropriate meta data based on champion role
-function getRoleBasedMetaData(role: string): RoleSpecificData {
+function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
   switch(role) {
     case 'Marksman':
       return {
@@ -253,27 +253,27 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
         },
         build: {
           starter: [
-            { name: "Doran's Blade", image: "1055.png", cost: 450 },
-            { name: "Health Potion", image: "2003.png", cost: 50 }
+            { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
           ],
           core: [
-            { name: "Kraken Slayer", image: "6672.png", cost: 3400 },
-            { name: "Runaan's Hurricane", image: "3085.png", cost: 2600 },
-            { name: "Infinity Edge", image: "3031.png", cost: 3400 }
+            { name: "Kraken Slayer", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6672.png`, cost: 3400, order: 1 },
+            { name: "Runaan's Hurricane", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3085.png`, cost: 2600, order: 2 },
+            { name: "Infinity Edge", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3031.png`, cost: 3400, order: 3 }
           ],
           situational: [
-            { name: "Bloodthirster", image: "3072.png", condition: "vs Burst", cost: 3400 },
-            { name: "Lord Dominik's", image: "3036.png", condition: "vs Tanks", cost: 3000 },
-            { name: "Guardian Angel", image: "3026.png", condition: "Safety", cost: 2800 }
+            { name: "Bloodthirster", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3072.png`, condition: "vs Burst", cost: 3400 },
+            { name: "Lord Dominik's", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3036.png`, condition: "vs Tanks", cost: 3000 },
+            { name: "Guardian Angel", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3026.png`, condition: "Safety", cost: 2800 }
           ],
           boots: [
-            { name: "Berserker's Greaves", image: "3006.png", pickRate: "89.7%" }
+            { name: "Berserker's Greaves", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3006.png`, pickRate: "89.7%" }
           ]
         },
         counters: [
-          { name: 'Draven', winRate: '54.8%', image: 'Draven.png' },
-          { name: 'Samira', winRate: '53.2%', image: 'Samira.png' },
-          { name: 'Lucian', winRate: '52.6%', image: 'Lucian.png' }
+          { name: 'Draven', winRate: '54.8%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Draven.png` },
+          { name: 'Samira', winRate: '53.2%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Samira.png` },
+          { name: 'Lucian', winRate: '52.6%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Lucian.png` }
         ],
         skillOrder: {
           maxPriority: ['Q', 'W', 'E'],
@@ -308,27 +308,27 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
         },
         build: {
           starter: [
-            { name: "Doran's Blade", image: "1055.png", cost: 450 },
-            { name: "Health Potion", image: "2003.png", cost: 50 }
+            { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
           ],
           core: [
-            { name: "Divine Sunderer", image: "6632.png", cost: 3300 },
-            { name: "Death's Dance", image: "6333.png", cost: 3300 },
-            { name: "Sterak's Gage", image: "3053.png", cost: 3100 }
+            { name: "Divine Sunderer", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6632.png`, cost: 3300, order: 1 },
+            { name: "Death's Dance", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6333.png`, cost: 3300, order: 2 },
+            { name: "Sterak's Gage", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3053.png`, cost: 3100, order: 3 }
           ],
           situational: [
-            { name: "Thornmail", image: "3075.png", condition: "vs AD", cost: 2700 },
-            { name: "Force of Nature", image: "4401.png", condition: "vs AP", cost: 2900 },
-            { name: "Black Cleaver", image: "3071.png", condition: "vs Tanks", cost: 3100 }
+            { name: "Thornmail", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3075.png`, condition: "vs AD", cost: 2700 },
+            { name: "Force of Nature", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4401.png`, condition: "vs AP", cost: 2900 },
+            { name: "Black Cleaver", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3071.png`, condition: "vs Tanks", cost: 3100 }
           ],
           boots: [
-            { name: "Plated Steelcaps", image: "3047.png", pickRate: "65.7%" }
+            { name: "Plated Steelcaps", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3047.png`, pickRate: "65.7%" }
           ]
         },
         counters: [
-          { name: 'Darius', winRate: '54.3%', image: 'Darius.png' },
-          { name: 'Jax', winRate: '53.7%', image: 'Jax.png' },
-          { name: 'Mordekaiser', winRate: '52.1%', image: 'Mordekaiser.png' }
+          { name: 'Darius', winRate: '54.3%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Darius.png` },
+          { name: 'Jax', winRate: '53.7%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Jax.png` },
+          { name: 'Mordekaiser', winRate: '52.1%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Mordekaiser.png` }
         ],
         skillOrder: {
           maxPriority: ['Q', 'E', 'W'],
@@ -358,31 +358,32 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
             row1: 'Biscuit Delivery',
             row2: 'Cosmic Insight'
           },
-          shards: ['Adaptive', 'Adaptive', 'Magic Resist']
+          shards: ['Adaptive', 'Adaptive', 'Magic Resist'],
+          winRate: '55.2%'
         },
         build: {
           starter: [
-            { name: "Doran's Ring", image: "1056.png", cost: 400 },
-            { name: "Health Potion", image: "2003.png", cost: 50 }
+            { name: "Doran's Ring", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1056.png`, cost: 400 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
           ],
           core: [
-            { name: "Luden's Echo", image: "6655.png", cost: 3400 },
-            { name: "Shadowflame", image: "4645.png", cost: 3000 },
-            { name: "Rabadon's Deathcap", image: "3089.png", cost: 3600 }
+            { name: "Luden's Echo", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6655.png`, cost: 3400, order: 1 },
+            { name: "Shadowflame", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4645.png`, cost: 3000, order: 2 },
+            { name: "Rabadon's Deathcap", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3089.png`, cost: 3600, order: 3 }
           ],
           situational: [
-            { name: "Zhonya's Hourglass", image: "3157.png", condition: "vs AD", cost: 2600 },
-            { name: "Banshee's Veil", image: "3102.png", condition: "vs AP", cost: 2600 },
-            { name: "Void Staff", image: "3135.png", condition: "vs MR", cost: 2800 }
+            { name: "Zhonya's Hourglass", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3157.png`, condition: "vs AD", cost: 2600 },
+            { name: "Banshee's Veil", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3102.png`, condition: "vs AP", cost: 2600 },
+            { name: "Void Staff", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3135.png`, condition: "vs MR", cost: 2800 }
           ],
           boots: [
-            { name: "Sorcerer's Shoes", image: "3020.png", pickRate: "87.3%" }
+            { name: "Sorcerer's Shoes", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3020.png`, pickRate: "87.3%" }
           ]
         },
         counters: [
-          { name: 'Zed', winRate: '55.2%', image: 'Zed.png' },
-          { name: 'Fizz', winRate: '54.1%', image: 'Fizz.png' },
-          { name: 'Kassadin', winRate: '53.6%', image: 'Kassadin.png' }
+          { name: 'Zed', winRate: '55.2%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Zed.png` },
+          { name: 'Fizz', winRate: '54.1%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Fizz.png` },
+          { name: 'Kassadin', winRate: '53.6%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Kassadin.png` }
         ],
         skillOrder: {
           maxPriority: ['Q', 'W', 'E'],
@@ -416,27 +417,27 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
         },
         build: {
           starter: [
-            { name: "Long Sword", image: "1036.png", cost: 350 },
-            { name: "Refillable Potion", image: "2031.png", cost: 150 }
+            { name: "Long Sword", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1036.png`, cost: 350 },
+            { name: "Refillable Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2031.png`, cost: 150 }
           ],
           core: [
-            { name: "Duskblade of Draktharr", image: "6691.png", cost: 3100 },
-            { name: "Youmuu's Ghostblade", image: "3142.png", cost: 2900 },
-            { name: "Edge of Night", image: "3814.png", cost: 2900 }
+            { name: "Duskblade of Draktharr", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6691.png`, cost: 3100, order: 1 },
+            { name: "Youmuu's Ghostblade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3142.png`, cost: 2900, order: 2 },
+            { name: "Edge of Night", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3814.png`, cost: 2900, order: 3 }
           ],
           situational: [
-            { name: "Serylda's Grudge", image: "6694.png", condition: "vs Armor", cost: 3200 },
-            { name: "Guardian Angel", image: "3026.png", condition: "Safety", cost: 2800 },
-            { name: "Maw of Malmortius", image: "3156.png", condition: "vs AP", cost: 2900 }
+            { name: "Serylda's Grudge", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6694.png`, condition: "vs Armor", cost: 3200 },
+            { name: "Guardian Angel", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3026.png`, condition: "Safety", cost: 2800 },
+            { name: "Maw of Malmortius", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3156.png`, condition: "vs AP", cost: 2900 }
           ],
           boots: [
-            { name: "Ionian Boots of Lucidity", image: "3158.png", pickRate: "56.7%" }
+            { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "56.7%" }
           ]
         },
         counters: [
-          { name: 'Malphite', winRate: '55.8%', image: 'Malphite.png' },
-          { name: 'Diana', winRate: '54.3%', image: 'Diana.png' },
-          { name: 'Lissandra', winRate: '53.9%', image: 'Lissandra.png' }
+          { name: 'Malphite', winRate: '55.8%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Malphite.png` },
+          { name: 'Diana', winRate: '54.3%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Diana.png` },
+          { name: 'Lissandra', winRate: '53.9%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Lissandra.png` }
         ],
         skillOrder: {
           maxPriority: ['Q', 'W', 'E'],
@@ -470,27 +471,27 @@ function getRoleBasedMetaData(role: string): RoleSpecificData {
         },
         build: {
           starter: [
-            { name: "Doran's Shield", image: "1054.png", cost: 450 },
-            { name: "Health Potion", image: "2003.png", cost: 50 }
+            { name: "Doran's Shield", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1054.png`, cost: 450 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
           ],
           core: [
-            { name: "Sunfire Aegis", image: "3068.png", cost: 3200 },
-            { name: "Thornmail", image: "3075.png", cost: 2700 },
-            { name: "Warmog's Armor", image: "3083.png", cost: 3000 }
+            { name: "Sunfire Aegis", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3068.png`, cost: 3200, order: 1 },
+            { name: "Thornmail", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3075.png`, cost: 2700, order: 2 },
+            { name: "Warmog's Armor", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3083.png`, cost: 3000, order: 3 }
           ],
           situational: [
-            { name: "Force of Nature", image: "4401.png", condition: "vs AP", cost: 2900 },
-            { name: "Randuin's Omen", image: "3143.png", condition: "vs Crit", cost: 3000 },
-            { name: "Gargoyle Stoneplate", image: "3193.png", condition: "Teamfights", cost: 3200 }
+            { name: "Force of Nature", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4401.png`, condition: "vs AP", cost: 2900 },
+            { name: "Randuin's Omen", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3143.png`, condition: "vs Crit", cost: 3000 },
+            { name: "Gargoyle Stoneplate", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3193.png`, condition: "Teamfights", cost: 3200 }
           ],
           boots: [
-            { name: "Plated Steelcaps", image: "3047.png", pickRate: "68.3%" }
+            { name: "Plated Steelcaps", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3047.png`, pickRate: "68.3%" }
           ]
         },
         counters: [
-          { name: 'Fiora', winRate: '56.2%', image: 'Fiora.png' },
-          { name: 'Vayne', winRate: '55.7%', image: 'Vayne.png' },
-          { name: 'Darius', winRate: '54.1%', image: 'Darius.png' }
+          { name: 'Fiora', winRate: '56.2%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Fiora.png` },
+          { name: 'Vayne', winRate: '55.7%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Vayne.png` },
+          { name: 'Darius', winRate: '54.1%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Darius.png` }
         ],
         skillOrder: {
           maxPriority: ['Q', 'E', 'W'],

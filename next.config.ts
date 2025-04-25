@@ -6,7 +6,12 @@ const nextConfig = {
         protocol: "https",
         hostname: "ddragon.leagueoflegends.com",
       },
+      {
+        protocol: "https",
+        hostname: "lol-app-green.vercel.app",
+      },
     ],
+    unoptimized: true,
   },
 }
 

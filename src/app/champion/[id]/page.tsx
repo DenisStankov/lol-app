@@ -613,7 +613,7 @@ export default function ChampionDetailsPage() {
                         <div className="flex items-center gap-3">
                           <div className="relative w-12 h-12 rounded-md overflow-hidden border-2 border-zinc-700">
                             <Image
-                              src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png"
+                              src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png`}
                               alt="Keystone"
                               fill
                               className="object-cover"
@@ -632,7 +632,7 @@ export default function ChampionDetailsPage() {
                           <div key={row} className="flex items-center gap-3">
                             <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
                               <Image
-                                src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Overheal.png"
+                                src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Overheal.png`}
                                 alt={`Rune ${index + 1}`}
                                 fill
                                 className="object-cover"
@@ -660,7 +660,7 @@ export default function ChampionDetailsPage() {
                           <div key={row} className="flex items-center gap-3">
                             <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
                               <Image
-                                src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TasteOfBlood/TasteOfBlood.png"
+                                src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TasteOfBlood/TasteOfBlood.png`}
                                 alt={`Rune ${index + 1}`}
                                 fill
                                 className="object-cover"
