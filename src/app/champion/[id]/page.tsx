@@ -4,9 +4,8 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Shield, Sword, Heart, Activity, Droplet, Zap, Layers } from "lucide-react"
+import { ArrowLeft, Shield, Sword, Heart, Activity, Droplet } from "lucide-react"
 import Navigation from "@/components/navigation"
-import { Tooltip } from '@/components/ui/tooltip'
 
 // Define our champion data interface based on the Riot API
 interface ChampionData {
@@ -115,6 +114,7 @@ interface RuneData {
     row2: string;
   };
   shards: string[];
+  winRate?: string;
 }
 
 interface BuildData {
@@ -122,6 +122,7 @@ interface BuildData {
   core: ItemData[];
   situational: ItemData[];
   boots: BootData[];
+  winRate?: string;
 }
 
 interface ItemData {
