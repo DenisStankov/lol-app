@@ -1,26 +1,115 @@
 import { NextResponse } from 'next/server';
 
-// Optional import for Vercel KV
-let kv: any;
-try {
-  kv = require('@vercel/kv');
-} catch (e) {
-  // Fallback to in-memory cache if @vercel/kv is not available
-  console.log('Vercel KV not available, using in-memory cache');
+// Define types for KV store to avoid 'any'
+interface KVStore {
+  get: (key: string) => Promise<CacheEntry | null>;
+  set: (key: string, value: CacheEntry) => Promise<void>;
 }
 
+// Cache entry type
+interface CacheEntry {
+  data: ChampionMetaData;
+  timestamp: number;
+}
+
+// Champion meta data types
+interface ChampionMetaData {
+  championId: string;
+  winRate: string;
+  pickRate: string;
+  banRate: string;
+  roleSpecificData: RoleSpecificData;
+}
+
+interface RoleSpecificData {
+  runes: RuneData;
+  build: BuildData;
+  counters: CounterData[];
+  skillOrder: SkillOrderData;
+}
+
+interface RuneData {
+  primary: {
+    name: string;
+    keystone: string;
+    row1: string;
+    row2: string;
+    row3: string;
+  };
+  secondary: {
+    name: string;
+    row1: string;
+    row2: string;
+  };
+  shards: string[];
+}
+
+interface BuildData {
+  starter: ItemData[];
+  core: ItemData[];
+  situational: ItemData[];
+  boots: BootData[];
+}
+
+interface ItemData {
+  name: string;
+  image: string;
+  cost: number;
+  condition?: string;
+  order?: number;
+}
+
+interface BootData {
+  name: string;
+  image: string;
+  pickRate: string;
+}
+
+interface CounterData {
+  name: string;
+  winRate: string;
+  image: string;
+}
+
+interface SkillOrderData {
+  maxPriority: string[];
+  order: { level: number; skill: string }[];
+}
+
+// Optional KV import
+let kv: KVStore | null = null;
+
+// Try to import KV at runtime with dynamic import
+const initKV = async (): Promise<void> => {
+  try {
+    // Dynamic import of @vercel/kv
+    const kvModule = await import('@vercel/kv').catch(() => null);
+    if (kvModule) {
+      kv = kvModule.kv as KVStore;
+    }
+  } catch {
+    // Silence the error - we'll use memory cache
+    console.log('Vercel KV not available, using in-memory cache');
+  }
+};
+
 // Simple in-memory cache as fallback
-const memoryCache: Record<string, { data: any, timestamp: number }> = {};
+const memoryCache: Record<string, CacheEntry> = {};
 
 // Cache duration (24 hours in seconds)
 const CACHE_DURATION = 86400;
 
 // Helper function to determine if champion data is stale
-function isDataStale(timestamp: number) {
+function isDataStale(timestamp: number): boolean {
   return Date.now() - timestamp > CACHE_DURATION * 1000;
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<NextResponse> {
+  // Initialize KV if not already done
+  if (kv === null) {
+    await initKV();
+  }
+
   const { searchParams } = new URL(request.url);
   const championId = searchParams.get('id');
   
@@ -33,18 +122,18 @@ export async function GET(request: Request) {
   
   try {
     // Check if we have cached data
-    let cachedData;
+    let cachedData: CacheEntry | null = null;
     
     if (kv) {
       // Try Vercel KV first
       try {
         cachedData = await kv.get(`champion-meta:${championId}`);
-      } catch (e) {
-        console.log('KV store error, falling back to in-memory cache', e);
+      } catch {
+        console.log('KV store error, falling back to in-memory cache');
       }
     } else {
       // Use in-memory cache
-      cachedData = memoryCache[`champion-meta:${championId}`];
+      cachedData = memoryCache[`champion-meta:${championId}`] || null;
     }
 
     if (cachedData && !isDataStale(cachedData.timestamp)) {
@@ -55,7 +144,7 @@ export async function GET(request: Request) {
     const metaData = await fetchChampionMetaData(championId);
     
     // Store in cache
-    const cacheEntry = {
+    const cacheEntry: CacheEntry = {
       data: metaData,
       timestamp: Date.now()
     };
@@ -63,8 +152,8 @@ export async function GET(request: Request) {
     if (kv) {
       try {
         await kv.set(`champion-meta:${championId}`, cacheEntry);
-      } catch (e) {
-        console.log('Failed to cache data in KV', e);
+      } catch {
+        console.log('Failed to cache data in KV');
       }
     } 
     
@@ -82,9 +171,7 @@ export async function GET(request: Request) {
 }
 
 // This would be replaced with a real implementation
-async function fetchChampionMetaData(championId: string) {
-  // As a placeholder, let's build role-specific data for different champion types
-  
+async function fetchChampionMetaData(championId: string): Promise<ChampionMetaData> {
   // Get basic champion data to determine role
   const response = await fetch(`https://ddragon.leagueoflegends.com/cdn/latest/data/en_US/champion/${championId}.json`);
   const data = await response.json();
@@ -104,7 +191,7 @@ async function fetchChampionMetaData(championId: string) {
 }
 
 // Get appropriate meta data based on champion role
-function getRoleBasedMetaData(role: string) {
+function getRoleBasedMetaData(role: string): RoleSpecificData {
   switch(role) {
     case 'Marksman':
       return {

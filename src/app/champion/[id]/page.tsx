@@ -81,6 +81,70 @@ interface ChampionData {
   version: string
 }
 
+// Define interfaces for meta data
+interface ChampionMetaData {
+  championId: string;
+  winRate: string;
+  pickRate: string;
+  banRate: string;
+  roleSpecificData: RoleSpecificData;
+}
+
+interface RoleSpecificData {
+  runes: RuneData;
+  build: BuildData;
+  counters: CounterData[];
+  skillOrder: SkillOrderData;
+}
+
+interface RuneData {
+  primary: {
+    name: string;
+    keystone: string;
+    row1: string;
+    row2: string;
+    row3: string;
+  };
+  secondary: {
+    name: string;
+    row1: string;
+    row2: string;
+  };
+  shards: string[];
+}
+
+interface BuildData {
+  starter: ItemData[];
+  core: ItemData[];
+  situational: ItemData[];
+  boots: BootData[];
+}
+
+interface ItemData {
+  name: string;
+  image: string;
+  cost?: number;
+  condition?: string;
+  order?: number;
+}
+
+interface BootData {
+  name: string;
+  image: string;
+  pickRate: string;
+}
+
+interface CounterData {
+  name: string;
+  winRate: string;
+  image: string;
+}
+
+interface SkillOrderData {
+  maxPriority: string[];
+  order: { level: number; skill: string }[];
+}
+
 // Helper function to format ability descriptions
 const formatDescription = (description: string) => {
   // Replace HTML tags with proper formatting
@@ -119,7 +183,7 @@ export default function ChampionDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedRuneBuild, setSelectedRuneBuild] = useState<number>(0)
-  const [metaData, setMetaData] = useState<any>(null)
+  const [metaData, setMetaData] = useState<ChampionMetaData | null>(null)
   
   // Fetch champion data
   useEffect(() => {
@@ -604,7 +668,7 @@ export default function ChampionDetailsPage() {
                   {(metaData?.roleSpecificData?.build?.starter || [
                     { name: "Doran's Blade", cost: 450, image: "1055.png" },
                     { name: "Health Potion", cost: 50, image: "2003.png" }
-                  ]).map((item: any) => (
+                  ]).map((item: ItemData) => (
                     <div key={item.name} className="flex flex-col items-center">
                       <div className="relative w-12 h-12 border border-zinc-700 rounded-md overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
                         <Image 
@@ -634,7 +698,7 @@ export default function ChampionDetailsPage() {
                     { name: "Kraken Slayer", cost: 3400, image: "6672.png", order: 1 },
                     { name: "Runaan's Hurricane", cost: 2600, image: "3085.png", order: 2 },
                     { name: "Infinity Edge", cost: 3400, image: "3031.png", order: 3 }
-                  ]).map((item: any, index: number) => (
+                  ]).map((item: ItemData, index: number) => (
                     <div key={item.name} className="relative flex flex-col items-center">
                       <div className="absolute -top-1 -left-1 w-5 h-5 bg-amber-600 rounded-full flex items-center justify-center text-xs font-bold text-white">{item.order || index + 1}</div>
                       <div className="relative w-14 h-14 border border-amber-700/50 rounded-md overflow-hidden bg-gradient-to-br from-amber-950/30 to-zinc-900 flex items-center justify-center">
@@ -653,7 +717,7 @@ export default function ChampionDetailsPage() {
                   ))}
                 </div>
                 <div className="text-xs text-zinc-500 mt-1">
-                  Total: {(metaData?.roleSpecificData?.build?.core || []).reduce((acc: number, item: any) => acc + (item.cost || 0), 0).toLocaleString()}g
+                  Total: {(metaData?.roleSpecificData?.build?.core || []).reduce((acc: number, item: ItemData) => acc + (item.cost || 0), 0).toLocaleString()}g
                 </div>
               </div>
               
@@ -670,7 +734,7 @@ export default function ChampionDetailsPage() {
                     { name: "Guardian Angel", image: "3026.png", condition: "Safety" },
                     { name: "Mortal Reminder", image: "3033.png", condition: "vs Healing" },
                     { name: "Mercurial Scimitar", image: "3139.png", condition: "vs CC" }
-                  ]).map((item: any) => (
+                  ]).map((item: ItemData) => (
                     <div key={item.name} className="flex flex-col items-center">
                       <div className="relative w-12 h-12 border border-zinc-700 rounded-md overflow-hidden bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
                         <Image 
@@ -698,7 +762,7 @@ export default function ChampionDetailsPage() {
                 <div className="flex gap-4">
                   {(metaData?.roleSpecificData?.build?.boots || [
                     { name: "Berserker's Greaves", image: "3006.png", pickRate: "89.7%" }
-                  ]).map((boot: any, index: number) => (
+                  ]).map((boot: BootData) => (
                     <div key={boot.name} className="flex items-center gap-2 bg-zinc-800/50 p-2 rounded-md flex-1">
                       <div className="relative w-10 h-10 border border-green-700/30 rounded-md overflow-hidden bg-gradient-to-br from-green-950/20 to-zinc-900 flex items-center justify-center">
                         <Image 
@@ -729,7 +793,7 @@ export default function ChampionDetailsPage() {
                   { name: 'Fiora', winRate: '53.2%', image: 'Fiora.png' },
                   { name: 'Malphite', winRate: '52.6%', image: 'Malphite.png' },
                   { name: 'Irelia', winRate: '51.4%', image: 'Irelia.png' }
-                ]).map((counter: any) => (
+                ]).map((counter: CounterData) => (
                   <div 
                     key={counter.name}
                     className="flex items-center justify-between bg-zinc-800/60 p-2 rounded-md hover:bg-zinc-700 transition-colors cursor-pointer"
