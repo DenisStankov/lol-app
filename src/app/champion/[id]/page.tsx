@@ -241,7 +241,7 @@ export default function ChampionDetailsPage() {
   }
   
   return (
-    <div className="min-h-screen bg-[#0A1428] text-white">
+    <div className="min-h-screen bg-zinc-950 text-white">
       <Navigation />
       
       {/* Hero Section - Champion Banner */}
@@ -326,10 +326,10 @@ export default function ChampionDetailsPage() {
       </div>
       
       {/* Champion Stats Summary */}
-      <div className="bg-[#0A1428] border-t border-b border-[#2d3640]">
+      <div className="bg-zinc-950 border-t border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            <div className="bg-[#1E2328]/80 p-3 rounded border border-[#2d3640]">
+            <div className="bg-zinc-900 p-3 rounded border border-zinc-800">
               <div className="flex items-center text-xs text-zinc-400 mb-1">
                 <Heart size={12} className="text-red-400 mr-1" /> Health
               </div>
@@ -337,7 +337,7 @@ export default function ChampionDetailsPage() {
               <div className="text-xs text-zinc-500">+{championData.stats.hpperlevel} per level</div>
             </div>
             
-            <div className="bg-[#1E2328]/80 p-3 rounded border border-[#2d3640]">
+            <div className="bg-zinc-900 p-3 rounded border border-zinc-800">
               <div className="flex items-center text-xs text-zinc-400 mb-1">
                 <Droplet size={12} className="text-blue-400 mr-1" /> {championData.partype}
               </div>
@@ -345,7 +345,7 @@ export default function ChampionDetailsPage() {
               <div className="text-xs text-zinc-500">+{championData.stats.mpperlevel} per level</div>
             </div>
             
-            <div className="bg-[#1E2328]/80 p-3 rounded border border-[#2d3640]">
+            <div className="bg-zinc-900 p-3 rounded border border-zinc-800">
               <div className="flex items-center text-xs text-zinc-400 mb-1">
                 <Sword size={12} className="text-amber-400 mr-1" /> Attack
               </div>
@@ -353,7 +353,7 @@ export default function ChampionDetailsPage() {
               <div className="text-xs text-zinc-500">+{championData.stats.attackdamageperlevel} per level</div>
             </div>
             
-            <div className="bg-[#1E2328]/80 p-3 rounded border border-[#2d3640]">
+            <div className="bg-zinc-900 p-3 rounded border border-zinc-800">
               <div className="flex items-center text-xs text-zinc-400 mb-1">
                 <Activity size={12} className="text-green-400 mr-1" /> Speed
               </div>
@@ -361,7 +361,7 @@ export default function ChampionDetailsPage() {
               <div className="text-xs text-zinc-500">Base value</div>
             </div>
             
-            <div className="hidden lg:block bg-[#1E2328]/80 p-3 rounded border border-[#2d3640]">
+            <div className="hidden lg:block bg-zinc-900 p-3 rounded border border-zinc-800">
               <div className="flex items-center text-xs text-zinc-400 mb-1">
                 <Shield size={12} className="text-gray-400 mr-1" /> Armor
               </div>
@@ -378,14 +378,14 @@ export default function ChampionDetailsPage() {
           {/* Left Column - Build & Runes */}
           <div className="lg:col-span-2 space-y-6">
             {/* Build Selection Tabs */}
-            <div className="bg-[#1E2328] rounded-lg overflow-hidden border border-[#2d3640] shadow-lg">
-              <div className="flex border-b border-[#2d3640]">
+            <div className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg">
+              <div className="flex border-b border-zinc-800">
                 <button 
                   onClick={() => setSelectedTab('build')}
                   className={`flex-1 py-3 text-center text-sm font-medium ${
                     selectedTab === 'build' 
-                      ? 'bg-[#0A1428] text-[#C89B3C] border-b-2 border-[#C89B3C]' 
-                      : 'text-zinc-400 hover:bg-[#0A1428]/50'
+                      ? 'bg-zinc-800 text-yellow-600 border-b-2 border-yellow-600' 
+                      : 'text-zinc-400 hover:bg-zinc-800/50'
                   }`}
                 >
                   Recommended Build
@@ -394,8 +394,8 @@ export default function ChampionDetailsPage() {
                   onClick={() => setSelectedTab('runes')}
                   className={`flex-1 py-3 text-center text-sm font-medium ${
                     selectedTab === 'runes' 
-                      ? 'bg-[#0A1428] text-[#C89B3C] border-b-2 border-[#C89B3C]' 
-                      : 'text-zinc-400 hover:bg-[#0A1428]/50'
+                      ? 'bg-zinc-800 text-yellow-600 border-b-2 border-yellow-600' 
+                      : 'text-zinc-400 hover:bg-zinc-800/50'
                   }`}
                 >
                   Runes
@@ -404,8 +404,8 @@ export default function ChampionDetailsPage() {
                   onClick={() => setSelectedTab('counters')}
                   className={`flex-1 py-3 text-center text-sm font-medium ${
                     selectedTab === 'counters' 
-                      ? 'bg-[#0A1428] text-[#C89B3C] border-b-2 border-[#C89B3C]' 
-                      : 'text-zinc-400 hover:bg-[#0A1428]/50'
+                      ? 'bg-zinc-800 text-yellow-600 border-b-2 border-yellow-600' 
+                      : 'text-zinc-400 hover:bg-zinc-800/50'
                   }`}
                 >
                   Counters
@@ -417,7 +417,7 @@ export default function ChampionDetailsPage() {
                 <div className="p-4">
                   {/* Build Metadata */}
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-[#C89B3C]">Recommended Build</h3>
+                    <h3 className="text-lg font-bold text-yellow-600">Recommended Build</h3>
                     <div className="flex items-center">
                       <div className="text-xs px-2 py-1 bg-green-900/20 rounded border border-green-900/40 text-green-400">
                         {metaData?.roleSpecificData?.build?.winRate || "54.7%"} Win Rate
@@ -429,8 +429,8 @@ export default function ChampionDetailsPage() {
                             onClick={() => setSelectedRuneBuild(num - 1)}
                             className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
                               selectedRuneBuild === num - 1
-                                ? 'bg-[#C89B3C] text-[#0A1428]'
-                                : 'bg-[#2d3640] text-zinc-300 hover:bg-[#3d4650]'
+                                ? 'bg-yellow-600 text-zinc-900'
+                                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
                             }`}
                           >
                             {num}
@@ -442,7 +442,7 @@ export default function ChampionDetailsPage() {
 
                   {/* Starter Items */}
                   <div className="mb-6">
-                    <div className="text-sm font-medium text-[#F0E6D2] mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-zinc-200 mb-3 flex items-center justify-between">
                       <span>Starter Items</span>
                       <span className="text-xs text-zinc-400">Early game</span>
                     </div>
@@ -452,21 +452,21 @@ export default function ChampionDetailsPage() {
                           key={index} 
                           className="relative group"
                         >
-                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-[#2d3640] bg-[#1E2328] group-hover:border-[#C89B3C]/50 transition-colors">
+                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-yellow-600/50 transition-colors">
                             <Image
-                              src={item.image}
+                              src={item.image || "/images/items/starter-item.png"}
                               alt={item.name}
                               fill
                               className="object-cover p-1"
                             />
                             {item.cost && (
-                              <div className="absolute bottom-0 right-0 bg-[#0A1428]/90 px-1 text-[10px] text-[#C89B3C] border-t border-l border-[#2d3640] rounded-tl-md">
+                              <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
                                 {item.cost}g
                               </div>
                             )}
                           </div>
-                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#0A1428] rounded border border-[#2d3640] shadow-lg p-2 text-sm pointer-events-none transition-opacity">
-                            <div className="font-medium text-[#C89B3C]">{item.name}</div>
+                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 rounded border border-zinc-700 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
+                            <div className="font-medium text-zinc-200">{item.name}</div>
                             {item.condition && <div className="text-xs text-zinc-400 mt-1">{item.condition}</div>}
                           </div>
                         </div>
@@ -476,7 +476,7 @@ export default function ChampionDetailsPage() {
 
                   {/* Core Items */}
                   <div className="mb-6">
-                    <div className="text-sm font-medium text-[#F0E6D2] mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-zinc-200 mb-3 flex items-center justify-between">
                       <span>Core Build</span>
                       <span className="text-xs text-zinc-400">Build in this order</span>
                     </div>
@@ -486,26 +486,26 @@ export default function ChampionDetailsPage() {
                           key={index} 
                           className="relative group"
                         >
-                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-[#2d3640] bg-[#1E2328] group-hover:border-[#C89B3C]/50 transition-colors">
+                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-yellow-600/50 transition-colors">
                             <Image
-                              src={item.image}
+                              src={item.image || "/images/items/core-item.png"}
                               alt={item.name}
                               fill
                               className="object-cover p-1"
                             />
                             {item.cost && (
-                              <div className="absolute bottom-0 right-0 bg-[#0A1428]/90 px-1 text-[10px] text-[#C89B3C] border-t border-l border-[#2d3640] rounded-tl-md">
+                              <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
                                 {item.cost}g
                               </div>
                             )}
                             {item.order && (
-                              <div className="absolute top-0 left-0 w-5 h-5 bg-[#C89B3C] rounded-br-md flex items-center justify-center text-xs font-bold text-[#0A1428] shadow-md">
+                              <div className="absolute top-0 left-0 w-5 h-5 bg-yellow-600 rounded-br-md flex items-center justify-center text-xs font-bold text-zinc-900 shadow-md">
                                 {item.order}
                               </div>
                             )}
                           </div>
-                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#0A1428] rounded border border-[#2d3640] shadow-lg p-2 text-sm pointer-events-none transition-opacity">
-                            <div className="font-medium text-[#C89B3C]">{item.name}</div>
+                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 rounded border border-zinc-700 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
+                            <div className="font-medium text-zinc-200">{item.name}</div>
                             {item.condition && <div className="text-xs text-zinc-400 mt-1">{item.condition}</div>}
                           </div>
                         </div>
@@ -515,7 +515,7 @@ export default function ChampionDetailsPage() {
 
                   {/* Boots Options */}
                   <div className="mb-6">
-                    <div className="text-sm font-medium text-[#F0E6D2] mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-zinc-200 mb-3 flex items-center justify-between">
                       <span>Boots Options</span>
                       <span className="text-xs text-zinc-400">Choose based on matchup</span>
                     </div>
@@ -525,9 +525,9 @@ export default function ChampionDetailsPage() {
                           key={index} 
                           className="relative group"
                         >
-                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-[#2d3640] bg-[#1E2328] group-hover:border-[#C89B3C]/50 transition-colors">
+                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-yellow-600/50 transition-colors">
                             <Image
-                              src={boot.image}
+                              src={boot.image || "/images/items/boots.png"}
                               alt={boot.name}
                               fill
                               className="object-cover p-1"
@@ -536,8 +536,8 @@ export default function ChampionDetailsPage() {
                               {boot.pickRate}%
                             </div>
                           </div>
-                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#0A1428] rounded border border-[#2d3640] shadow-lg p-2 text-sm pointer-events-none transition-opacity">
-                            <div className="font-medium text-[#C89B3C]">{boot.name}</div>
+                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 rounded border border-zinc-700 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
+                            <div className="font-medium text-zinc-200">{boot.name}</div>
                             <div className="text-xs text-green-400 mt-1">Pick Rate: {boot.pickRate}%</div>
                           </div>
                         </div>
@@ -547,7 +547,7 @@ export default function ChampionDetailsPage() {
 
                   {/* Situational Items */}
                   <div>
-                    <div className="text-sm font-medium text-[#F0E6D2] mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-zinc-200 mb-3 flex items-center justify-between">
                       <span>Situational Items</span>
                       <span className="text-xs text-zinc-400">Consider these based on enemy team</span>
                     </div>
@@ -557,21 +557,21 @@ export default function ChampionDetailsPage() {
                           key={index} 
                           className="relative group"
                         >
-                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-[#2d3640] bg-[#1E2328] group-hover:border-[#C89B3C]/50 transition-colors">
+                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-yellow-600/50 transition-colors">
                             <Image
-                              src={item.image}
+                              src={item.image || "/images/items/situational-item.png"}
                               alt={item.name}
                               fill
                               className="object-cover p-1"
                             />
                             {item.cost && (
-                              <div className="absolute bottom-0 right-0 bg-[#0A1428]/90 px-1 text-[10px] text-[#C89B3C] border-t border-l border-[#2d3640] rounded-tl-md">
+                              <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
                                 {item.cost}g
                               </div>
                             )}
                           </div>
-                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#0A1428] rounded border border-[#2d3640] shadow-lg p-2 text-sm pointer-events-none transition-opacity">
-                            <div className="font-medium text-[#C89B3C]">{item.name}</div>
+                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 rounded border border-zinc-700 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
+                            <div className="font-medium text-zinc-200">{item.name}</div>
                             {item.condition && <div className="text-xs text-zinc-400 mt-1">{item.condition}</div>}
                           </div>
                         </div>
@@ -585,7 +585,7 @@ export default function ChampionDetailsPage() {
               {selectedTab === 'runes' && (
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-[#C89B3C]">Recommended Runes</h3>
+                    <h3 className="text-lg font-bold text-yellow-600">Recommended Runes</h3>
                     <div className="flex items-center">
                       <div className="text-xs px-2 py-1 bg-blue-900/20 rounded border border-blue-900/40 text-blue-400">
                         {metaData?.roleSpecificData?.runes?.winRate || "55.2%"} Win Rate
@@ -598,15 +598,15 @@ export default function ChampionDetailsPage() {
                     {/* Primary Rune Path */}
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 rounded-full bg-[#1E2328] flex items-center justify-center text-xs text-[#C89B3C] border border-[#C89B3C]">P</div>
-                        <h4 className="text-[#F0E6D2] font-medium">{metaData?.roleSpecificData?.runes?.primary?.name || "Precision"}</h4>
+                        <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-xs text-zinc-400 border border-zinc-700">P</div>
+                        <h4 className="text-zinc-200 font-medium">{metaData?.roleSpecificData?.runes?.primary?.name || "Precision"}</h4>
                       </div>
                       
                       {/* Keystone */}
                       <div className="mb-4">
                         <div className="text-xs text-zinc-400 mb-2">Keystone</div>
                         <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-12 rounded-md overflow-hidden border-2 border-[#C89B3C]">
+                          <div className="relative w-12 h-12 rounded-md overflow-hidden border-2 border-zinc-700">
                             <Image
                               src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png"
                               alt="Keystone"
@@ -615,7 +615,7 @@ export default function ChampionDetailsPage() {
                             />
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-[#C89B3C]">{metaData?.roleSpecificData?.runes?.primary?.keystone || "Press the Attack"}</div>
+                            <div className="text-sm font-medium text-zinc-200">{metaData?.roleSpecificData?.runes?.primary?.keystone || "Press the Attack"}</div>
                           </div>
                         </div>
                       </div>
@@ -624,7 +624,7 @@ export default function ChampionDetailsPage() {
                       <div className="space-y-3">
                         {[1, 2, 3].map((row, index) => (
                           <div key={row} className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-md overflow-hidden border border-[#2d3640]">
+                            <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
                               <Image
                                 src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Overheal.png"
                                 alt={`Rune ${index + 1}`}
@@ -632,7 +632,7 @@ export default function ChampionDetailsPage() {
                                 className="object-cover"
                               />
                             </div>
-                            <div className="text-xs text-[#F0E6D2]">
+                            <div className="text-xs text-zinc-200">
                               {["Overheal", "Legend: Alacrity", "Coup de Grace"][index]}
                             </div>
                           </div>
@@ -643,15 +643,15 @@ export default function ChampionDetailsPage() {
                     {/* Secondary Rune Path */}
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 rounded-full bg-[#1E2328] flex items-center justify-center text-xs text-zinc-400 border border-zinc-700">S</div>
-                        <h4 className="text-[#F0E6D2] font-medium">{metaData?.roleSpecificData?.runes?.secondary?.name || "Domination"}</h4>
+                        <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-xs text-zinc-400 border border-zinc-700">S</div>
+                        <h4 className="text-zinc-200 font-medium">{metaData?.roleSpecificData?.runes?.secondary?.name || "Domination"}</h4>
                       </div>
                       
                       {/* Row 1-2 */}
                       <div className="space-y-3 mb-6">
                         {[1, 2].map((row, index) => (
                           <div key={row} className="flex items-center gap-3">
-                            <div className="relative w-10 h-10 rounded-md overflow-hidden border border-[#2d3640]">
+                            <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
                               <Image
                                 src="https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TasteOfBlood/TasteOfBlood.png"
                                 alt={`Rune ${index + 1}`}
@@ -659,7 +659,7 @@ export default function ChampionDetailsPage() {
                                 className="object-cover"
                               />
                             </div>
-                            <div className="text-xs text-[#F0E6D2]">
+                            <div className="text-xs text-zinc-200">
                               {["Taste of Blood", "Relentless Hunter"][index]}
                             </div>
                           </div>
@@ -671,7 +671,7 @@ export default function ChampionDetailsPage() {
                         <div className="text-xs text-zinc-400 mb-2">Stat Shards</div>
                         <div className="flex items-center gap-3">
                           {["Adaptive Force", "Adaptive Force", "Armor"].map((shard, index) => (
-                            <div key={index} className="bg-[#1E2328] border border-[#2d3640] rounded px-2 py-1 text-xs text-[#F0E6D2]">
+                            <div key={index} className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200">
                               {shard}
                             </div>
                           ))}
@@ -685,28 +685,28 @@ export default function ChampionDetailsPage() {
               {/* Counters Tab Content */}
               {selectedTab === 'counters' && (
                 <div className="p-4">
-                  <h3 className="text-lg font-bold text-[#C89B3C] mb-4">Champion Counters</h3>
+                  <h3 className="text-lg font-bold text-yellow-600 mb-4">Champion Counters</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {metaData?.roleSpecificData?.counters?.map((counter, index) => (
                       <div 
                         key={index} 
-                        className="bg-[#1E2328]/80 border border-[#2d3640] rounded-lg overflow-hidden hover:border-[#C89B3C]/50 transition-colors"
+                        className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden hover:border-yellow-600/50 transition-colors"
                       >
-                        <div className="relative h-24 bg-cover bg-center border-b border-[#2d3640]">
+                        <div className="relative h-24 bg-cover bg-center border-b border-zinc-800">
                           <Image
                             src={counter.image}
                             alt={counter.name}
                             fill
                             className="object-cover"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#0A1428]/90 via-transparent to-transparent"></div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-zinc-800 via-transparent to-transparent"></div>
                           <div className="absolute bottom-0 left-0 right-0 p-2">
-                            <div className="font-medium text-sm text-[#F0E6D2]">{counter.name}</div>
+                            <div className="font-medium text-sm text-zinc-200">{counter.name}</div>
                           </div>
                         </div>
                         <div className="p-2 flex items-center justify-between">
                           <div className="text-xs text-zinc-400">Counter Score</div>
-                          <div className="text-xs font-medium text-red-400">
+                          <div className="text-xs font-medium text-yellow-400">
                             {counter.winRate}
                           </div>
                         </div>
@@ -720,18 +720,18 @@ export default function ChampionDetailsPage() {
           
           {/* Right Column - Champion Abilities */}
           <div className="space-y-6">
-            <div className="bg-[#1E2328] rounded-lg overflow-hidden border border-[#2d3640] shadow-lg">
-              <div className="bg-gradient-to-r from-[#1E2328] to-[#1E2328]/80 px-4 py-3 border-b border-[#2d3640]">
-                <h3 className="text-lg font-bold text-[#C89B3C]">Abilities</h3>
+            <div className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg">
+              <div className="bg-gradient-to-r from-zinc-900 to-zinc-900/80 px-4 py-3 border-b border-zinc-800">
+                <h3 className="text-lg font-bold text-yellow-600">Abilities</h3>
               </div>
               <div className="p-4">
                 {/* Ability Navigation */}
-                <div className="flex mb-4 border-b border-[#2d3640]">
+                <div className="flex mb-4 border-b border-zinc-800">
                   <button 
                     onClick={() => setSelectedAbility('passive')}
-                    className={`flex-1 flex flex-col items-center p-2 ${selectedAbility === 'passive' ? 'border-b-2 border-[#C89B3C]' : ''}`}
+                    className={`flex-1 flex flex-col items-center p-2 ${selectedAbility === 'passive' ? 'border-b-2 border-yellow-600' : ''}`}
                   >
-                    <div className="relative w-10 h-10 rounded-md overflow-hidden border border-[#2d3640]">
+                    <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-800">
                       <Image 
                         src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/passive/${championData.passive.image.full}`}
                         alt="Passive"
@@ -745,9 +745,9 @@ export default function ChampionDetailsPage() {
                     <button 
                       key={index}
                       onClick={() => setSelectedAbility(['q', 'w', 'e', 'r'][index])}
-                      className={`flex-1 flex flex-col items-center p-2 ${selectedAbility === ['q', 'w', 'e', 'r'][index] ? 'border-b-2 border-[#C89B3C]' : ''}`}
+                      className={`flex-1 flex flex-col items-center p-2 ${selectedAbility === ['q', 'w', 'e', 'r'][index] ? 'border-b-2 border-yellow-600' : ''}`}
                     >
-                      <div className="relative w-10 h-10 rounded-md overflow-hidden border border-[#2d3640]">
+                      <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-800">
                         <Image 
                           src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/spell/${spell.image.full}`}
                           alt={spell.name}
@@ -764,8 +764,8 @@ export default function ChampionDetailsPage() {
                 <div className="pt-2">
                   {selectedAbility === 'passive' && (
                     <div>
-                      <div className="flex items-center gap-3 mb-3 pb-3 border-b border-[#2d3640]">
-                        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-[#C89B3C]/50 shadow-md shadow-[#C89B3C]/10">
+                      <div className="flex items-center gap-3 mb-3 pb-3 border-b border-zinc-800">
+                        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-yellow-600 shadow-md shadow-yellow-600/10">
                           <Image
                             src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/passive/${championData.passive.image.full}`}
                             alt={championData.passive.name}
@@ -776,12 +776,12 @@ export default function ChampionDetailsPage() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between flex-wrap gap-y-2">
-                            <h4 className="text-base font-semibold text-[#C89B3C]">{championData.passive.name}</h4>
+                            <h4 className="text-base font-semibold text-yellow-600">{championData.passive.name}</h4>
                           </div>
                           <p className="text-xs text-zinc-400 mt-0.5 italic">Innate ability</p>
                         </div>
                       </div>
-                      <div className="text-sm text-[#F0E6D2] leading-relaxed">
+                      <div className="text-sm text-zinc-200 leading-relaxed">
                         {formatDescription(championData.passive.description)}
                       </div>
                     </div>
@@ -795,8 +795,8 @@ export default function ChampionDetailsPage() {
                         
                         return (
                           <div key={spell.id}>
-                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-[#2d3640]">
-                              <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-[#C89B3C]/50 shadow-md shadow-[#C89B3C]/10">
+                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-zinc-800">
+                              <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-yellow-600 shadow-md shadow-yellow-600/10">
                                 <Image
                                   src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/spell/${spell.image.full}`}
                                   alt={spell.name}
@@ -807,7 +807,7 @@ export default function ChampionDetailsPage() {
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center justify-between flex-wrap gap-y-2">
-                                  <h4 className="text-base font-semibold text-[#C89B3C]">{spell.name}</h4>
+                                  <h4 className="text-base font-semibold text-yellow-600">{spell.name}</h4>
                                   <div className="flex gap-2 text-xs">
                                     {spell.cooldownBurn && (
                                       <div className="px-2 py-0.5 bg-blue-900/30 border border-blue-900/40 rounded text-blue-400 flex items-center gap-1">
@@ -841,7 +841,7 @@ export default function ChampionDetailsPage() {
                               </div>
                             </div>
                             <div className="space-y-4">
-                              <div className="text-sm text-[#F0E6D2] leading-relaxed">
+                              <div className="text-sm text-zinc-200 leading-relaxed">
                                 {formatDescription(spell.description)}
                               </div>
                             </div>
@@ -850,6 +850,93 @@ export default function ChampionDetailsPage() {
                       })}
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+
+            {/* Ability Upgrade Order */}
+            <div className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg mt-6">
+              <div className="bg-gradient-to-r from-zinc-900 to-zinc-900/80 px-4 py-3 border-b border-zinc-800">
+                <h3 className="text-lg font-bold text-yellow-600">Ability Upgrade Order</h3>
+              </div>
+              <div className="p-4">
+                <div className="mb-4">
+                  <div className="text-sm font-medium text-zinc-200 mb-3">Max Order</div>
+                  <div className="flex gap-3">
+                    {['Q', 'W', 'E', 'R'].map((ability, idx) => (
+                      <div key={ability} className={`relative w-10 h-10 rounded overflow-hidden border ${idx === 0 ? 'border-yellow-600 ring-1 ring-yellow-600/30' : 'border-zinc-700'}`}>
+                        <div className={`absolute inset-0 flex items-center justify-center ${idx === 0 ? 'bg-zinc-800' : 'bg-zinc-800/50'}`}>
+                          <span className={`text-lg font-bold ${idx === 0 ? 'text-yellow-600' : 'text-zinc-400'}`}>{ability}</span>
+                        </div>
+                        {idx < 3 && (
+                          <div className="absolute -top-2 -right-2 w-5 h-5 bg-zinc-900 rounded-full border border-zinc-700 flex items-center justify-center text-xs">
+                            {idx + 1}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="text-sm font-medium text-zinc-200 mb-3">Level Sequence</div>
+                  <div className="bg-zinc-900/50 border border-zinc-800 rounded-md p-3 overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr>
+                          <th className="text-left text-xs text-zinc-500 pb-2">Lvl</th>
+                          {[...Array(18)].map((_, i) => (
+                            <th key={i} className="w-7 text-center text-xs text-zinc-500 pb-2">{i + 1}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {['Q', 'W', 'E', 'R'].map((ability, idx) => {
+                          // Example skill order pattern
+                          let pattern;
+                          if (ability === 'Q') {
+                            pattern = [1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                          } else if (ability === 'W') {
+                            pattern = [0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0];
+                          } else if (ability === 'E') {
+                            pattern = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1];
+                          } else {
+                            pattern = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0];
+                          }
+                          
+                          return (
+                            <tr key={ability} className="border-t border-zinc-800/50">
+                              <td className="py-2 pr-3 text-sm font-medium">
+                                <span className={`inline-block px-2 py-1 rounded ${
+                                  ability === 'Q' ? 'bg-blue-900/20 text-blue-400' : 
+                                  ability === 'W' ? 'bg-purple-900/20 text-purple-400' : 
+                                  ability === 'E' ? 'bg-green-900/20 text-green-400' : 
+                                  'bg-yellow-900/20 text-yellow-400'
+                                }`}>{ability}</span>
+                              </td>
+                              {pattern.map((point, i) => (
+                                <td key={i} className="text-center py-2">
+                                  {point ? (
+                                    <span className={`inline-block w-5 h-5 rounded-full flex items-center justify-center text-xs ${
+                                      ability === 'Q' ? 'bg-blue-900/30 text-blue-400 border border-blue-800' : 
+                                      ability === 'W' ? 'bg-purple-900/30 text-purple-400 border border-purple-800' : 
+                                      ability === 'E' ? 'bg-green-900/30 text-green-400 border border-green-800' : 
+                                      'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
+                                    }`}>•</span>
+                                  ) : (
+                                    <span className="inline-block w-5 h-5 rounded-full border border-zinc-800"></span>
+                                  )}
+                                </td>
+                              ))}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-3 text-xs text-zinc-500">
+                    This is the recommended skill order for optimal performance
+                  </div>
                 </div>
               </div>
             </div>
