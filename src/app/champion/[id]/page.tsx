@@ -666,7 +666,7 @@ export default function ChampionDetailsPage() {
                         alt="Berserker&apos;s Greaves"
                         width={32}
                         height={32}
-                        className="object-cover"
+                        className="object-cover" 
                       />
                     </div>
                     <div>
