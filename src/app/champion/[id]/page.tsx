@@ -270,7 +270,7 @@ export default function ChampionDetailsPage() {
               {/* Champion Portrait */}
               <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-xl overflow-hidden border-2 border-[#C89B3C] shadow-lg shadow-black/50 transform translate-y-4">
                 <Image 
-                  src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/champion/${championData.id}.png`}
+                  src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/champion/${championData.id}.png`}
                   alt={championData.name}
                   fill
                   className="object-cover"
@@ -733,7 +733,7 @@ export default function ChampionDetailsPage() {
                   >
                     <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-800">
                       <Image 
-                        src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/passive/${championData.passive.image.full}`}
+                        src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/passive/${championData.passive.image.full}`}
                         alt="Passive"
                         fill
                         className="object-cover"
@@ -749,7 +749,7 @@ export default function ChampionDetailsPage() {
                     >
                       <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-800">
                         <Image 
-                          src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/spell/${spell.image.full}`}
+                          src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/spell/${spell.image.full}`}
                           alt={spell.name}
                           fill
                           className="object-cover"
@@ -767,7 +767,7 @@ export default function ChampionDetailsPage() {
                       <div className="flex items-center gap-3 mb-3 pb-3 border-b border-zinc-800">
                         <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-yellow-600 shadow-md shadow-yellow-600/10">
                           <Image
-                            src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/passive/${championData.passive.image.full}`}
+                            src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/passive/${championData.passive.image.full}`}
                             alt={championData.passive.name}
                             fill
                             className="object-cover"
@@ -798,7 +798,7 @@ export default function ChampionDetailsPage() {
                             <div className="flex items-center gap-3 mb-3 pb-3 border-b border-zinc-800">
                               <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-yellow-600 shadow-md shadow-yellow-600/10">
                                 <Image
-                                  src={`https://ddragon.leagueoflegends.com/cdn/14.8.1/img/spell/${spell.image.full}`}
+                                  src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/spell/${spell.image.full}`}
                                   alt={spell.name}
                                   fill
                                   className="object-cover"
