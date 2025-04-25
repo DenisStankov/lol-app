@@ -194,7 +194,7 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     let data;
     try {
       data = JSON.parse(textData);
-    } catch (_) {
+    } catch {
       console.error("Failed to parse JSON response:", textData.substring(0, 100) + "...");
       throw new Error("Invalid JSON response from Data Dragon API");
     }
