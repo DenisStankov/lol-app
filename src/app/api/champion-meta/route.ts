@@ -1,5 +1,16 @@
 import { NextResponse } from 'next/server';
-import { kv } from '@vercel/kv'; // Optional: For caching if using Vercel
+
+// Optional import for Vercel KV
+let kv: any;
+try {
+  kv = require('@vercel/kv');
+} catch (e) {
+  // Fallback to in-memory cache if @vercel/kv is not available
+  console.log('Vercel KV not available, using in-memory cache');
+}
+
+// Simple in-memory cache as fallback
+const memoryCache: Record<string, { data: any, timestamp: number }> = {};
 
 // Cache duration (24 hours in seconds)
 const CACHE_DURATION = 86400;
@@ -23,11 +34,17 @@ export async function GET(request: Request) {
   try {
     // Check if we have cached data
     let cachedData;
-    try {
-      cachedData = await kv?.get(`champion-meta:${championId}`);
-    } catch (e) {
-      // KV store might not be available in development
-      console.log('KV store not available, skipping cache check');
+    
+    if (kv) {
+      // Try Vercel KV first
+      try {
+        cachedData = await kv.get(`champion-meta:${championId}`);
+      } catch (e) {
+        console.log('KV store error, falling back to in-memory cache', e);
+      }
+    } else {
+      // Use in-memory cache
+      cachedData = memoryCache[`champion-meta:${championId}`];
     }
 
     if (cachedData && !isDataStale(cachedData.timestamp)) {
@@ -35,18 +52,24 @@ export async function GET(request: Request) {
     }
 
     // Fetch data from the primary meta source
-    // This would normally be replaced with a call to a paid API service or your own data gathering system
     const metaData = await fetchChampionMetaData(championId);
     
     // Store in cache
-    try {
-      await kv?.set(`champion-meta:${championId}`, {
-        data: metaData,
-        timestamp: Date.now()
-      });
-    } catch (e) {
-      console.log('Failed to cache data', e);
-    }
+    const cacheEntry = {
+      data: metaData,
+      timestamp: Date.now()
+    };
+    
+    if (kv) {
+      try {
+        await kv.set(`champion-meta:${championId}`, cacheEntry);
+      } catch (e) {
+        console.log('Failed to cache data in KV', e);
+      }
+    } 
+    
+    // Always update memory cache as fallback
+    memoryCache[`champion-meta:${championId}`] = cacheEntry;
 
     return NextResponse.json(metaData);
   } catch (error) {
