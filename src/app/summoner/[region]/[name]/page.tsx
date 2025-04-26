@@ -11,7 +11,16 @@ import ProfileIcon from "@/components/ProfileIcon";
 import ChampionIcon from "@/components/ChampionIcon";
 
 export default function SummonerProfile() {
-  const { region, name } = useParams(); // ✅ Get dynamic params from URL
+  // Fix type error by defining the expected shape of params
+  type Params = {
+    region: string;
+    name: string;
+  };
+  
+  // Cast useParams() to our Params type
+  const params = useParams() as Params;
+  const { region, name } = params;
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 

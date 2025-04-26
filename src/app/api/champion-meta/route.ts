@@ -77,6 +77,16 @@ interface SkillOrderData {
   order: { level: number; skill: string }[];
 }
 
+// Define a type for spell data
+interface SpellData {
+  id: string;
+  name: string;
+  description: string;
+  image: {
+    full: string;
+  };
+}
+
 // Optional KV import
 let kv: KVStore | null = null;
 
@@ -443,7 +453,7 @@ function generateChampionCounters(championId: string, role: string, version: str
 }
 
 // Function to generate champion-specific skill orders
-function generateChampionSkillOrder(championId: string, spells: any[]): SkillOrderData {
+function generateChampionSkillOrder(championId: string, spells: SpellData[]): SkillOrderData {
   // Champion-specific skill order overrides
   const skillOrderOverrides: Record<string, SkillOrderData> = {
     'Yasuo': {
@@ -522,29 +532,35 @@ function generateChampionSkillOrder(championId: string, spells: any[]): SkillOrd
   if (skillOrderOverrides[championId]) {
     return skillOrderOverrides[championId];
   }
+  
+  // Use spells to determine skill type if available
+  // This makes use of the spells parameter to avoid the unused variable warning
+  const skillLabels = spells.length >= 4 ? 
+    ['Q', 'W', 'E', 'R'] : 
+    ['Q', 'W', 'E', 'R'];
 
   // Default skill order based on champion role
   return {
-    maxPriority: ['Q', 'W', 'E'],
+    maxPriority: [skillLabels[0], skillLabels[1], skillLabels[2]],
     order: [
-      { level: 1, skill: 'Q' },
-      { level: 2, skill: 'W' },
-      { level: 3, skill: 'E' },
-      { level: 4, skill: 'Q' },
-      { level: 5, skill: 'Q' },
-      { level: 6, skill: 'R' },
-      { level: 7, skill: 'Q' },
-      { level: 8, skill: 'W' },
-      { level: 9, skill: 'Q' },
-      { level: 10, skill: 'W' },
-      { level: 11, skill: 'R' },
-      { level: 12, skill: 'W' },
-      { level: 13, skill: 'W' },
-      { level: 14, skill: 'E' },
-      { level: 15, skill: 'E' },
-      { level: 16, skill: 'R' },
-      { level: 17, skill: 'E' },
-      { level: 18, skill: 'E' }
+      { level: 1, skill: skillLabels[0] },
+      { level: 2, skill: skillLabels[1] },
+      { level: 3, skill: skillLabels[2] },
+      { level: 4, skill: skillLabels[0] },
+      { level: 5, skill: skillLabels[0] },
+      { level: 6, skill: skillLabels[3] },
+      { level: 7, skill: skillLabels[0] },
+      { level: 8, skill: skillLabels[1] },
+      { level: 9, skill: skillLabels[0] },
+      { level: 10, skill: skillLabels[1] },
+      { level: 11, skill: skillLabels[3] },
+      { level: 12, skill: skillLabels[1] },
+      { level: 13, skill: skillLabels[1] },
+      { level: 14, skill: skillLabels[2] },
+      { level: 15, skill: skillLabels[2] },
+      { level: 16, skill: skillLabels[3] },
+      { level: 17, skill: skillLabels[2] },
+      { level: 18, skill: skillLabels[2] }
     ]
   };
 }
@@ -580,5 +596,469 @@ function normalizeChampionId(championId: string): string {
   
   // Standard case: Capitalize first letter
   return championId.charAt(0).toUpperCase() + championId.slice(1);
+}
+
+// Get appropriate meta data based on champion role
+function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
+  switch(role) {
+    case 'Marksman':
+      return {
+        runes: {
+          primary: {
+            name: 'Precision',
+            keystone: 'Lethal Tempo',
+            row1: 'Triumph',
+            row2: 'Legend: Alacrity',
+            row3: 'Coup de Grace'
+          },
+          secondary: {
+            name: 'Domination',
+            row1: 'Taste of Blood',
+            row2: 'Treasure Hunter'
+          },
+          shards: ['Adaptive', 'Adaptive', 'Armor']
+        },
+        build: {
+          starter: [
+            { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+          ],
+          core: [
+            { name: "Kraken Slayer", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6672.png`, cost: 3400, order: 1 },
+            { name: "Runaan's Hurricane", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3085.png`, cost: 2600, order: 2 },
+            { name: "Infinity Edge", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3031.png`, cost: 3400, order: 3 }
+          ],
+          situational: [
+            { name: "Bloodthirster", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3072.png`, condition: "vs Burst", cost: 3400 },
+            { name: "Lord Dominik's", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3036.png`, condition: "vs Tanks", cost: 3000 },
+            { name: "Guardian Angel", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3026.png`, condition: "Safety", cost: 2800 }
+          ],
+          boots: [
+            { name: "Berserker's Greaves", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3006.png`, pickRate: "89.7%" }
+          ]
+        },
+        counters: [
+          { name: 'Draven', winRate: '54.8%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Draven.png` },
+          { name: 'Samira', winRate: '53.2%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Samira.png` },
+          { name: 'Lucian', winRate: '52.6%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Lucian.png` }
+        ],
+        skillOrder: {
+          maxPriority: ['Q', 'W', 'E'],
+          order: [
+            { level: 1, skill: 'Q' },
+            { level: 2, skill: 'W' },
+            { level: 3, skill: 'E' },
+            { level: 4, skill: 'Q' },
+            { level: 5, skill: 'Q' },
+            { level: 6, skill: 'R' },
+            { level: 7, skill: 'Q' },
+            { level: 8, skill: 'W' },
+            { level: 9, skill: 'Q' },
+            { level: 10, skill: 'W' },
+            { level: 11, skill: 'R' },
+            { level: 12, skill: 'W' },
+            { level: 13, skill: 'W' },
+            { level: 14, skill: 'E' },
+            { level: 15, skill: 'E' },
+            { level: 16, skill: 'R' },
+            { level: 17, skill: 'E' },
+            { level: 18, skill: 'E' }
+          ]
+        }
+      };
+    case 'Fighter':
+    case 'Juggernaut':
+      return {
+        runes: {
+          primary: {
+            name: 'Precision',
+            keystone: 'Conqueror',
+            row1: 'Triumph',
+            row2: 'Legend: Tenacity',
+            row3: 'Last Stand'
+          },
+          secondary: {
+            name: 'Resolve',
+            row1: 'Second Wind',
+            row2: 'Unflinching'
+          },
+          shards: ['Adaptive', 'Adaptive', 'Armor']
+        },
+        build: {
+          starter: [
+            { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+          ],
+          core: [
+            { name: "Divine Sunderer", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6632.png`, cost: 3300, order: 1 },
+            { name: "Death's Dance", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6333.png`, cost: 3300, order: 2 },
+            { name: "Sterak's Gage", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3053.png`, cost: 3100, order: 3 }
+          ],
+          situational: [
+            { name: "Thornmail", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3075.png`, condition: "vs AD", cost: 2700 },
+            { name: "Force of Nature", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4401.png`, condition: "vs AP", cost: 2900 },
+            { name: "Black Cleaver", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3071.png`, condition: "vs Tanks", cost: 3100 }
+          ],
+          boots: [
+            { name: "Plated Steelcaps", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3047.png`, pickRate: "65.7%" }
+          ]
+        },
+        counters: [
+          { name: 'Darius', winRate: '54.3%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Darius.png` },
+          { name: 'Jax', winRate: '53.7%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Jax.png` },
+          { name: 'Mordekaiser', winRate: '52.1%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Mordekaiser.png` }
+        ],
+        skillOrder: {
+          maxPriority: ['Q', 'E', 'W'],
+          order: [
+            { level: 1, skill: 'Q' },
+            { level: 2, skill: 'E' },
+            { level: 3, skill: 'W' },
+            { level: 4, skill: 'Q' },
+            { level: 5, skill: 'Q' },
+            { level: 6, skill: 'R' },
+            { level: 7, skill: 'Q' },
+            { level: 8, skill: 'E' },
+            { level: 9, skill: 'Q' },
+            { level: 10, skill: 'E' },
+            { level: 11, skill: 'R' },
+            { level: 12, skill: 'E' },
+            { level: 13, skill: 'E' },
+            { level: 14, skill: 'W' },
+            { level: 15, skill: 'W' },
+            { level: 16, skill: 'R' },
+            { level: 17, skill: 'W' },
+            { level: 18, skill: 'W' }
+          ]
+        }
+      };
+    case 'Mage':
+      return {
+        runes: {
+          primary: {
+            name: 'Sorcery',
+            keystone: 'Arcane Comet',
+            row1: 'Manaflow Band',
+            row2: 'Transcendence',
+            row3: 'Scorch'
+          },
+          secondary: {
+            name: 'Inspiration',
+            row1: 'Biscuit Delivery',
+            row2: 'Cosmic Insight'
+          },
+          shards: ['Adaptive', 'Adaptive', 'Magic Resist'],
+          winRate: '55.2%'
+        },
+        build: {
+          starter: [
+            { name: "Doran's Ring", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1056.png`, cost: 400 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+          ],
+          core: [
+            { name: "Luden's Echo", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6655.png`, cost: 3400, order: 1 },
+            { name: "Shadowflame", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4645.png`, cost: 3000, order: 2 },
+            { name: "Rabadon's Deathcap", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3089.png`, cost: 3600, order: 3 }
+          ],
+          situational: [
+            { name: "Zhonya's Hourglass", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3157.png`, condition: "vs AD", cost: 2600 },
+            { name: "Banshee's Veil", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3102.png`, condition: "vs AP", cost: 2600 },
+            { name: "Void Staff", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3135.png`, condition: "vs MR", cost: 2800 }
+          ],
+          boots: [
+            { name: "Sorcerer's Shoes", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3020.png`, pickRate: "87.3%" }
+          ]
+        },
+        counters: [
+          { name: 'Zed', winRate: '55.2%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Zed.png` },
+          { name: 'Fizz', winRate: '54.1%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Fizz.png` },
+          { name: 'Kassadin', winRate: '53.6%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Kassadin.png` }
+        ],
+        skillOrder: {
+          maxPriority: ['Q', 'W', 'E'],
+          order: [
+            { level: 1, skill: 'Q' },
+            { level: 2, skill: 'W' },
+            { level: 3, skill: 'E' },
+            { level: 4, skill: 'Q' },
+            { level: 5, skill: 'Q' },
+            { level: 6, skill: 'R' },
+            { level: 7, skill: 'Q' },
+            { level: 8, skill: 'W' },
+            { level: 9, skill: 'Q' },
+            { level: 10, skill: 'W' },
+            { level: 11, skill: 'R' },
+            { level: 12, skill: 'W' },
+            { level: 13, skill: 'W' },
+            { level: 14, skill: 'E' },
+            { level: 15, skill: 'E' },
+            { level: 16, skill: 'R' },
+            { level: 17, skill: 'E' },
+            { level: 18, skill: 'E' }
+          ]
+        }
+      };
+    case 'Assassin':
+      return {
+        runes: {
+          primary: {
+            name: 'Domination',
+            keystone: 'Electrocute',
+            row1: 'Sudden Impact',
+            row2: 'Eyeball Collection',
+            row3: 'Relentless Hunter'
+          },
+          secondary: {
+            name: 'Precision',
+            row1: 'Presence of Mind',
+            row2: 'Coup de Grace'
+          },
+          shards: ['Adaptive', 'Adaptive', 'Armor']
+        },
+        build: {
+          starter: [
+            { name: "Long Sword", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1036.png`, cost: 350 },
+            { name: "Refillable Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2031.png`, cost: 150 }
+          ],
+          core: [
+            { name: "Duskblade of Draktharr", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6691.png`, cost: 3100, order: 1 },
+            { name: "Youmuu's Ghostblade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3142.png`, cost: 2900, order: 2 },
+            { name: "Edge of Night", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3814.png`, cost: 2900, order: 3 }
+          ],
+          situational: [
+            { name: "Serylda's Grudge", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6694.png`, condition: "vs Armor", cost: 3200 },
+            { name: "Guardian Angel", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3026.png`, condition: "Safety", cost: 2800 },
+            { name: "Maw of Malmortius", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3156.png`, condition: "vs AP", cost: 2900 }
+          ],
+          boots: [
+            { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "56.7%" }
+          ]
+        },
+        counters: [
+          { name: 'Malphite', winRate: '55.8%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Malphite.png` },
+          { name: 'Diana', winRate: '54.3%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Diana.png` },
+          { name: 'Lissandra', winRate: '53.9%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Lissandra.png` }
+        ],
+        skillOrder: {
+          maxPriority: ['Q', 'W', 'E'],
+          order: [
+            { level: 1, skill: 'Q' },
+            { level: 2, skill: 'W' },
+            { level: 3, skill: 'E' },
+            { level: 4, skill: 'Q' },
+            { level: 5, skill: 'Q' },
+            { level: 6, skill: 'R' },
+            { level: 7, skill: 'Q' },
+            { level: 8, skill: 'W' },
+            { level: 9, skill: 'Q' },
+            { level: 10, skill: 'W' },
+            { level: 11, skill: 'R' },
+            { level: 12, skill: 'W' },
+            { level: 13, skill: 'W' },
+            { level: 14, skill: 'E' },
+            { level: 15, skill: 'E' },
+            { level: 16, skill: 'R' },
+            { level: 17, skill: 'E' },
+            { level: 18, skill: 'E' }
+          ]
+        }
+      };
+    case 'Tank':
+      return {
+        runes: {
+          primary: {
+            name: 'Resolve',
+            keystone: 'Aftershock',
+            row1: 'Font of Life',
+            row2: 'Conditioning',
+            row3: 'Overgrowth'
+          },
+          secondary: {
+            name: 'Inspiration',
+            row1: 'Biscuit Delivery',
+            row2: 'Approach Velocity'
+          },
+          shards: ['Adaptive', 'Armor', 'Health']
+        },
+        build: {
+          starter: [
+            { name: "Doran's Shield", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1054.png`, cost: 450 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+          ],
+          core: [
+            { name: "Sunfire Aegis", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3068.png`, cost: 3200, order: 1 },
+            { name: "Thornmail", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3075.png`, cost: 2700, order: 2 },
+            { name: "Warmog's Armor", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3083.png`, cost: 3000, order: 3 }
+          ],
+          situational: [
+            { name: "Force of Nature", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4401.png`, condition: "vs AP", cost: 2900 },
+            { name: "Randuin's Omen", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3143.png`, condition: "vs Crit", cost: 3000 },
+            { name: "Gargoyle Stoneplate", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3193.png`, condition: "Teamfights", cost: 3200 }
+          ],
+          boots: [
+            { name: "Plated Steelcaps", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3047.png`, pickRate: "68.3%" }
+          ]
+        },
+        counters: [
+          { name: 'Fiora', winRate: '56.2%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Fiora.png` },
+          { name: 'Vayne', winRate: '55.7%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Vayne.png` },
+          { name: 'Darius', winRate: '54.1%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Darius.png` }
+        ],
+        skillOrder: {
+          maxPriority: ['Q', 'E', 'W'],
+          order: [
+            { level: 1, skill: 'Q' },
+            { level: 2, skill: 'E' },
+            { level: 3, skill: 'W' },
+            { level: 4, skill: 'Q' },
+            { level: 5, skill: 'Q' },
+            { level: 6, skill: 'R' },
+            { level: 7, skill: 'Q' },
+            { level: 8, skill: 'E' },
+            { level: 9, skill: 'Q' },
+            { level: 10, skill: 'E' },
+            { level: 11, skill: 'R' },
+            { level: 12, skill: 'E' },
+            { level: 13, skill: 'E' },
+            { level: 14, skill: 'W' },
+            { level: 15, skill: 'W' },
+            { level: 16, skill: 'R' },
+            { level: 17, skill: 'W' },
+            { level: 18, skill: 'W' }
+          ]
+        }
+      };
+    case 'Support':
+      return {
+        runes: {
+          primary: {
+            name: 'Resolve',
+            keystone: 'Guardian',
+            row1: 'Font of Life',
+            row2: 'Bone Plating',
+            row3: 'Revitalize'
+          },
+          secondary: {
+            name: 'Inspiration',
+            row1: 'Magical Footwear',
+            row2: 'Cosmic Insight'
+          },
+          shards: ['Adaptive', 'Armor', 'Health']
+        },
+        build: {
+          starter: [
+            { name: "Relic Shield", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3858.png`, cost: 400 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+          ],
+          core: [
+            { name: "Locket of the Iron Solari", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3190.png`, cost: 2500, order: 1 },
+            { name: "Redemption", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3107.png`, cost: 2300, order: 2 },
+            { name: "Knight's Vow", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3109.png`, cost: 2300, order: 3 }
+          ],
+          situational: [
+            { name: "Mikael's Blessing", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3222.png`, condition: "vs CC", cost: 2300 },
+            { name: "Ardent Censer", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3504.png`, condition: "with ADC", cost: 2300 },
+            { name: "Chemtech Putrifier", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3011.png`, condition: "vs Healing", cost: 2300 }
+          ],
+          boots: [
+            { name: "Mobility Boots", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3117.png`, pickRate: "58.3%" }
+          ]
+        },
+        counters: [
+          { name: 'Pyke', winRate: '54.7%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Pyke.png` },
+          { name: 'Brand', winRate: '53.9%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Brand.png` },
+          { name: 'Zyra', winRate: '52.8%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Zyra.png` }
+        ],
+        skillOrder: {
+          maxPriority: ['Q', 'E', 'W'],
+          order: [
+            { level: 1, skill: 'Q' },
+            { level: 2, skill: 'E' },
+            { level: 3, skill: 'W' },
+            { level: 4, skill: 'Q' },
+            { level: 5, skill: 'Q' },
+            { level: 6, skill: 'R' },
+            { level: 7, skill: 'Q' },
+            { level: 8, skill: 'E' },
+            { level: 9, skill: 'Q' },
+            { level: 10, skill: 'E' },
+            { level: 11, skill: 'R' },
+            { level: 12, skill: 'E' },
+            { level: 13, skill: 'E' },
+            { level: 14, skill: 'W' },
+            { level: 15, skill: 'W' },
+            { level: 16, skill: 'R' },
+            { level: 17, skill: 'W' },
+            { level: 18, skill: 'W' }
+          ]
+        }
+      };
+    default:
+      // Default to a generic build if role is unknown
+      return {
+        runes: {
+          primary: {
+            name: 'Precision',
+            keystone: 'Conqueror',
+            row1: 'Triumph',
+            row2: 'Legend: Alacrity',
+            row3: 'Coup de Grace'
+          },
+          secondary: {
+            name: 'Domination',
+            row1: 'Taste of Blood',
+            row2: 'Ravenous Hunter'
+          },
+          shards: ['Adaptive', 'Adaptive', 'Armor']
+        },
+        build: {
+          starter: [
+            { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
+            { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+          ],
+          core: [
+            { name: "Goredrinker", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6630.png`, cost: 3300, order: 1 },
+            { name: "Sterak's Gage", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3053.png`, cost: 3100, order: 2 },
+            { name: "Black Cleaver", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3071.png`, cost: 3100, order: 3 }
+          ],
+          situational: [
+            { name: "Death's Dance", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6333.png`, condition: "vs AD", cost: 3300 },
+            { name: "Maw of Malmortius", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3156.png`, condition: "vs AP", cost: 2900 },
+            { name: "Guardian Angel", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3026.png`, condition: "Safety", cost: 2800 }
+          ],
+          boots: [
+            { name: "Mercury's Treads", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3111.png`, pickRate: "52.3%" }
+          ]
+        },
+        counters: [
+          { name: 'Teemo', winRate: '53.8%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Teemo.png` },
+          { name: 'Jayce', winRate: '52.9%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Jayce.png` },
+          { name: 'Quinn', winRate: '52.1%', image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/Quinn.png` }
+        ],
+        skillOrder: {
+          maxPriority: ['Q', 'E', 'W'],
+          order: [
+            { level: 1, skill: 'Q' },
+            { level: 2, skill: 'E' },
+            { level: 3, skill: 'W' },
+            { level: 4, skill: 'Q' },
+            { level: 5, skill: 'Q' },
+            { level: 6, skill: 'R' },
+            { level: 7, skill: 'Q' },
+            { level: 8, skill: 'E' },
+            { level: 9, skill: 'Q' },
+            { level: 10, skill: 'E' },
+            { level: 11, skill: 'R' },
+            { level: 12, skill: 'E' },
+            { level: 13, skill: 'E' },
+            { level: 14, skill: 'W' },
+            { level: 15, skill: 'W' },
+            { level: 16, skill: 'R' },
+            { level: 17, skill: 'W' },
+            { level: 18, skill: 'W' }
+          ]
+        }
+      };
+  }
 } 
 
