@@ -881,10 +881,21 @@ export async function GET(request: Request) {
       const difficulty = getDifficulty(champion.info);
       
       // Determine range (melee/ranged) using tags as fallback if stats is not available
-      const range = champion.stats?.attackrange <= 300 ? 'Melee' : 
-        (champion.tags.includes('Marksman') ? 'Ranged' : 
-         (champion.tags.includes('Assassin') || champion.tags.includes('Fighter') || champion.tags.includes('Tank') ? 'Melee' : 
-          'Ranged'));
+      const isRanged = champion.tags.includes('Marksman');
+      const isMelee = champion.tags.includes('Assassin') || champion.tags.includes('Fighter') || champion.tags.includes('Tank');
+      
+      // Default to tag-based determination, with fallback to Ranged for mages
+      let range: 'Melee' | 'Ranged';
+      if (champion.stats?.attackrange !== undefined) {
+        range = champion.stats.attackrange <= 300 ? 'Melee' : 'Ranged';
+      } else if (isRanged) {
+        range = 'Ranged';
+      } else if (isMelee) {
+        range = 'Melee';
+      } else {
+        // Default for mages and others
+        range = 'Ranged';
+      }
       
       // Add the champion to the result
       result[champId] = {
