@@ -31,6 +31,10 @@ interface ChampionData {
     magic: number;
     difficulty: number;
   };
+  stats?: {
+    attackrange: number;
+    [key: string]: number;
+  };
 }
 
 interface ChampionInfo {
@@ -794,7 +798,6 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
 }
 
 // Function to get match data from Riot API
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getMatchData(matchId: string, region: string): Promise<RiotMatch | null> {
   console.log(`🔍 [getMatchData] Getting data for matchId=${matchId}, region=${region}`);
   try {
@@ -877,8 +880,11 @@ export async function GET(request: Request) {
       // Determine difficulty from champion info
       const difficulty = getDifficulty(champion.info);
       
-      // Determine range (melee/ranged)
-      const range = champion.stats.attackrange <= 300 ? 'Melee' : 'Ranged';
+      // Determine range (melee/ranged) using tags as fallback if stats is not available
+      const range = champion.stats?.attackrange <= 300 ? 'Melee' : 
+        (champion.tags.includes('Marksman') ? 'Ranged' : 
+         (champion.tags.includes('Assassin') || champion.tags.includes('Fighter') || champion.tags.includes('Tank') ? 'Melee' : 
+          'Ranged'));
       
       // Add the champion to the result
       result[champId] = {
@@ -903,7 +909,6 @@ export async function GET(request: Request) {
 }
 
 // Update getMatchIds function to use the proper API region
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getMatchIds(region: string, rank: string, count: number = 100): Promise<string[]> {
   console.log(`🔍 [getMatchIds] Starting with region=${region}, rank=${rank}`);
   try {
