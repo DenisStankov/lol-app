@@ -26,6 +26,10 @@ interface RoleSpecificData {
   build: BuildData;
   counters: CounterData[];
   skillOrder: SkillOrderData;
+  skills: {
+    winRate: string;
+    games?: number;
+  };
 }
 
 interface RuneData {
@@ -247,6 +251,12 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     const counters = generateChampionCounters(championId, role, version);
     const skillOrder = generateChampionSkillOrder(championId, champion.spells);
     
+    // Generate skills data
+    const skills = {
+      winRate: (48 + Math.random() * 7).toFixed(1) + '%',
+      games: Math.floor(500 + Math.random() * 1500)
+    };
+    
     // Log to help debug
     console.log(`Champion ${championId} meta data:`);
     console.log(`- Role: ${role}`);
@@ -254,12 +264,14 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     console.log(`- Core items: ${build.core.map(item => item.name).join(', ')}`);
     console.log(`- Countered by: ${counters.map(c => c.name).join(', ')}`);
     console.log(`- Max priority: ${skillOrder.maxPriority.join(' > ')}`);
+    console.log(`- Skills win rate: ${skills.winRate}`);
     
     const roleSpecificData = {
       runes,
       build,
       counters,
-      skillOrder
+      skillOrder,
+      skills
     };
     
     return {
@@ -374,8 +386,9 @@ function generateChampionSpecificRunes(championId: string, role: string, version
 
 // Function to generate champion-specific builds
 function generateChampionSpecificBuilds(championId: string, role: string, version: string): BuildData {
-  // Champion-specific build overrides
+  // Champion-specific build overrides - EXPANDED with more unique builds
   const buildOverrides: Record<string, BuildData> = {
+    // Yasuo (Fighter/Skirmisher)
     'Yasuo': {
       starter: [
         { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
@@ -396,6 +409,28 @@ function generateChampionSpecificBuilds(championId: string, role: string, versio
         { name: "Mercury's Treads", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3111.png`, pickRate: "14.8%" }
       ]
     },
+    // Yone (Fighter/Assassin)
+    'Yone': {
+      starter: [
+        { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
+        { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+      ],
+      core: [
+        { name: "Immortal Shieldbow", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6673.png`, cost: 3400, order: 1 },
+        { name: "Infinity Edge", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3031.png`, cost: 3400, order: 2 },
+        { name: "Death's Dance", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6333.png`, cost: 3300, order: 3 }
+      ],
+      situational: [
+        { name: "Guardian Angel", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3026.png`, condition: "Safety", cost: 2800 },
+        { name: "Wit's End", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3091.png`, condition: "vs AP", cost: 3100 },
+        { name: "Mortal Reminder", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3033.png`, condition: "vs Healing", cost: 2500 }
+      ],
+      boots: [
+        { name: "Berserker's Greaves", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3006.png`, pickRate: "90.1%" },
+        { name: "Mercury's Treads", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3111.png`, pickRate: "9.9%" }
+      ]
+    },
+    // Darius (Fighter/Juggernaut)
     'Darius': {
       starter: [
         { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
@@ -416,6 +451,28 @@ function generateChampionSpecificBuilds(championId: string, role: string, versio
         { name: "Mercury's Treads", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3111.png`, pickRate: "34.7%" }
       ]
     },
+    // Garen (Fighter/Juggernaut) - Different build from Darius despite same role
+    'Garen': {
+      starter: [
+        { name: "Doran's Shield", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1054.png`, cost: 450 },
+        { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+      ],
+      core: [
+        { name: "Trinity Force", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3078.png`, cost: 3333, order: 1 },
+        { name: "Mortal Reminder", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3033.png`, cost: 2500, order: 2 },
+        { name: "Dead Man's Plate", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3742.png`, cost: 2900, order: 3 }
+      ],
+      situational: [
+        { name: "Force of Nature", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4401.png`, condition: "vs AP", cost: 2900 },
+        { name: "Sterak's Gage", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3053.png`, condition: "Teamfight", cost: 3100 },
+        { name: "Black Cleaver", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3071.png`, condition: "vs Tanks", cost: 3100 }
+      ],
+      boots: [
+        { name: "Berserker's Greaves", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3006.png`, pickRate: "70.1%" },
+        { name: "Mercury's Treads", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3111.png`, pickRate: "29.9%" }
+      ]
+    },
+    // Zed (Assassin)
     'Zed': {
       starter: [
         { name: "Long Sword", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1036.png`, cost: 350 },
@@ -435,15 +492,143 @@ function generateChampionSpecificBuilds(championId: string, role: string, versio
         { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "70.1%" },
         { name: "Mobility Boots", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3117.png`, pickRate: "29.9%" }
       ]
+    },
+    // Talon (Assassin) - Different build from Zed despite same role
+    'Talon': {
+      starter: [
+        { name: "Long Sword", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1036.png`, cost: 350 },
+        { name: "Refillable Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2031.png`, cost: 150 }
+      ],
+      core: [
+        { name: "Prowler's Claw", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6693.png`, cost: 3200, order: 1 },
+        { name: "Youmuu's Ghostblade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3142.png`, cost: 2900, order: 2 },
+        { name: "Serylda's Grudge", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6694.png`, cost: 3200, order: 3 }
+      ],
+      situational: [
+        { name: "Edge of Night", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3814.png`, condition: "vs CC", cost: 2900 },
+        { name: "Umbral Glaive", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3179.png`, condition: "Vision Control", cost: 2300 },
+        { name: "Guardian Angel", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3026.png`, condition: "Safety", cost: 2800 }
+      ],
+      boots: [
+        { name: "Mobility Boots", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3117.png`, pickRate: "60.5%" },
+        { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "39.5%" }
+      ]
+    },
+    // Jinx (Marksman/ADC)
+    'Jinx': {
+      starter: [
+        { name: "Doran's Blade", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1055.png`, cost: 450 },
+        { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+      ],
+      core: [
+        { name: "Kraken Slayer", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6672.png`, cost: 3400, order: 1 },
+        { name: "Runaan's Hurricane", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3085.png`, cost: 2600, order: 2 },
+        { name: "Infinity Edge", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3031.png`, cost: 3400, order: 3 }
+      ],
+      situational: [
+        { name: "Bloodthirster", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3072.png`, condition: "Lifesteal", cost: 3400 },
+        { name: "Lord Dominik's Regards", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3036.png`, condition: "vs Tanks", cost: 3000 },
+        { name: "Guardian Angel", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3026.png`, condition: "Safety", cost: 2800 }
+      ],
+      boots: [
+        { name: "Berserker's Greaves", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3006.png`, pickRate: "95.1%" },
+        { name: "Mercury's Treads", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3111.png`, pickRate: "4.9%" }
+      ]
+    },
+    // Ezreal (Marksman/ADC) - Different build from Jinx despite same role
+    'Ezreal': {
+      starter: [
+        { name: "Tear of the Goddess", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3070.png`, cost: 400 },
+        { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+      ],
+      core: [
+        { name: "Divine Sunderer", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6632.png`, cost: 3300, order: 1 },
+        { name: "Manamune", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3004.png`, cost: 2900, order: 2 },
+        { name: "Serylda's Grudge", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6694.png`, cost: 3200, order: 3 }
+      ],
+      situational: [
+        { name: "Frozen Heart", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3110.png`, condition: "vs AD", cost: 2700 },
+        { name: "Maw of Malmortius", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3156.png`, condition: "vs AP", cost: 2900 },
+        { name: "Chempunk Chainsword", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6609.png`, condition: "vs Healing", cost: 2600 }
+      ],
+      boots: [
+        { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "74.8%" },
+        { name: "Plated Steelcaps", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3047.png`, pickRate: "25.2%" }
+      ]
+    },
+    // Ahri (Mage)
+    'Ahri': {
+      starter: [
+        { name: "Doran's Ring", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1056.png`, cost: 400 },
+        { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+      ],
+      core: [
+        { name: "Everfrost", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6656.png`, cost: 3400, order: 1 },
+        { name: "Cosmic Drive", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4629.png`, cost: 3000, order: 2 },
+        { name: "Zhonya's Hourglass", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3157.png`, cost: 2600, order: 3 }
+      ],
+      situational: [
+        { name: "Rabadon's Deathcap", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3089.png`, condition: "More Damage", cost: 3600 },
+        { name: "Void Staff", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3135.png`, condition: "vs MR", cost: 2800 },
+        { name: "Banshee's Veil", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3102.png`, condition: "vs AP", cost: 2600 }
+      ],
+      boots: [
+        { name: "Sorcerer's Shoes", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3020.png`, pickRate: "87.6%" },
+        { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "12.4%" }
+      ]
+    },
+    // Lux (Mage) - Different build from Ahri despite same role
+    'Lux': {
+      starter: [
+        { name: "Doran's Ring", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/1056.png`, cost: 400 },
+        { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+      ],
+      core: [
+        { name: "Luden's Tempest", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/6655.png`, cost: 3400, order: 1 },
+        { name: "Horizon Focus", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/4628.png`, cost: 3000, order: 2 },
+        { name: "Rabadon's Deathcap", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3089.png`, cost: 3600, order: 3 }
+      ],
+      situational: [
+        { name: "Zhonya's Hourglass", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3157.png`, condition: "vs AD", cost: 2600 },
+        { name: "Void Staff", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3135.png`, condition: "vs MR", cost: 2800 },
+        { name: "Mejai's Soulstealer", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3041.png`, condition: "Snowballing", cost: 1600 }
+      ],
+      boots: [
+        { name: "Sorcerer's Shoes", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3020.png`, pickRate: "95.2%" },
+        { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "4.8%" }
+      ]
+    },
+    // Thresh (Support)
+    'Thresh': {
+      starter: [
+        { name: "Relic Shield", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3858.png`, cost: 400 },
+        { name: "Health Potion", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/2003.png`, cost: 50 }
+      ],
+      core: [
+        { name: "Locket of the Iron Solari", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3190.png`, cost: 2500, order: 1 },
+        { name: "Knight's Vow", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3109.png`, cost: 2300, order: 2 },
+        { name: "Zeke's Convergence", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3050.png`, cost: 2400, order: 3 }
+      ],
+      situational: [
+        { name: "Redemption", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3107.png`, condition: "Team Healing", cost: 2300 },
+        { name: "Abyssal Mask", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3001.png`, condition: "vs AP", cost: 2700 },
+        { name: "Thornmail", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3075.png`, condition: "vs Healing", cost: 2700 }
+      ],
+      boots: [
+        { name: "Mobility Boots", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3117.png`, pickRate: "70.3%" },
+        { name: "Plated Steelcaps", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3047.png`, pickRate: "29.7%" }
+      ]
     }
     // Add more champion-specific builds as needed
   };
 
   // Check for override
   if (buildOverrides[championId]) {
+    console.log(`Using champion-specific build for ${championId}`);
     return buildOverrides[championId];
   }
 
+  console.log(`No specific build found for ${championId}, using role-based build for ${role}`);
   // Get base build from role-based data
   const roleBased = getRoleBasedMetaData(role, version);
   return roleBased.build;
@@ -693,6 +878,10 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { level: 17, skill: 'E' },
             { level: 18, skill: 'E' }
           ]
+        },
+        skills: {
+          winRate: "51.3%",
+          games: 1243
         }
       };
     case 'Fighter':
@@ -759,6 +948,10 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { level: 17, skill: 'W' },
             { level: 18, skill: 'W' }
           ]
+        },
+        skills: {
+          winRate: "52.7%",
+          games: 987
         }
       };
     case 'Mage':
@@ -825,6 +1018,10 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { level: 17, skill: 'E' },
             { level: 18, skill: 'E' }
           ]
+        },
+        skills: {
+          winRate: "53.8%",
+          games: 1056
         }
       };
     case 'Assassin':
@@ -860,7 +1057,8 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { name: "Maw of Malmortius", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3156.png`, condition: "vs AP", cost: 2900 }
           ],
           boots: [
-            { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "56.7%" }
+            { name: "Ionian Boots of Lucidity", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3158.png`, pickRate: "56.7%" },
+            { name: "Mobility Boots", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3117.png`, pickRate: "43.3%" }
           ]
         },
         counters: [
@@ -890,6 +1088,10 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { level: 17, skill: 'E' },
             { level: 18, skill: 'E' }
           ]
+        },
+        skills: {
+          winRate: "54.2%",
+          games: 879
         }
       };
     case 'Tank':
@@ -955,6 +1157,10 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { level: 17, skill: 'W' },
             { level: 18, skill: 'W' }
           ]
+        },
+        skills: {
+          winRate: "50.5%",
+          games: 653
         }
       };
     case 'Support':
@@ -990,7 +1196,8 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { name: "Chemtech Putrifier", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3011.png`, condition: "vs Healing", cost: 2300 }
           ],
           boots: [
-            { name: "Mobility Boots", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3117.png`, pickRate: "58.3%" }
+            { name: "Mobility Boots", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3117.png`, pickRate: "58.3%" },
+            { name: "Plated Steelcaps", image: `https://ddragon.leagueoflegends.com/cdn/${version}/img/item/3047.png`, pickRate: "41.7%" }
           ]
         },
         counters: [
@@ -1020,6 +1227,10 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { level: 17, skill: 'W' },
             { level: 18, skill: 'W' }
           ]
+        },
+        skills: {
+          winRate: "51.9%",
+          games: 1489
         }
       };
     default:
@@ -1086,6 +1297,10 @@ function getRoleBasedMetaData(role: string, version: string): RoleSpecificData {
             { level: 17, skill: 'W' },
             { level: 18, skill: 'W' }
           ]
+        },
+        skills: {
+          winRate: "50.0%",
+          games: 500
         }
       };
   }

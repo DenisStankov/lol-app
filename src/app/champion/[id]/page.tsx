@@ -97,6 +97,7 @@ interface RoleSpecificData {
   skillOrder: SkillOrderData;
   skills: {
     winRate: string;
+    games?: number;
   };
 }
 
@@ -1113,7 +1114,14 @@ export default function ChampionDetailsPage() {
               </div>
               <div className="p-4">
                 <div className="mb-4">
-                  <div className="text-sm font-medium text-zinc-200 mb-3">Max Order</div>
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="text-sm font-medium text-zinc-200">Max Order</div>
+                    {metaData?.roleSpecificData?.skills?.winRate && (
+                      <div className="text-xs px-2 py-1 bg-zinc-800 rounded border border-zinc-700">
+                        <span className="text-zinc-400">Win Rate:</span> <span className="text-yellow-400 font-medium">{metaData.roleSpecificData.skills.winRate}</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex gap-3">
                     {(metaData?.roleSpecificData?.skillOrder?.maxPriority || ['Q', 'W', 'E', 'R']).map((ability, index) => (
                       <div key={ability} className={`relative w-10 h-10 rounded overflow-hidden border ${index === 0 ? 'border-yellow-600 ring-1 ring-yellow-600/30' : 'border-zinc-700'}`}>
@@ -1189,6 +1197,13 @@ export default function ChampionDetailsPage() {
                   <div className="mt-3 text-xs text-zinc-500">
                     This is the recommended skill order for optimal performance
                   </div>
+                </div>
+                <div className="flex justify-between items-center mb-3 mt-4">
+                  {metaData?.roleSpecificData?.skills?.winRate && (
+                    <div className="text-xs px-2 py-1 bg-zinc-800 rounded border border-zinc-700">
+                      <span className="text-zinc-400">Sample Build:</span> <span className="text-green-400 font-medium">{metaData.roleSpecificData.skills.games || 0} games</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
