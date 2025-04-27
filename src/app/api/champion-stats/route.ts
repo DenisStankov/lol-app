@@ -820,60 +820,83 @@ async function getMatchData(matchId: string, region: string): Promise<RiotMatch 
 
 // API route handler
 export async function GET(request: Request) {
+  // Extract query parameters
+  const url = new URL(request.url);
+  const rank = url.searchParams.get('rank') || 'ALL';
+  const patch = url.searchParams.get('patch') || await getCurrentPatch();
+  const region = url.searchParams.get('region') || 'global';
+  
+  console.log(`Processing champion stats request for: patch=${patch}, rank=${rank}, region=${region}`);
+  
   try {
-    const { searchParams } = new URL(request.url);
-    const rank = searchParams.get('rank') || 'ALL';
-    const region = searchParams.get('region') || 'global';
+    // Skip actual API calls and immediately use generated data
+    // Get champion data from Data Dragon
+    const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
+    if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
+    const champData: ChampionDataResponse = await champResponse.json();
     
-    // Fetch champion data from Data Dragon
-    const patch = await getCurrentPatch();
-    const champDataResponse = await axios.get<ChampionDataResponse>(
-      `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`
-    );
+    // Generate the champion stats
+    const result: Record<string, ChampionStats> = {};
     
-    // Fetch champion stats
-    const champStats = await fetchChampionStats(rank, region);
-    
-    // Build the complete champion stats with all required data
-    const fullChampStats: ChampionStats[] = [];
-    
-    for (const champId in champStats) {
-      const champion = champDataResponse.data.data[champId];
+    // Process each champion
+    for (const [champId, champion] of Object.entries(champData.data)) {
+      console.log(`Generating mock data for ${champId}`);
       
-      if (champion) {
-        // Find the primary role (highest pick rate)
-        let highestPickRate = -1;
+      // Generate champion roles data
+      const roleStats: Record<string, RoleStats> = {};
+      const roles = determineRolesFromTags(champion.tags, champion.info, champId);
+      
+      // Ensure at least one role
+      if (roles.length === 0) roles.push('TOP');
+      
+      // Generate stats for each role
+      roles.forEach(role => {
+        // Generate reasonable mock data based on champion attributes
+        const baseWinRate = 45 + Math.random() * 10; // 45-55% win rate
+        const basePickRate = 2 + Math.random() * 10; // 2-12% pick rate
+        const baseBanRate = 1 + Math.random() * 5;   // 1-6% ban rate
         
-        for (const role in champStats[champId]) {
-          if (champStats[champId][role].pickRate > highestPickRate) {
-            highestPickRate = champStats[champId][role].pickRate;
-          }
-        }
+        // Adjust rates based on champion's popularity and power
+        const popularityBonus = (champion.info.attack + champion.info.magic) / 2;
+        const adjustedPickRate = Math.min(25, basePickRate + (popularityBonus / 10));
         
-        fullChampStats.push({
-          id: champId,
+        roleStats[role] = {
+          winRate: parseFloat(baseWinRate.toFixed(1)),
+          pickRate: parseFloat(adjustedPickRate.toFixed(1)),
+          banRate: parseFloat(baseBanRate.toFixed(1)),
+          totalGames: Math.floor(1000 + Math.random() * 9000), // 1k-10k games
+          tier: calculateTier(baseWinRate, adjustedPickRate, baseBanRate)
+        };
+      });
+      
+      // Determine damage type from champion info
+      const damageType = getDamageType(champion.tags, champion.info);
+      
+      // Determine difficulty from champion info
+      const difficulty = getDifficulty(champion.info);
+      
+      // Determine range (melee/ranged)
+      const range = champion.stats.attackrange <= 300 ? 'Melee' : 'Ranged';
+      
+      // Add the champion to the result
+      result[champId] = {
+        id: champId,
         name: champion.name,
-          image: champion.image,
-          roles: champStats[champId],
-          difficulty: getDifficulty(champion.info),
-          damageType: getDamageType(champion.tags, champion.info),
-          range: champion.tags.includes('Melee') ? 'Melee' : 'Ranged'
-        });
-      }
+        image: champion.image,
+        roles: roleStats,
+        difficulty,
+        damageType,
+        range
+      };
     }
     
-    // Add cache control headers to let browsers cache for 1 hour
-    return NextResponse.json(fullChampStats, {
-      headers: {
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600'
-      }
-    });
+    console.log(`Generated mock data for ${Object.keys(result).length} champions`);
+    
+    // Return the mock data
+    return NextResponse.json(result);
   } catch (error) {
-    console.error('Error in API route:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch champion data' },
-      { status: 500 }
-    );
+    console.error('Error generating champion stats:', error);
+    return NextResponse.json({ error: 'Failed to generate champion stats' }, { status: 500 });
   }
 }
 

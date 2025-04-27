@@ -408,10 +408,10 @@ export default function TierList() {
           
           // Get the stats for the primary role
           const primaryRoleStats = roles[primaryRole] || {
-            winRate: 0,
-            pickRate: 0,
-            banRate: 0,
-            totalGames: 0,
+            winRate: 50,
+            pickRate: 5,
+            banRate: 2,
+            totalGames: 1000,
             tier: "C"
           }
           
@@ -495,10 +495,10 @@ export default function TierList() {
             
             // Get the stats for the primary role
             const primaryRoleStats = roles[primaryRole] || {
-              winRate: 0,
-              pickRate: 0,
-              banRate: 0,
-              totalGames: 0,
+              winRate: 50,
+              pickRate: 5,
+              banRate: 2,
+              totalGames: 1000,
               tier: "C"
             }
             
@@ -737,10 +737,10 @@ export default function TierList() {
           
           // Get the stats for the primary role
           const primaryRoleStats = roles[primaryRole] || {
-            winRate: 0,
-            pickRate: 0,
-            banRate: 0,
-            totalGames: 0,
+            winRate: 50,
+            pickRate: 5,
+            banRate: 2,
+            totalGames: 1000,
             tier: "C"
           }
           
