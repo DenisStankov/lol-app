@@ -143,8 +143,8 @@ export async function GET(request: Request): Promise<NextResponse> {
       // Try Vercel KV first
       try {
         cachedData = await kv.get(`champion-meta:${championId}`);
-      } catch {
-        console.log('KV store error, falling back to in-memory cache');
+      } catch (error) {
+        console.log('KV store error, falling back to in-memory cache', error);
       }
     } else {
       // Use in-memory cache
@@ -152,10 +152,12 @@ export async function GET(request: Request): Promise<NextResponse> {
     }
 
     if (cachedData && !isDataStale(cachedData.timestamp)) {
+      console.log(`Returning cached data for ${championId}`);
       return NextResponse.json(cachedData.data);
     }
 
     // Fetch data from the primary meta source
+    console.log(`Fetching fresh data for ${championId}`);
     const metaData = await fetchChampionMetaData(championId);
     
     // Store in cache
@@ -164,22 +166,24 @@ export async function GET(request: Request): Promise<NextResponse> {
       timestamp: Date.now()
     };
     
-    if (kv) {
-      try {
+    try {
+      if (kv) {
         await kv.set(`champion-meta:${championId}`, cacheEntry);
-      } catch {
-        console.log('Failed to cache data in KV');
-      }
-    } 
-    
-    // Always update memory cache as fallback
-    memoryCache[`champion-meta:${championId}`] = cacheEntry;
+        console.log(`Cached data for ${championId} in KV store`);
+      } 
+      
+      // Always update memory cache as fallback
+      memoryCache[`champion-meta:${championId}`] = cacheEntry;
+      console.log(`Cached data for ${championId} in memory`);
+    } catch (error) {
+      console.error('Error caching data:', error);
+    }
 
-    return NextResponse.json(metaData);
+    return NextResponse.json(metaData, { status: 200 });
   } catch (error) {
     console.error('Error fetching champion meta data:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch champion data' },
+      { error: 'Failed to fetch champion data', details: String(error) },
       { status: 500 }
     );
   }
@@ -191,6 +195,18 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     // Use a specific version instead of 'latest'
     const version = "14.8.1"; // Specify a known working version
     console.log(`Fetching data for champion: ${championId} with version ${version}`);
+    
+    // For certain champions, directly return pre-defined data for testing
+    if (championId === "test") {
+      console.log("Returning test data");
+      return {
+        championId: "test",
+        winRate: "50.0%",
+        pickRate: "10.0%",
+        banRate: "5.0%",
+        roleSpecificData: getRoleBasedMetaData("Fighter", version)
+      };
+    }
     
     // Get basic champion data to determine role
     const response = await fetch(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${championId}.json`);
@@ -226,11 +242,24 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     const banRate = (1 + Math.random() * 10).toFixed(1) + '%';
     
     // Get champion-specific builds, counters, and skill orders
+    const runes = generateChampionSpecificRunes(championId, role, version);
+    const build = generateChampionSpecificBuilds(championId, role, version);
+    const counters = generateChampionCounters(championId, role, version);
+    const skillOrder = generateChampionSkillOrder(championId, champion.spells);
+    
+    // Log to help debug
+    console.log(`Champion ${championId} meta data:`);
+    console.log(`- Role: ${role}`);
+    console.log(`- Runes: ${runes.primary.keystone} (${runes.primary.name})`);
+    console.log(`- Core items: ${build.core.map(item => item.name).join(', ')}`);
+    console.log(`- Countered by: ${counters.map(c => c.name).join(', ')}`);
+    console.log(`- Max priority: ${skillOrder.maxPriority.join(' > ')}`);
+    
     const roleSpecificData = {
-      runes: generateChampionSpecificRunes(championId, role, version),
-      build: generateChampionSpecificBuilds(championId, role, version),
-      counters: generateChampionCounters(championId, role, version),
-      skillOrder: generateChampionSkillOrder(championId, champion.spells)
+      runes,
+      build,
+      counters,
+      skillOrder
     };
     
     return {
