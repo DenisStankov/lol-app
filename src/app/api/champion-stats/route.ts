@@ -262,6 +262,7 @@ function normalizeRoleName(role: string): string {
 }
 
 // Main function to fetch and calculate champion statistics
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function fetchChampionStats(rank: string = 'ALL', region: string = 'global'): Promise<Record<string, Record<string, RoleStats>>> {
   console.log(`🔄 [fetchChampionStats] Starting for rank=${rank}, region=${region}`);
   try {
@@ -793,6 +794,7 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
 }
 
 // Function to get match data from Riot API
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getMatchData(matchId: string, region: string): Promise<RiotMatch | null> {
   console.log(`🔍 [getMatchData] Getting data for matchId=${matchId}, region=${region}`);
   try {
@@ -901,6 +903,7 @@ export async function GET(request: Request) {
 }
 
 // Update getMatchIds function to use the proper API region
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getMatchIds(region: string, rank: string, count: number = 100): Promise<string[]> {
   console.log(`🔍 [getMatchIds] Starting with region=${region}, rank=${rank}`);
   try {
