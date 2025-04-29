@@ -670,10 +670,10 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           pickRate = Math.max(0.5, Math.min(15, pickRate));
           banRate = Math.max(0, Math.min(50, banRate));
           
-          // Calculate tier based on these statistics
+          // Calculate tier
           const tier = calculateTier(champStats[champId], role);
           
-          // Store the calculated statistics
+          // Store the simulated statistics
           champStats[champId][normalizedRole] = {
             games: statsTracker[champId].roles[role].games,
             wins: statsTracker[champId].roles[role].wins,
