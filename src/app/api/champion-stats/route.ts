@@ -191,21 +191,15 @@ const statsCache: StatsCache = {
 
 // Calculate tier based on win rate, pick rate, and ban rate
 function calculateTier(winRate: number, pickRate: number, banRate: number): TierType {
-  // Calculate presence (pick rate + ban rate)
   const presence = pickRate + banRate;
-  
-  // Calculate a performance score that weights different factors
-  // Win rate is weighted more heavily as it's the most important indicator
-  // Presence is also considered to account for champion popularity and ban worthiness
-  const performanceScore = (winRate * 2) + (presence * 0.5);
-  
-  // Apply tier thresholds based on the performance score and additional conditions
-  if (winRate >= 52 && presence >= 15 && performanceScore >= 120) return 'S+';  // Exceptional champions
-  if (winRate >= 51 && presence >= 10 && performanceScore >= 110) return 'S';   // Very strong
-  if (winRate >= 50 && presence >= 8 && performanceScore >= 100) return 'A';    // Strong
-  if (winRate >= 48.5 && performanceScore >= 90) return 'B';                    // Balanced
-  if (winRate >= 47 && performanceScore >= 80) return 'C';                      // Below average
-  return 'D';  // Weak
+  const performanceScore = (winRate * 2.5) + (presence * 0.8);
+
+  if (winRate >= 52.5 && presence >= 12 && performanceScore >= 125) return 'S+';
+  if (winRate >= 51.5 && presence >= 8 && performanceScore >= 115) return 'S';
+  if (winRate >= 50.5 && presence >= 6 && performanceScore >= 105) return 'A';
+  if (winRate >= 49 && performanceScore >= 95) return 'B';
+  if (winRate >= 47.5 && performanceScore >= 85) return 'C';
+  return 'D';
 }
 
 // Get the current patch version from Data Dragon
