@@ -671,7 +671,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           banRate = Math.max(0, Math.min(50, banRate));
           
           // Calculate tier
-          const tier = calculateTier(champStats[champId], role);
+          const tier = calculateSimulatedTier(winRate, pickRate, banRate);
           
           // Store the simulated statistics
           champStats[champId][normalizedRole] = {
@@ -737,7 +737,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           }
           
           // Calculate tier
-          const tier = calculateTier(champStats, role);
+          const tier = calculateSimulatedTier(adjustedWinRate, adjustedPickRate, adjustedBanRate);
           
           champStats[champId][role] = {
             games: roleStats.games,
@@ -1251,4 +1251,17 @@ async function getMatchIds(region: string, rank: string, count: number = 100): P
     }
     return [];
   }
+}
+
+function calculateSimulatedTier(winRate: number, pickRate: number, banRate: number): TierType {
+  // Calculate performance score based on win rate, pick rate, and ban rate
+  const performanceScore = (winRate * 0.6) + (pickRate * 0.2) + (banRate * 0.2);
+
+  // Determine tier based on performance score
+  if (performanceScore >= 0.55) return 'S+';
+  if (performanceScore >= 0.52) return 'S';
+  if (performanceScore >= 0.50) return 'A';
+  if (performanceScore >= 0.48) return 'B';
+  if (performanceScore >= 0.46) return 'C';
+  return 'D';
 } 
