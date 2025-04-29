@@ -58,6 +58,25 @@ interface RoleStats {
   banRate: number;
   totalGames: number;
   tier: TierType;
+  games: number;
+  wins: number;
+  kda: {
+    kills: number;
+    deaths: number;
+    assists: number;
+  };
+  damage: {
+    dealt: number;
+    taken: number;
+  };
+  gold: number;
+  cs: number;
+  vision: number;
+  objectives: {
+    dragons: number;
+    barons: number;
+    towers: number;
+  };
 }
 
 interface ChampionStats {
