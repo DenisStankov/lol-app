@@ -671,7 +671,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           banRate = Math.max(0, Math.min(50, banRate));
           
           // Calculate tier based on these statistics
-          const tier = calculateTier(champStats, role);
+          const tier = calculateTier(champStats[champId], role);
           
           // Store the calculated statistics
           champStats[champId][normalizedRole] = {
