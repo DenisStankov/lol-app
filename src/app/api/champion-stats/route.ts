@@ -540,7 +540,12 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           }
           
           // Calculate tier
-          const tier = calculateTier(adjustedWinRate, adjustedPickRate, adjustedBanRate, getDifficulty(champion.info));
+          const tier = calculateTier(
+            adjustedWinRate, 
+            adjustedPickRate, 
+            adjustedBanRate, 
+            champion ? getDifficulty(champion.info) : 'Medium'
+          );
           
           champStats[champId][role] = {
             winRate: parseFloat(adjustedWinRate.toFixed(1)),
