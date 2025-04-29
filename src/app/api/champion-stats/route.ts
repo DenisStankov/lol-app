@@ -257,80 +257,23 @@ const statsCache: StatsCache = {
 };
 
 // Calculate tier based on win rate, pick rate, ban rate, and difficulty
-function calculateTier(stats: ChampionStats, role: string): string {
-  const roleStats = stats.roles[role];
+function calculateTier(stats: Record<string, RoleStats>, role: string): string {
+  const roleStats = stats[role];
   if (!roleStats) return 'D';
 
-  // Calculate total games across all roles
-  const totalGames = Object.values(stats.roles).reduce((sum, role) => sum + role.games, 0);
+  const winRate = roleStats.winRate;
+  const pickRate = roleStats.pickRate;
+  const banRate = roleStats.banRate;
 
-  // Calculate base metrics
-  const winRate = (roleStats.wins / roleStats.games) * 100;
-  const pickRate = (roleStats.games / totalGames) * 100;
-  const banRate = (stats.bans / totalGames) * 100;
+  // Calculate performance score based on win rate, pick rate, and ban rate
+  const performanceScore = (winRate * 0.6) + (pickRate * 0.2) + (banRate * 0.2);
 
-  // Calculate performance metrics
-  const kda = (roleStats.kda.kills + roleStats.kda.assists) / Math.max(1, roleStats.kda.deaths);
-  const damagePerGame = roleStats.damage.dealt / roleStats.games;
-  const goldPerGame = roleStats.gold / roleStats.games;
-  const csPerGame = roleStats.cs / roleStats.games;
-  const visionPerGame = roleStats.vision / roleStats.games;
-  const objectiveControl = (
-    roleStats.objectives.dragons +
-    roleStats.objectives.barons +
-    roleStats.objectives.towers
-  ) / roleStats.games;
-
-  // Calculate win rate against counters
-  const counterWinRate = Object.values(stats.counters).reduce((acc, counter) => {
-    return acc + (counter.wins / counter.games) * 100;
-  }, 0) / Math.max(1, Object.keys(stats.counters).length);
-
-  // Calculate synergy effectiveness
-  const synergyWinRate = Object.values(stats.synergies).reduce((acc, synergy) => {
-    return acc + (synergy.wins / synergy.games) * 100;
-  }, 0) / Math.max(1, Object.keys(stats.synergies).length);
-
-  // Calculate build effectiveness
-  const buildWinRate = Object.values(stats.items).reduce((acc, item) => {
-    return acc + (item.wins / item.games) * 100;
-  }, 0) / Math.max(1, Object.keys(stats.items).length);
-
-  // Calculate rune effectiveness
-  const runeWinRate = Object.values(stats.runes).reduce((acc, rune) => {
-    return acc + (rune.wins / rune.games) * 100;
-  }, 0) / Math.max(1, Object.keys(stats.runes).length);
-
-  // Calculate skill order effectiveness
-  const skillOrderWinRate = Object.values(stats.skillOrders).reduce((acc, order) => {
-    return acc + (order.wins / order.games) * 100;
-  }, 0) / Math.max(1, Object.keys(stats.skillOrders).length);
-
-  // Calculate performance score with weights
-  const performanceScore = (
-    winRate * 0.25 +                    // Base win rate
-    pickRate * 0.15 +                   // Popularity
-    banRate * 0.15 +                    // Ban rate
-    kda * 0.10 +                        // KDA ratio
-    (damagePerGame / 1000) * 0.10 +     // Damage per game (normalized)
-    (goldPerGame / 1000) * 0.05 +       // Gold per game (normalized)
-    (csPerGame / 10) * 0.05 +           // CS per game (normalized)
-    visionPerGame * 0.05 +              // Vision score
-    objectiveControl * 0.05 +           // Objective control
-    counterWinRate * 0.05 +             // Counter effectiveness
-    synergyWinRate * 0.05               // Synergy effectiveness
-  );
-
-  // Adjust score based on build and rune effectiveness
-  const buildAdjustment = (buildWinRate + runeWinRate + skillOrderWinRate) / 3;
-  const finalScore = performanceScore * (1 + (buildAdjustment - 50) / 100);
-
-  // Determine tier based on final score
-  if (finalScore >= 65) return 'S+';
-  if (finalScore >= 60) return 'S';
-  if (finalScore >= 55) return 'A';
-  if (finalScore >= 50) return 'B';
-  if (finalScore >= 45) return 'C';
+  // Determine tier based on performance score
+  if (performanceScore >= 0.55) return 'S+';
+  if (performanceScore >= 0.52) return 'S';
+  if (performanceScore >= 0.50) return 'A';
+  if (performanceScore >= 0.48) return 'B';
+  if (performanceScore >= 0.46) return 'C';
   return 'D';
 }
 
