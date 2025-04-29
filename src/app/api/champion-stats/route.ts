@@ -261,6 +261,9 @@ function calculateTier(stats: ChampionStats, role: string): string {
   const roleStats = stats.roles[role];
   if (!roleStats) return 'D';
 
+  // Calculate total games across all roles
+  const totalGames = Object.values(stats.roles).reduce((sum, role) => sum + role.games, 0);
+
   // Calculate base metrics
   const winRate = (roleStats.wins / roleStats.games) * 100;
   const pickRate = (roleStats.games / totalGames) * 100;
