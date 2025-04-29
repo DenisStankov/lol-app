@@ -256,27 +256,6 @@ const statsCache: StatsCache = {
   data: {}
 };
 
-// Calculate tier based on win rate, pick rate, ban rate, and difficulty
-function calculateTier(stats: Record<string, RoleStats>, role: string): TierType {
-  const roleStats = stats[role];
-  if (!roleStats) return 'D';
-
-  const winRate = roleStats.winRate;
-  const pickRate = roleStats.pickRate;
-  const banRate = roleStats.banRate;
-
-  // Calculate performance score based on win rate, pick rate, and ban rate
-  const performanceScore = (winRate * 0.6) + (pickRate * 0.2) + (banRate * 0.2);
-
-  // Determine tier based on performance score
-  if (performanceScore >= 0.55) return 'S+';
-  if (performanceScore >= 0.52) return 'S';
-  if (performanceScore >= 0.50) return 'A';
-  if (performanceScore >= 0.48) return 'B';
-  if (performanceScore >= 0.46) return 'C';
-  return 'D';
-}
-
 // Get the current patch version from Data Dragon
 async function getCurrentPatch(): Promise<string> {
   try {
