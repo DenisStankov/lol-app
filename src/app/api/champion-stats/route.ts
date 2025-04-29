@@ -61,10 +61,52 @@ interface RoleStats {
 }
 
 interface ChampionStats {
-  id: string;
-  name: string;
-  image: ChampionImage;
-  roles: Record<string, RoleStats>;
+  games: number;
+  wins: number;
+  bans: number;
+  roles: Record<string, { 
+    games: number; 
+    wins: number;
+    kda: {
+      kills: number;
+      deaths: number;
+      assists: number;
+    };
+    damage: {
+      dealt: number;
+      taken: number;
+    };
+    gold: number;
+    cs: number;
+    vision: number;
+    objectives: {
+      dragons: number;
+      barons: number;
+      towers: number;
+    };
+  }>;
+  counters: Record<string, {
+    games: number;
+    wins: number;
+    losses: number;
+  }>;
+  synergies: Record<string, {
+    games: number;
+    wins: number;
+    losses: number;
+  }>;
+  items: Record<string, {
+    games: number;
+    wins: number;
+  }>;
+  runes: Record<string, {
+    games: number;
+    wins: number;
+  }>;
+  skillOrders: Record<string, {
+    games: number;
+    wins: number;
+  }>;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   damageType: 'AP' | 'AD' | 'Hybrid';
   range: 'Melee' | 'Ranged';
@@ -137,6 +179,31 @@ interface RiotParticipant {
   championName: string;
   teamPosition: string; // POSITION (TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY)
   win: boolean;
+  kills: number;
+  deaths: number;
+  assists: number;
+  totalDamageDealtToChampions: number;
+  totalDamageTaken: number;
+  goldEarned: number;
+  totalMinionsKilled: number;
+  neutralMinionsKilled: number;
+  visionScore: number;
+  dragonKills: number;
+  baronKills: number;
+  turretKills: number;
+  item0: number;
+  item1: number;
+  item2: number;
+  item3: number;
+  item4: number;
+  item5: number;
+  item6: number;
+  perks: {
+    perkIds: number[];
+  };
+  challenges: {
+    skillOrder: string;
+  };
 }
 
 interface RiotTeam {
@@ -190,43 +257,77 @@ const statsCache: StatsCache = {
 };
 
 // Calculate tier based on win rate, pick rate, ban rate, and difficulty
-function calculateTier(winRate: number, pickRate: number, banRate: number, difficulty: string = 'Medium'): TierType {
-  // Calculate presence (pick + ban rate)
-  const presence = pickRate + banRate;
-  
-  // Base performance score with adjusted weights
-  // Win rate is weighted more heavily (3.0) as it's the most important metric
-  // Presence is weighted less (0.5) to prevent high presence from carrying weak champions
-  const performanceScore = (winRate * 3.0) + (presence * 0.5);
-  
-  // Difficulty adjustments
-  // Hard champions get a small boost to their tier if they're performing well
-  // This reflects that it's more impressive when difficult champions succeed
-  const difficultyMultiplier = difficulty === 'Hard' ? 1.05 : 1.0;
-  const adjustedScore = performanceScore * difficultyMultiplier;
-  
-  // More granular tier thresholds
-  // S+ tier requires exceptional performance across all metrics
-  if (winRate >= 53.0 && presence >= 15 && adjustedScore >= 160) return 'S+';
-  if (winRate >= 52.5 && presence >= 12 && adjustedScore >= 150) return 'S+';
-  
-  // S tier for very strong performers
-  if (winRate >= 52.0 && presence >= 10 && adjustedScore >= 140) return 'S';
-  if (winRate >= 51.5 && presence >= 8 && adjustedScore >= 130) return 'S';
-  
-  // A tier for strong performers
-  if (winRate >= 51.0 && presence >= 6 && adjustedScore >= 120) return 'A';
-  if (winRate >= 50.5 && presence >= 5 && adjustedScore >= 110) return 'A';
-  
-  // B tier for balanced champions
-  if (winRate >= 50.0 && adjustedScore >= 100) return 'B';
-  if (winRate >= 49.5 && adjustedScore >= 95) return 'B';
-  
-  // C tier for below average
-  if (winRate >= 48.5 && adjustedScore >= 90) return 'C';
-  if (winRate >= 48.0 && adjustedScore >= 85) return 'C';
-  
-  // D tier for weak performers
+function calculateTier(stats: ChampionStats, role: string): string {
+  const roleStats = stats.roles[role];
+  if (!roleStats) return 'D';
+
+  // Calculate base metrics
+  const winRate = (roleStats.wins / roleStats.games) * 100;
+  const pickRate = (roleStats.games / totalGames) * 100;
+  const banRate = (stats.bans / totalGames) * 100;
+
+  // Calculate performance metrics
+  const kda = (roleStats.kda.kills + roleStats.kda.assists) / Math.max(1, roleStats.kda.deaths);
+  const damagePerGame = roleStats.damage.dealt / roleStats.games;
+  const goldPerGame = roleStats.gold / roleStats.games;
+  const csPerGame = roleStats.cs / roleStats.games;
+  const visionPerGame = roleStats.vision / roleStats.games;
+  const objectiveControl = (
+    roleStats.objectives.dragons +
+    roleStats.objectives.barons +
+    roleStats.objectives.towers
+  ) / roleStats.games;
+
+  // Calculate win rate against counters
+  const counterWinRate = Object.values(stats.counters).reduce((acc, counter) => {
+    return acc + (counter.wins / counter.games) * 100;
+  }, 0) / Math.max(1, Object.keys(stats.counters).length);
+
+  // Calculate synergy effectiveness
+  const synergyWinRate = Object.values(stats.synergies).reduce((acc, synergy) => {
+    return acc + (synergy.wins / synergy.games) * 100;
+  }, 0) / Math.max(1, Object.keys(stats.synergies).length);
+
+  // Calculate build effectiveness
+  const buildWinRate = Object.values(stats.items).reduce((acc, item) => {
+    return acc + (item.wins / item.games) * 100;
+  }, 0) / Math.max(1, Object.keys(stats.items).length);
+
+  // Calculate rune effectiveness
+  const runeWinRate = Object.values(stats.runes).reduce((acc, rune) => {
+    return acc + (rune.wins / rune.games) * 100;
+  }, 0) / Math.max(1, Object.keys(stats.runes).length);
+
+  // Calculate skill order effectiveness
+  const skillOrderWinRate = Object.values(stats.skillOrders).reduce((acc, order) => {
+    return acc + (order.wins / order.games) * 100;
+  }, 0) / Math.max(1, Object.keys(stats.skillOrders).length);
+
+  // Calculate performance score with weights
+  const performanceScore = (
+    winRate * 0.25 +                    // Base win rate
+    pickRate * 0.15 +                   // Popularity
+    banRate * 0.15 +                    // Ban rate
+    kda * 0.10 +                        // KDA ratio
+    (damagePerGame / 1000) * 0.10 +     // Damage per game (normalized)
+    (goldPerGame / 1000) * 0.05 +       // Gold per game (normalized)
+    (csPerGame / 10) * 0.05 +           // CS per game (normalized)
+    visionPerGame * 0.05 +              // Vision score
+    objectiveControl * 0.05 +           // Objective control
+    counterWinRate * 0.05 +             // Counter effectiveness
+    synergyWinRate * 0.05               // Synergy effectiveness
+  );
+
+  // Adjust score based on build and rune effectiveness
+  const buildAdjustment = (buildWinRate + runeWinRate + skillOrderWinRate) / 3;
+  const finalScore = performanceScore * (1 + (buildAdjustment - 50) / 100);
+
+  // Determine tier based on final score
+  if (finalScore >= 65) return 'S+';
+  if (finalScore >= 60) return 'S';
+  if (finalScore >= 55) return 'A';
+  if (finalScore >= 50) return 'B';
+  if (finalScore >= 45) return 'C';
   return 'D';
 }
 
@@ -397,13 +498,133 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
                   // Track role-specific stats
                   const role = normalizeRoleName(participant.teamPosition);
                   if (!statsTracker[champId].roles[role]) {
-                    statsTracker[champId].roles[role] = { games: 0, wins: 0 };
+                    statsTracker[champId].roles[role] = { 
+                      games: 0, 
+                      wins: 0,
+                      kda: { kills: 0, deaths: 0, assists: 0 },
+                      damage: { dealt: 0, taken: 0 },
+                      gold: 0,
+                      cs: 0,
+                      vision: 0,
+                      objectives: { dragons: 0, barons: 0, towers: 0 }
+                    };
                   }
                   
-                  statsTracker[champId].roles[role].games++;
+                  const roleStats = statsTracker[champId].roles[role];
+                  roleStats.games++;
                   if (participant.win) {
-                    statsTracker[champId].roles[role].wins++;
+                    roleStats.wins++;
                   }
+                  
+                  // Track KDA
+                  roleStats.kda.kills += participant.kills;
+                  roleStats.kda.deaths += participant.deaths;
+                  roleStats.kda.assists += participant.assists;
+                  
+                  // Track damage
+                  roleStats.damage.dealt += participant.totalDamageDealtToChampions;
+                  roleStats.damage.taken += participant.totalDamageTaken;
+                  
+                  // Track gold and CS
+                  roleStats.gold += participant.goldEarned;
+                  roleStats.cs += participant.totalMinionsKilled + participant.neutralMinionsKilled;
+                  
+                  // Track vision
+                  roleStats.vision += participant.visionScore;
+                  
+                  // Track objectives
+                  roleStats.objectives.dragons += participant.dragonKills;
+                  roleStats.objectives.barons += participant.baronKills;
+                  roleStats.objectives.towers += participant.turretKills;
+                  
+                  // Track items
+                  const items = [
+                    participant.item0,
+                    participant.item1,
+                    participant.item2,
+                    participant.item3,
+                    participant.item4,
+                    participant.item5,
+                    participant.item6
+                  ].filter(id => id > 0);
+                  
+                  items.forEach(itemId => {
+                    if (!statsTracker[champId].items[itemId]) {
+                      statsTracker[champId].items[itemId] = { games: 0, wins: 0 };
+                    }
+                    statsTracker[champId].items[itemId].games++;
+                    if (participant.win) {
+                      statsTracker[champId].items[itemId].wins++;
+                    }
+                  });
+                  
+                  // Track runes
+                  if (participant.perks) {
+                    const runeIds = [
+                      participant.perks.perkIds[0], // Keystone
+                      ...participant.perks.perkIds.slice(1, 4), // Primary path
+                      ...participant.perks.perkIds.slice(4, 6), // Secondary path
+                      participant.perks.perkIds[6], // Stat shard
+                      participant.perks.perkIds[7], // Stat shard
+                      participant.perks.perkIds[8]  // Stat shard
+                    ];
+                    
+                    runeIds.forEach(runeId => {
+                      if (!statsTracker[champId].runes[runeId]) {
+                        statsTracker[champId].runes[runeId] = { games: 0, wins: 0 };
+                      }
+                      statsTracker[champId].runes[runeId].games++;
+                      if (participant.win) {
+                        statsTracker[champId].runes[runeId].wins++;
+                      }
+                    });
+                  }
+                  
+                  // Track skill order
+                  if (participant.challenges) {
+                    const skillOrder = participant.challenges.skillOrder || '';
+                    if (skillOrder) {
+                      if (!statsTracker[champId].skillOrders[skillOrder]) {
+                        statsTracker[champId].skillOrders[skillOrder] = { games: 0, wins: 0 };
+                      }
+                      statsTracker[champId].skillOrders[skillOrder].games++;
+                      if (participant.win) {
+                        statsTracker[champId].skillOrders[skillOrder].wins++;
+                      }
+                    }
+                  }
+                  
+                  // Track counters and synergies
+                  match.info.participants.forEach(otherParticipant => {
+                    if (otherParticipant.championName !== champId) {
+                      const otherChampId = otherParticipant.championName;
+                      
+                      // If on opposite team, it's a counter
+                      if (otherParticipant.teamId !== participant.teamId) {
+                        if (!statsTracker[champId].counters[otherChampId]) {
+                          statsTracker[champId].counters[otherChampId] = { games: 0, wins: 0, losses: 0 };
+                        }
+                        statsTracker[champId].counters[otherChampId].games++;
+                        if (participant.win) {
+                          statsTracker[champId].counters[otherChampId].wins++;
+                        } else {
+                          statsTracker[champId].counters[otherChampId].losses++;
+                        }
+                      }
+                      // If on same team, it's a synergy
+                      else {
+                        if (!statsTracker[champId].synergies[otherChampId]) {
+                          statsTracker[champId].synergies[otherChampId] = { games: 0, wins: 0, losses: 0 };
+                        }
+                        statsTracker[champId].synergies[otherChampId].games++;
+                        if (participant.win) {
+                          statsTracker[champId].synergies[otherChampId].wins++;
+                        } else {
+                          statsTracker[champId].synergies[otherChampId].losses++;
+                        }
+                      }
+                    }
+                  });
                 }
               });
             }
@@ -482,7 +703,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           banRate = Math.max(0, Math.min(50, banRate));
           
           // Calculate tier based on these statistics
-          const tier = calculateTier(winRate, pickRate, banRate, getDifficulty(champion.info));
+          const tier = calculateTier(champStats, role);
           
           // Store the calculated statistics
           champStats[champId][normalizedRole] = {
@@ -540,12 +761,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           }
           
           // Calculate tier
-          const tier = calculateTier(
-            adjustedWinRate, 
-            adjustedPickRate, 
-            adjustedBanRate, 
-            champion ? getDifficulty(champion.info) : 'Medium'
-          );
+          const tier = calculateTier(champStats, role);
           
           champStats[champId][role] = {
             winRate: parseFloat(adjustedWinRate.toFixed(1)),
@@ -902,7 +1118,7 @@ export async function GET(request: Request) {
           pickRate: parseFloat(adjustedPickRate.toFixed(1)),
           banRate: parseFloat(baseBanRate.toFixed(1)),
           totalGames: Math.floor(1000 + Math.random() * 9000), // 1k-10k games
-          tier: calculateTier(baseWinRate, adjustedPickRate, baseBanRate)
+          tier: calculateTier(champStats, role)
         };
       });
       
