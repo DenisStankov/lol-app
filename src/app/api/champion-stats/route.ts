@@ -257,7 +257,7 @@ const statsCache: StatsCache = {
 };
 
 // Calculate tier based on win rate, pick rate, ban rate, and difficulty
-function calculateTier(stats: Record<string, RoleStats>, role: string): string {
+function calculateTier(stats: Record<string, RoleStats>, role: string): TierType {
   const roleStats = stats[role];
   if (!roleStats) return 'D';
 
