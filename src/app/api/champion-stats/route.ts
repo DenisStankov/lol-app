@@ -446,26 +446,43 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     
     const champions = champResponse.data.data;
     
-    // Step 2: Initialize structures to track statistics
-    interface ChampionStats {
-      games: number;
-      wins: number;
-      bans: number;
-      roles: Record<string, { games: number; wins: number }>;
-    }
-    
+    // Initialize stats tracking
     const statsTracker: Record<string, ChampionStats> = {};
-    
-    // Initialize stats for all champions
-    for (const champKey in champions) {
-      const champion = champions[champKey];
+    champions.forEach(champion => {
+      const roles = determineRolesFromTags(champion.tags, champion.info, champion.id);
       statsTracker[champion.id] = {
         games: 0,
         wins: 0,
         bans: 0,
-        roles: {}
+        roles: {},
+        counters: {},
+        synergies: {},
+        items: {},
+        runes: {},
+        skillOrders: {},
+        difficulty: getDifficulty(champion.info),
+        damageType: getDamageType(champion.tags, champion.info),
+        range: champion.stats?.attackrange && champion.stats.attackrange > 150 ? 'Ranged' : 'Melee'
       };
-    }
+      
+      roles.forEach(role => {
+        statsTracker[champion.id].roles[role] = {
+          games: 0,
+          wins: 0,
+          kda: { kills: 0, deaths: 0, assists: 0 },
+          damage: { dealt: 0, taken: 0 },
+          gold: 0,
+          cs: 0,
+          vision: 0,
+          objectives: { dragons: 0, barons: 0, towers: 0 },
+          winRate: 0,
+          pickRate: 0,
+          banRate: 0,
+          totalGames: 0,
+          tier: 'D'
+        };
+      });
+    });
     
     // Step 3: Try to fetch real match IDs
     let matchIds: string[] = [];
@@ -686,7 +703,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
         }
         
         // If champion not found in LoLalytics data, use fallback method
-        const roles = determineRolesFromTags(champion.tags, champion.info, champion.id);
+        const roles = determineRolesFromTags(champion.tags, champion.info, champId);
         
         // Process each role - THIS KEEPS YOUR EXISTING CALCULATION LOGIC
         roles.forEach((role, index) => {
