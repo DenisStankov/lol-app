@@ -585,34 +585,30 @@ export default function TierList() {
     }
 
     // Apply sorting
-    filtered.sort((a, b) => {
-      const tierValues: Record<string, number> = {
-        "S+": 0,
-        S: 1,
-        A: 2,
-        B: 3,
-        C: 4,
-        D: 5,
-      }
+    const tierValues: Record<string, number> = {
+      "S+": 0,
+      S: 1,
+      A: 2,
+      B: 3,
+      C: 4,
+      D: 5,
+    }
 
-      if (sortBy === "tier") {
-        return sortOrder === "asc"
-          ? tierValues[a.tier as keyof typeof tierValues] - tierValues[b.tier as keyof typeof tierValues]
-          : tierValues[b.tier as keyof typeof tierValues] - tierValues[a.tier as keyof typeof tierValues]
-      }
+    // Sort champions by tier and then by performance within tier
+    const sortedChampions = filtered.sort((a, b) => {
+      // First, compare tiers
+      const tierDiff = tierValues[a.tier] - tierValues[b.tier];
+      if (tierDiff !== 0) return tierDiff;
+      
+      // If same tier, sort by performance metrics
+      const aScore = (a.winRate * 2) + ((a.pickRate + a.banRate) * 0.5);
+      const bScore = (b.winRate * 2) + ((b.pickRate + b.banRate) * 0.5);
+      
+      // Sort by performance score in descending order
+      return bScore - aScore;
+    });
 
-      if (sortBy === "name") {
-        return sortOrder === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
-      }
-
-      // For numeric properties
-      const aValue = a[sortBy as keyof Champion] as number
-      const bValue = b[sortBy as keyof Champion] as number
-
-      return sortOrder === "asc" ? aValue - bValue : bValue - aValue
-    })
-
-    setFilteredChampions(filtered)
+    setFilteredChampions(sortedChampions)
   }, [
     champions,
     selectedRole,

@@ -194,12 +194,17 @@ function calculateTier(winRate: number, pickRate: number, banRate: number): Tier
   // Calculate presence (pick rate + ban rate)
   const presence = pickRate + banRate;
   
-  // Apply tier thresholds
-  if (winRate >= 53.5 && presence >= 10) return 'S+';  // Exceptional champions
-  if (winRate >= 52.5 || (winRate >= 51 && presence >= 20)) return 'S';  // Very strong
-  if (winRate >= 51 || (winRate >= 50 && presence >= 15)) return 'A';  // Strong
-  if (winRate >= 49 && winRate < 51) return 'B';  // Balanced
-  if (winRate >= 47) return 'C';  // Below average
+  // Calculate a performance score that weights different factors
+  // Win rate is weighted more heavily as it's the most important indicator
+  // Presence is also considered to account for champion popularity and ban worthiness
+  const performanceScore = (winRate * 2) + (presence * 0.5);
+  
+  // Apply tier thresholds based on the performance score and additional conditions
+  if (winRate >= 52 && presence >= 15 && performanceScore >= 120) return 'S+';  // Exceptional champions
+  if (winRate >= 51 && presence >= 10 && performanceScore >= 110) return 'S';   // Very strong
+  if (winRate >= 50 && presence >= 8 && performanceScore >= 100) return 'A';    // Strong
+  if (winRate >= 48.5 && performanceScore >= 90) return 'B';                    // Balanced
+  if (winRate >= 47 && performanceScore >= 80) return 'C';                      // Below average
   return 'D';  // Weak
 }
 
