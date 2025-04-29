@@ -177,6 +177,7 @@ interface RiotParticipant {
   championId: number;
   championName: string;
   teamPosition: string; // POSITION (TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY)
+  teamId: number;      // Added teamId property
   win: boolean;
   kills: number;
   deaths: number;
