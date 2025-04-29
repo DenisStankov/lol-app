@@ -517,15 +517,20 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
                   // Track role-specific stats
                   const role = normalizeRoleName(participant.teamPosition);
                   if (!statsTracker[champId].roles[role]) {
-                    statsTracker[champId].roles[role] = { 
-                      games: 0, 
+                    statsTracker[champId].roles[role] = {
+                      games: 0,
                       wins: 0,
                       kda: { kills: 0, deaths: 0, assists: 0 },
                       damage: { dealt: 0, taken: 0 },
                       gold: 0,
                       cs: 0,
                       vision: 0,
-                      objectives: { dragons: 0, barons: 0, towers: 0 }
+                      objectives: { dragons: 0, barons: 0, towers: 0 },
+                      winRate: 0,
+                      pickRate: 0,
+                      banRate: 0,
+                      totalGames: 0,
+                      tier: 'D'
                     };
                   }
                   
