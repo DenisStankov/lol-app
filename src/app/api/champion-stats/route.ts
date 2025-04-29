@@ -83,27 +83,7 @@ interface ChampionStats {
   games: number;
   wins: number;
   bans: number;
-  roles: Record<string, { 
-    games: number; 
-    wins: number;
-    kda: {
-      kills: number;
-      deaths: number;
-      assists: number;
-    };
-    damage: {
-      dealt: number;
-      taken: number;
-    };
-    gold: number;
-    cs: number;
-    vision: number;
-    objectives: {
-      dragons: number;
-      barons: number;
-      towers: number;
-    };
-  }>;
+  roles: Record<string, RoleStats>;
   counters: Record<string, {
     games: number;
     wins: number;
