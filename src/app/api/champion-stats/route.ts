@@ -189,16 +189,44 @@ const statsCache: StatsCache = {
   data: {}
 };
 
-// Calculate tier based on win rate, pick rate, and ban rate
-function calculateTier(winRate: number, pickRate: number, banRate: number): TierType {
+// Calculate tier based on win rate, pick rate, ban rate, and difficulty
+function calculateTier(winRate: number, pickRate: number, banRate: number, difficulty: string = 'Medium'): TierType {
+  // Calculate presence (pick + ban rate)
   const presence = pickRate + banRate;
-  const performanceScore = (winRate * 2.5) + (presence * 0.8);
-
-  if (winRate >= 52.5 && presence >= 12 && performanceScore >= 125) return 'S+';
-  if (winRate >= 51.5 && presence >= 8 && performanceScore >= 115) return 'S';
-  if (winRate >= 50.5 && presence >= 6 && performanceScore >= 105) return 'A';
-  if (winRate >= 49 && performanceScore >= 95) return 'B';
-  if (winRate >= 47.5 && performanceScore >= 85) return 'C';
+  
+  // Base performance score with adjusted weights
+  // Win rate is weighted more heavily (3.0) as it's the most important metric
+  // Presence is weighted less (0.5) to prevent high presence from carrying weak champions
+  const performanceScore = (winRate * 3.0) + (presence * 0.5);
+  
+  // Difficulty adjustments
+  // Hard champions get a small boost to their tier if they're performing well
+  // This reflects that it's more impressive when difficult champions succeed
+  const difficultyMultiplier = difficulty === 'Hard' ? 1.05 : 1.0;
+  const adjustedScore = performanceScore * difficultyMultiplier;
+  
+  // More granular tier thresholds
+  // S+ tier requires exceptional performance across all metrics
+  if (winRate >= 53.0 && presence >= 15 && adjustedScore >= 160) return 'S+';
+  if (winRate >= 52.5 && presence >= 12 && adjustedScore >= 150) return 'S+';
+  
+  // S tier for very strong performers
+  if (winRate >= 52.0 && presence >= 10 && adjustedScore >= 140) return 'S';
+  if (winRate >= 51.5 && presence >= 8 && adjustedScore >= 130) return 'S';
+  
+  // A tier for strong performers
+  if (winRate >= 51.0 && presence >= 6 && adjustedScore >= 120) return 'A';
+  if (winRate >= 50.5 && presence >= 5 && adjustedScore >= 110) return 'A';
+  
+  // B tier for balanced champions
+  if (winRate >= 50.0 && adjustedScore >= 100) return 'B';
+  if (winRate >= 49.5 && adjustedScore >= 95) return 'B';
+  
+  // C tier for below average
+  if (winRate >= 48.5 && adjustedScore >= 90) return 'C';
+  if (winRate >= 48.0 && adjustedScore >= 85) return 'C';
+  
+  // D tier for weak performers
   return 'D';
 }
 
@@ -454,7 +482,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           banRate = Math.max(0, Math.min(50, banRate));
           
           // Calculate tier based on these statistics
-          const tier = calculateTier(winRate, pickRate, banRate);
+          const tier = calculateTier(winRate, pickRate, banRate, getDifficulty(champion.info));
           
           // Store the calculated statistics
           champStats[champId][normalizedRole] = {
@@ -512,7 +540,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           }
           
           // Calculate tier
-          const tier = calculateTier(adjustedWinRate, adjustedPickRate, adjustedBanRate);
+          const tier = calculateTier(adjustedWinRate, adjustedPickRate, adjustedBanRate, getDifficulty(champion.info));
           
           champStats[champId][role] = {
             winRate: parseFloat(adjustedWinRate.toFixed(1)),
