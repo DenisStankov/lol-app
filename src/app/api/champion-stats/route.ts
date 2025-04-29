@@ -675,6 +675,14 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           
           // Store the calculated statistics
           champStats[champId][normalizedRole] = {
+            games: statsTracker[champId].roles[role].games,
+            wins: statsTracker[champId].roles[role].wins,
+            kda: statsTracker[champId].roles[role].kda,
+            damage: statsTracker[champId].roles[role].damage,
+            gold: statsTracker[champId].roles[role].gold,
+            cs: statsTracker[champId].roles[role].cs,
+            vision: statsTracker[champId].roles[role].vision,
+            objectives: statsTracker[champId].roles[role].objectives,
             winRate: parseFloat(winRate.toFixed(1)),
             pickRate: parseFloat(pickRate.toFixed(1)),
             banRate: parseFloat(banRate.toFixed(1)),
@@ -732,6 +740,14 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           const tier = calculateTier(champStats, role);
           
           champStats[champId][role] = {
+            games: roleStats.games,
+            wins: roleStats.wins,
+            kda: roleStats.kda,
+            damage: roleStats.damage,
+            gold: roleStats.gold,
+            cs: roleStats.cs,
+            vision: roleStats.vision,
+            objectives: roleStats.objectives,
             winRate: parseFloat(adjustedWinRate.toFixed(1)),
             pickRate: parseFloat(adjustedPickRate.toFixed(1)),
             banRate: parseFloat(adjustedBanRate.toFixed(1)),
