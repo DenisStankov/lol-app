@@ -53,11 +53,6 @@ interface ChampionDataResponse {
 type TierType = 'S+' | 'S' | 'A' | 'B' | 'C' | 'D';
 
 interface RoleStats {
-  winRate: number;
-  pickRate: number;
-  banRate: number;
-  totalGames: number;
-  tier: TierType;
   games: number;
   wins: number;
   kda: {
@@ -77,6 +72,11 @@ interface RoleStats {
     barons: number;
     towers: number;
   };
+  winRate: number;
+  pickRate: number;
+  banRate: number;
+  totalGames: number;
+  tier: TierType;
 }
 
 interface ChampionStats {
