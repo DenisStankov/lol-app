@@ -448,7 +448,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     
     // Initialize stats tracking
     const statsTracker: Record<string, ChampionStats> = {};
-    champions.forEach(champion => {
+    Object.values(champions).forEach(champion => {
       const roles = determineRolesFromTags(champion.tags, champion.info, champion.id);
       statsTracker[champion.id] = {
         games: 0,
