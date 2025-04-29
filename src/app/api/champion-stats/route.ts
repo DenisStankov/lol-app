@@ -1098,11 +1098,19 @@ export async function GET(request: Request) {
         const adjustedPickRate = Math.min(25, basePickRate + (popularityBonus / 10));
         
         roleStats[role] = {
+          games: Math.floor(totalGames * (adjustedPickRate / 100)),
+          wins: Math.floor(totalGames * (adjustedPickRate / 100) * (baseWinRate / 100)),
+          kda: { kills: 0, deaths: 0, assists: 0 },
+          damage: { dealt: 0, taken: 0 },
+          gold: 0,
+          cs: 0,
+          vision: 0,
+          objectives: { dragons: 0, barons: 0, towers: 0 },
           winRate: parseFloat(baseWinRate.toFixed(1)),
           pickRate: parseFloat(adjustedPickRate.toFixed(1)),
           banRate: parseFloat(baseBanRate.toFixed(1)),
-          totalGames: Math.floor(1000 + Math.random() * 9000), // 1k-10k games
-          tier: calculateTier(champStats, role)
+          totalGames,
+          tier: calculateSimulatedTier(baseWinRate, adjustedPickRate, baseBanRate)
         };
       });
       
