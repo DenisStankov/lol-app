@@ -1095,8 +1095,8 @@ export async function GET(request: Request) {
       // Ensure at least one role
       if (roles.length === 0) roles.push('TOP');
       
-      // Generate stats for each role
-      roles.forEach(role => {
+      // Process each role sequentially to avoid async issues
+      for (const role of roles) {
         // Generate reasonable mock data based on champion attributes
         const baseWinRate = 45 + Math.random() * 10; // 45-55% win rate
         const basePickRate = 2 + Math.random() * 10; // 2-12% pick rate
@@ -1110,17 +1110,16 @@ export async function GET(request: Request) {
         let totalGames = 0;
         if (matchIds.length > 0) {
           try {
-            const matchPromises = matchIds.map(matchId => getMatchData(matchId, region));
-            const matches = await Promise.all(matchPromises);
-            
-            totalGames = matches.reduce((sum, match) => {
+            // Use a sequential approach to calculate totalGames
+            totalGames = 0;
+            for (const matchId of matchIds) {
+              const match = await getMatchData(matchId, region);
               if (match) {
-                return sum + match.info.participants.filter(
+                totalGames += match.info.participants.filter(
                   (p: RiotParticipant) => p.championName === champion.id && p.teamPosition === role
                 ).length;
               }
-              return sum;
-            }, 0);
+            }
           } catch (error) {
             console.error('Error processing match data:', error);
             totalGames = 0;
@@ -1147,7 +1146,7 @@ export async function GET(request: Request) {
           totalGames,
           tier: calculateSimulatedTier(baseWinRate, adjustedPickRate, adjustedBanRate)
         };
-      });
+      }
       
       // Determine damage type from champion info
       const damageType = getDamageType(champion.tags, champion.info);
@@ -1231,80 +1230,4 @@ async function getMatchIds(region: string, rank: string, count: number = 100): P
       for (const summonerId of summonerIds) {
         try {
           console.log(`🔍 [getMatchIds] Getting summoner data for ID: ${summonerId}`);
-          const summonerUrl = `https://${apiRegion}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`;
-          console.log(`🔍 [getMatchIds] Summoner API URL: ${summonerUrl}`);
-          
-          const summonerResponse = await axios.get(
-            summonerUrl,
-            { headers: { 'X-Riot-Token': RIOT_API_KEY } }
-          );
-          puuids.push(summonerResponse.data.puuid);
-          console.log(`✅ [getMatchIds] Got PUUID for summoner ${summonerId}`);
-        } catch (error: unknown) {
-          const axiosError = error as AxiosError<RiotApiErrorResponse>;
-          console.error(`❌ [getMatchIds] Error fetching summoner data for ${summonerId}:`, 
-            axiosError.response ? `Status: ${axiosError.response.status}, Data: ${JSON.stringify(axiosError.response.data)}` : axiosError.message);
-        }
-      }
-      
-      // Step 3: Get match IDs for puuids
-      const matchIds: string[] = [];
-      
-      for (const puuid of puuids) {
-        try {
-          console.log(`🔍 [getMatchIds] Getting matches for PUUID: ${puuid.substring(0, 6)}...`);
-          const matchUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids`;
-          console.log(`🔍 [getMatchIds] Match API URL: ${matchUrl}`);
-          
-          const matchResponse = await axios.get(
-            matchUrl,
-            { 
-              headers: { 'X-Riot-Token': RIOT_API_KEY },
-              params: { 
-                count: 10,  // Get 10 matches per player
-                queue: 420  // Ranked solo queue
-              }
-            }
-          );
-          matchIds.push(...matchResponse.data);
-          console.log(`✅ [getMatchIds] Got ${matchResponse.data.length} matches for PUUID ${puuid.substring(0, 6)}...`);
-        } catch (error: unknown) {
-          const axiosError = error as AxiosError<RiotApiErrorResponse>;
-          console.error(`❌ [getMatchIds] Error fetching match IDs for PUUID ${puuid.substring(0, 6)}...`,
-            axiosError.response ? `Status: ${axiosError.response.status}, Data: ${JSON.stringify(axiosError.response.data)}` : axiosError.message);
-        }
-      }
-      
-      // Remove duplicates and limit to the requested count
-      const uniqueMatchIds = [...new Set(matchIds)].slice(0, count);
-      console.log(`✅ [getMatchIds] Returning ${uniqueMatchIds.length} unique match IDs`);
-      return uniqueMatchIds;
-      
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<RiotApiErrorResponse>;
-      console.error(`❌ [getMatchIds] Error fetching league entries:`, 
-        axiosError.response ? `Status: ${axiosError.response.status}, Data: ${JSON.stringify(axiosError.response.data)}` : axiosError.message);
-      throw error;
-    }
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error(`❌ [getMatchIds] Error:`, error.message);
-    } else {
-      console.error(`❌ [getMatchIds] Unknown error:`, error);
-    }
-    return [];
-  }
-}
-
-function calculateSimulatedTier(winRate: number, pickRate: number, banRate: number): TierType {
-  // Calculate performance score based on win rate, pick rate, and ban rate
-  const performanceScore = (winRate * 0.6) + (pickRate * 0.2) + (banRate * 0.2);
-
-  // Determine tier based on performance score
-  if (performanceScore >= 0.55) return 'S+';
-  if (performanceScore >= 0.52) return 'S';
-  if (performanceScore >= 0.50) return 'A';
-  if (performanceScore >= 0.48) return 'B';
-  if (performanceScore >= 0.46) return 'C';
-  return 'D';
-} 
+          const summonerUrl = `https://${apiRegion}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`
