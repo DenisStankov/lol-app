@@ -641,8 +641,25 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           pickRate += adjustments.pickRate;
           banRate += adjustments.banRate;
           
-          // Calculate total games based on pick rate and rank popularity
-          const totalGames = Math.floor(pickRate * 10000 * adjustments.gamesMultiplier);
+          // Calculate base total games based on rank
+          const baseTotalGames = rank === 'CHALLENGER' ? 1000 :
+                                rank === 'GRANDMASTER' ? 2000 :
+                                rank === 'MASTER' ? 3000 :
+                                rank === 'DIAMOND' ? 5000 :
+                                rank === 'EMERALD' ? 8000 :
+                                rank === 'PLATINUM' ? 10000 :
+                                rank === 'GOLD' ? 12000 :
+                                rank === 'SILVER' ? 15000 :
+                                rank === 'BRONZE' ? 18000 : 20000;
+
+          // Adjust total games based on role
+          const roleMultiplier = role === 'TOP' ? 1.2 :
+                               role === 'JUNGLE' ? 1.1 :
+                               role === 'MIDDLE' ? 1.3 :
+                               role === 'BOTTOM' ? 1.4 :
+                               role === 'UTILITY' ? 1.0 : 1.0;
+
+          const totalGames = Math.floor(baseTotalGames * roleMultiplier);
           
           // Ensure values are within realistic bounds
           winRate = Math.max(45, Math.min(56, winRate));
@@ -1076,6 +1093,26 @@ export async function GET(request: Request) {
         const popularityBonus = (champion.info.attack + champion.info.magic) / 2;
         const adjustedPickRate = Math.min(25, basePickRate + (popularityBonus / 10));
         
+        // Get real match data if available
+        let totalGames = 0;
+        if (matchIds.length > 0) {
+          // Count actual games where this champion was picked in this role
+          for (const matchId of matchIds) {
+            const match = await getMatchData(matchId, region);
+            if (match) {
+              const championPicks = match.info.participants.filter(
+                (p: RiotParticipant) => p.championName === champion.id && p.teamPosition === role
+              ).length;
+              totalGames += championPicks;
+            }
+          }
+        }
+
+        // If no real data available, use a small base number
+        if (totalGames === 0) {
+          totalGames = 100; // Small base number for simulated data
+        }
+
         roleStats[role] = {
           games: Math.floor(totalGames * (adjustedPickRate / 100)),
           wins: Math.floor(totalGames * (adjustedPickRate / 100) * (baseWinRate / 100)),
@@ -1085,11 +1122,11 @@ export async function GET(request: Request) {
           cs: 0,
           vision: 0,
           objectives: { dragons: 0, barons: 0, towers: 0 },
-          winRate: parseFloat(baseWinRate.toFixed(1)),
-          pickRate: parseFloat(adjustedPickRate.toFixed(1)),
-          banRate: parseFloat(baseBanRate.toFixed(1)),
+          winRate: baseWinRate,
+          pickRate: adjustedPickRate,
+          banRate: adjustedBanRate,
           totalGames,
-          tier: calculateSimulatedTier(baseWinRate, adjustedPickRate, baseBanRate)
+          tier: calculateSimulatedTier(baseWinRate, adjustedPickRate, adjustedBanRate)
         };
       });
       
