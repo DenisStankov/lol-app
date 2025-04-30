@@ -1062,7 +1062,20 @@ export async function GET(request: Request) {
   console.log(`Processing champion stats request for: patch=${patch}, rank=${rank}, region=${region}`);
   
   try {
-    // Skip actual API calls and immediately use generated data
+    // Initialize match IDs array
+    let matchIds: string[] = [];
+    
+    // Try to get match IDs if API key is available
+    if (RIOT_API_KEY && RIOT_API_KEY !== 'RGAPI-your-api-key-here') {
+      try {
+        matchIds = await getMatchIds(region, rank);
+        console.log(`Fetched ${matchIds.length} match IDs for data analysis`);
+      } catch (error) {
+        console.error('Failed to fetch match IDs:', error);
+        matchIds = [];
+      }
+    }
+    
     // Get champion data from Data Dragon
     const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
     if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
