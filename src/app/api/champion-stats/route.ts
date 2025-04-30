@@ -1230,4 +1230,37 @@ async function getMatchIds(region: string, rank: string, count: number = 100): P
       for (const summonerId of summonerIds) {
         try {
           console.log(`🔍 [getMatchIds] Getting summoner data for ID: ${summonerId}`);
-          const summonerUrl = `https://${apiRegion}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`
+          const summonerUrl = `https://${apiRegion}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`;
+          const summonerResponse = await axios.get(summonerUrl, { headers: { 'X-Riot-Token': RIOT_API_KEY } });
+          const summonerData = summonerResponse.data;
+          puuids.push(summonerData.puuid);
+        } catch (error) {
+          console.error(`❌ [getMatchIds] Error getting summoner data for ID: ${summonerId}:`, error);
+        }
+      }
+      
+      // Step 3: Get match IDs for summoners
+      const matchIds: string[] = [];
+      for (const puuid of puuids) {
+        try {
+          console.log(`🔍 [getMatchIds] Getting match IDs for puuid: ${puuid}`);
+          const matchUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=${count}`;
+          const matchResponse = await axios.get(matchUrl, { headers: { 'X-Riot-Token': RIOT_API_KEY } });
+          const matchData = matchResponse.data;
+          matchIds.push(...matchData);
+        } catch (error) {
+          console.error(`❌ [getMatchIds] Error getting match IDs for puuid: ${puuid}:`, error);
+        }
+      }
+      
+      console.log(`✅ [getMatchIds] Fetched ${matchIds.length} match IDs`);
+      return matchIds;
+    } catch (error) {
+      console.error(`❌ [getMatchIds] Error getting league entries:`, error);
+      return [];
+    }
+  } catch (error) {
+    console.error(`❌ [getMatchIds] Error starting getMatchIds:`, error);
+    return [];
+  }
+}
