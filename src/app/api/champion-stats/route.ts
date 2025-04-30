@@ -1096,21 +1096,22 @@ export async function GET(request: Request) {
         // Get real match data if available
         let totalGames = 0;
         if (matchIds.length > 0) {
-          // Count actual games where this champion was picked in this role
-          totalGames = await (async () => {
-            const matchPromises = matchIds.map(async (matchId) => {
-              const match = await getMatchData(matchId, region);
+          try {
+            const matchPromises = matchIds.map(matchId => getMatchData(matchId, region));
+            const matches = await Promise.all(matchPromises);
+            
+            totalGames = matches.reduce((sum, match) => {
               if (match) {
-                return match.info.participants.filter(
+                return sum + match.info.participants.filter(
                   (p: RiotParticipant) => p.championName === champion.id && p.teamPosition === role
                 ).length;
               }
-              return 0;
-            });
-            
-            const results = await Promise.all(matchPromises);
-            return results.reduce((sum, count) => sum + count, 0);
-          })();
+              return sum;
+            }, 0);
+          } catch (error) {
+            console.error('Error processing match data:', error);
+            totalGames = 0;
+          }
         }
 
         // If no real data available, use a small base number
