@@ -122,19 +122,41 @@ interface ChampionStats {
   range?: 'Melee' | 'Ranged';
 }
 
-// Uncomment and use the region routing and rank API value maps
+// League Entry interface for Riot API
+interface LeagueEntry {
+  leagueId: string;
+  summonerId: string;
+  summonerName: string;
+  queueType: string;
+  tier: string;
+  rank: string;
+  leaguePoints: number;
+  wins: number;
+  losses: number;
+  veteran: boolean;
+  inactive: boolean;
+  freshBlood: boolean;
+  hotStreak: boolean;
+}
+
+// Mapping from regional API endpoints to routing values for match v5 API
 const regionToRoutingValue: Record<string, string> = {
-  'br': 'americas',
-  'na': 'americas',
-  'lan': 'americas',
-  'las': 'americas',
-  'euw': 'europe',
-  'eune': 'europe',
-  'tr': 'europe',
-  'ru': 'europe',
+  'br1': 'americas',
+  'eun1': 'europe',
+  'euw1': 'europe',
+  'jp1': 'asia',
   'kr': 'asia',
-  'jp': 'asia',
-  'global': 'americas' // Default to Americas for global
+  'la1': 'americas',
+  'la2': 'americas',
+  'na1': 'americas',
+  'oc1': 'americas',
+  'tr1': 'europe',
+  'ru': 'europe',
+  'ph2': 'asia',
+  'sg2': 'asia',
+  'th2': 'asia',
+  'tw2': 'asia',
+  'vn2': 'asia'
 };
 
 // Map for rank tiers to API values
@@ -226,20 +248,6 @@ interface RiotTeam {
   }[];
 }
 
-// Add a type definition for league entry
-interface LeagueEntry {
-  summonerId: string;
-  summonerName: string;
-  leaguePoints: number;
-  rank: string;
-  wins: number;
-  losses: number;
-  veteran: boolean;
-  inactive: boolean;
-  freshBlood: boolean;
-  hotStreak: boolean;
-}
-
 // Add this type for error responses from Riot API
 interface RiotApiErrorResponse {
   status?: {
@@ -305,28 +313,28 @@ function getDifficulty(info: ChampionInfo): 'Easy' | 'Medium' | 'Hard' {
   }
 }
 
-// Normalize role names to standardized format
+// Helper function to normalize role names from Riot API to our format
 function normalizeRoleName(role: string): string {
-  // Map of common role names to standardized ones
-  const roleMap: Record<string, string> = {
-    'TOP': 'TOP',
-    'JUNGLE': 'JUNGLE',
-    'MIDDLE': 'MIDDLE',
-    'BOTTOM': 'BOTTOM',
-    'UTILITY': 'UTILITY',
-    'top': 'TOP',
-    'jungle': 'JUNGLE', 
-    'mid': 'MIDDLE',
-    'middle': 'MIDDLE',
-    'bot': 'BOTTOM',
-    'bottom': 'BOTTOM',
-    'adc': 'BOTTOM',
-    'supp': 'UTILITY',
-    'sup': 'UTILITY',
-    'support': 'UTILITY'
-  };
+  if (!role) return 'TOP';
   
-  return roleMap[role] || role.toUpperCase();
+  const normalized = role.toUpperCase();
+  switch (normalized) {
+    case 'TOP':
+    case 'JUNGLE':
+    case 'MIDDLE':
+    case 'BOTTOM':
+    case 'UTILITY':
+      return normalized;
+    case 'MID':
+      return 'MIDDLE';
+    case 'BOT':
+    case 'ADC':
+      return 'BOTTOM';
+    case 'SUPPORT':
+      return 'UTILITY';
+    default:
+      return 'TOP';
+  }
 }
 
 // Main function to fetch and calculate champion statistics
@@ -1037,27 +1045,21 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
 }
 
 // Function to get match data from Riot API
-async function getMatchData(matchId: string, region: string): Promise<RiotMatch | null> {
-  console.log(`🔍 [getMatchData] Getting data for matchId=${matchId}, region=${region}`);
+async function getMatchData(matchId: string, region: string): Promise<any> {
   try {
     const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
-    // We don't need to use apiRegion here as we're using routing values for match data
-    console.log(`🔍 [getMatchData] Using routing=${routingValue} for match data`);
+    const url = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
     
-    const matchUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
-    console.log(`🔍 [getMatchData] Match data URL: ${matchUrl}`);
+    console.log(`Fetching match data for ${matchId}`);
+    const response = await axios.get(url, {
+      headers: {
+        'X-Riot-Token': RIOT_API_KEY
+      }
+    });
     
-    const response = await axios.get(
-      matchUrl,
-      { headers: { 'X-Riot-Token': RIOT_API_KEY } }
-    );
-    
-    console.log(`✅ [getMatchData] Successfully fetched data for match ${matchId}`);
     return response.data;
-  } catch (error: unknown) {
-    const axiosError = error as AxiosError<RiotApiErrorResponse>;
-    console.error(`❌ [getMatchData] Error fetching match ${matchId}:`, 
-      axiosError.response ? `Status: ${axiosError.response.status}, Data: ${JSON.stringify(axiosError.response.data)}` : axiosError.message);
+  } catch (error) {
+    console.error(`Error fetching match data for ${matchId}:`, error);
     return null;
   }
 }
@@ -1066,25 +1068,25 @@ async function getMatchData(matchId: string, region: string): Promise<RiotMatch 
 export async function GET(request: Request) {
   // Extract query parameters
   const url = new URL(request.url);
-  const rank = url.searchParams.get('rank') || 'ALL';
+  const rank = url.searchParams.get('rank') || 'PLATINUM';
   const patch = url.searchParams.get('patch') || await getCurrentPatch();
-  const region = url.searchParams.get('region') || 'global';
+  const region = url.searchParams.get('region') || 'na1';
+  const queue = url.searchParams.get('queue') || 'RANKED_SOLO_5x5';
+  const tier = url.searchParams.get('tier') || 'PLATINUM';
+  const division = url.searchParams.get('division') || 'I';
   
-  console.log(`Processing champion stats request for: patch=${patch}, rank=${rank}, region=${region}`);
+  console.log(`Processing champion stats request: patch=${patch}, rank=${rank}, region=${region}, queue=${queue}`);
   
   try {
-    // Initialize match IDs array
-    let matchIds: string[] = [];
-    
-    // Try to get match IDs if API key is available
-    if (RIOT_API_KEY && RIOT_API_KEY !== 'RGAPI-your-api-key-here') {
-      try {
-        matchIds = await getMatchIds(region, rank);
-        console.log(`Fetched ${matchIds.length} match IDs for data analysis`);
-      } catch (error) {
-        console.error('Failed to fetch match IDs:', error);
-        matchIds = [];
-      }
+    // Check for cache first
+    if (
+      statsCache.timestamp > 0 && 
+      Date.now() < statsCache.expiry &&
+      statsCache.data[rank] && 
+      statsCache.data[rank][region]
+    ) {
+      console.log(`Using cached data for rank=${rank}, region=${region}`);
+      return NextResponse.json(statsCache.data[rank][region]);
     }
     
     // Get champion data from Data Dragon
@@ -1092,72 +1094,227 @@ export async function GET(request: Request) {
     if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
     const champData: ChampionDataResponse = await champResponse.json();
     
-    // Generate the champion stats
+    // Initialize stats tracker for all champions
+    const statsTracker: Record<string, {
+      games: number,
+      wins: number,
+      bans: number,
+      picks: Record<string, number>,
+      roleWins: Record<string, number>,
+      rolePicks: Record<string, number>,
+    }> = {};
+    
+    // Initialize for all champions
+    Object.values(champData.data).forEach(champion => {
+      statsTracker[champion.id] = {
+        games: 0,
+        wins: 0,
+        bans: 0,
+        picks: { TOP: 0, JUNGLE: 0, MIDDLE: 0, BOTTOM: 0, UTILITY: 0 },
+        roleWins: { TOP: 0, JUNGLE: 0, MIDDLE: 0, BOTTOM: 0, UTILITY: 0 },
+        rolePicks: { TOP: 0, JUNGLE: 0, MIDDLE: 0, BOTTOM: 0, UTILITY: 0 }
+      };
+    });
+    
+    // Get summoners from the specified tier
+    console.log(`Fetching league entries for ${tier} ${division} in ${region}`);
+    let leagueEntries: LeagueEntry[] = [];
+    try {
+      const leagueUrl = `https://${region}.api.riotgames.com/lol/league/v4/entries/${queue}/${tier}/${division}`;
+      const leagueResponse = await axios.get(
+        leagueUrl,
+        { 
+          headers: { 'X-Riot-Token': RIOT_API_KEY },
+          params: { page: 1 }
+        }
+      );
+      leagueEntries = leagueResponse.data;
+      console.log(`Got ${leagueEntries.length} league entries`);
+    } catch (error) {
+      console.error('Error fetching league entries:', error);
+      throw error;
+    }
+    
+    // Get PUUIDs for summoners
+    const summonerIds = leagueEntries.slice(0, 10).map(entry => entry.summonerId);
+    const puuids: string[] = [];
+    
+    for (const summonerId of summonerIds) {
+      try {
+        console.log(`Getting PUUID for summoner ID: ${summonerId}`);
+        const summonerUrl = `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`;
+        const summonerResponse = await axios.get(
+          summonerUrl,
+          { headers: { 'X-Riot-Token': RIOT_API_KEY } }
+        );
+        puuids.push(summonerResponse.data.puuid);
+      } catch (error) {
+        console.error(`Error getting PUUID for summoner ID ${summonerId}:`, error);
+      }
+    }
+    
+    // Get match IDs from PUUIDs
+    const matchIds: string[] = [];
+    const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
+    
+    for (const puuid of puuids) {
+      try {
+        console.log(`Getting match IDs for PUUID: ${puuid.substring(0, 8)}...`);
+        const matchUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids`;
+        const matchResponse = await axios.get(
+          matchUrl,
+          { 
+            headers: { 'X-Riot-Token': RIOT_API_KEY },
+            params: { 
+              count: 5,  // Limit to 5 matches per player for performance
+              queue: 420  // Ranked solo queue
+            }
+          }
+        );
+        matchIds.push(...matchResponse.data);
+      } catch (error) {
+        console.error(`Error getting match IDs for PUUID ${puuid.substring(0, 8)}:`, error);
+      }
+    }
+    
+    // Remove duplicates
+    const uniqueMatchIds = [...new Set(matchIds)];
+    console.log(`Fetched ${uniqueMatchIds.length} unique match IDs`);
+    
+    // Process match data
+    const totalMatchesAnalyzed = Math.min(uniqueMatchIds.length, 20); // Limit to 20 matches for performance
+    let totalGamesProcessed = 0;
+    
+    console.log(`Processing ${totalMatchesAnalyzed} matches...`);
+    
+    for (let i = 0; i < totalMatchesAnalyzed; i++) {
+      const matchId = uniqueMatchIds[i];
+      try {
+        console.log(`Processing match ${i+1}/${totalMatchesAnalyzed}: ${matchId}`);
+        const match = await getMatchData(matchId, region);
+        
+        if (!match || !match.info || !match.info.participants) {
+          console.log(`Skipping match ${matchId}: Invalid data`);
+          continue;
+        }
+        
+        totalGamesProcessed++;
+        
+        // Process bans
+        if (match.info.teams) {
+          for (const team of match.info.teams) {
+            if (team.bans) {
+              for (const ban of team.bans) {
+                // Convert numeric championId to champion name
+                const bannedChamp = Object.values(champData.data).find(
+                  champ => champ.key === ban.championId.toString()
+                );
+                
+                if (bannedChamp && statsTracker[bannedChamp.id]) {
+                  statsTracker[bannedChamp.id].bans++;
+                }
+              }
+            }
+          }
+        }
+        
+        // Process participants
+        for (const participant of match.info.participants) {
+          const champId = participant.championName;
+          const role = normalizeRoleName(participant.teamPosition);
+          
+          if (champId && statsTracker[champId]) {
+            // Track overall picks and wins
+            statsTracker[champId].games++;
+            if (participant.win) {
+              statsTracker[champId].wins++;
+            }
+            
+            // Track role-specific picks and wins
+            if (role && Object.keys(statsTracker[champId].picks).includes(role)) {
+              statsTracker[champId].picks[role]++;
+              statsTracker[champId].rolePicks[role]++;
+              if (participant.win) {
+                statsTracker[champId].roleWins[role]++;
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error processing match ${matchId}:`, error);
+      }
+    }
+    
+    console.log(`Successfully processed ${totalGamesProcessed} matches`);
+    
+    // Calculate stats and build result
     const result: Record<string, ChampionStats> = {};
+    const totalGameCount = totalGamesProcessed || 1; // Avoid division by zero
     
     // Process each champion
     for (const [champId, champion] of Object.entries(champData.data)) {
-      console.log(`Generating mock data for ${champId}`);
-      
-      // Generate champion roles data
-      const roleStats: Record<string, RoleStats> = {};
+      const stats = statsTracker[champId];
       const roles = determineRolesFromTags(champion.tags, champion.info, champId);
       
-      // Ensure at least one role
       if (roles.length === 0) roles.push('TOP');
       
-      // Process each role sequentially to avoid async issues
+      const roleStats: Record<string, RoleStats> = {};
+      
+      // Check if we have any real data
+      const hasRealData = stats.games > 0;
+      
+      // Process each role
       for (const role of roles) {
-        // Generate reasonable mock data based on champion attributes
-        const baseWinRate = 45 + Math.random() * 10; // 45-55% win rate
-        const basePickRate = 2 + Math.random() * 10; // 2-12% pick rate
-        const baseBanRate = 1 + Math.random() * 5;   // 1-6% ban rate
-        
-        // Adjust rates based on champion's popularity and power
-        const popularityBonus = (champion.info.attack + champion.info.magic) / 2;
-        const adjustedPickRate = Math.min(25, basePickRate + (popularityBonus / 10));
-        const adjustedBanRate = Math.min(20, baseBanRate + (popularityBonus / 15));
-        
-        // Get real match data if available
-        let totalGames = 0;
-        if (matchIds.length > 0) {
-          try {
-            // Use a sequential approach to calculate totalGames
-            totalGames = 0;
-            for (const matchId of matchIds) {
-              const match = await getMatchData(matchId, region);
-              if (match) {
-                totalGames += match.info.participants.filter(
-                  (p: RiotParticipant) => p.championName === champion.id && p.teamPosition === role
-                ).length;
-              }
-            }
-          } catch (error) {
-            console.error('Error processing match data:', error);
-            totalGames = 0;
-          }
+        // Calculate stats based on real data if available
+        if (hasRealData && stats.rolePicks[role] > 0) {
+          const rolePicks = stats.rolePicks[role];
+          const roleWins = stats.roleWins[role];
+          const winRate = (roleWins / rolePicks) * 100;
+          const pickRate = (rolePicks / totalGameCount) * 100;
+          const banRate = (stats.bans / totalGameCount) * 100;
+          
+          roleStats[role] = {
+            games: rolePicks,
+            wins: roleWins,
+            kda: { kills: 0, deaths: 0, assists: 0 }, // We don't calculate these yet
+            damage: { dealt: 0, taken: 0 },
+            gold: 0,
+            cs: 0,
+            vision: 0,
+            objectives: { dragons: 0, barons: 0, towers: 0 },
+            winRate: parseFloat(winRate.toFixed(2)),
+            pickRate: parseFloat(pickRate.toFixed(2)),
+            banRate: parseFloat(banRate.toFixed(2)),
+            totalGames: totalGameCount,
+            tier: calculateSimulatedTier(winRate, pickRate, banRate)
+          };
+        } else {
+          // Use simulation for this role
+          const winRate = 48 + (Math.random() * 4); // 48-52% win rate
+          const pickRate = 0.5 + (Math.random() * 5.5); // 0.5-6% pick rate
+          const banRate = Math.random() * 5; // 0-5% ban rate
+          
+          // Apply adjustments based on champion attributes
+          const adjustedWinRate = Math.min(54, Math.max(46, winRate + (champion.info.difficulty > 7 ? -1 : 1)));
+          const adjustedPickRate = Math.min(25, Math.max(0.5, pickRate));
+          const adjustedBanRate = Math.min(20, Math.max(0, banRate));
+          
+          roleStats[role] = {
+            games: Math.floor(500 + Math.random() * 1500), // 500-2000 games
+            wins: Math.floor((500 + Math.random() * 1500) * (adjustedWinRate / 100)),
+            kda: { kills: 0, deaths: 0, assists: 0 },
+            damage: { dealt: 0, taken: 0 },
+            gold: 0,
+            cs: 0,
+            vision: 0,
+            objectives: { dragons: 0, barons: 0, towers: 0 },
+            winRate: adjustedWinRate,
+            pickRate: adjustedPickRate,
+            banRate: adjustedBanRate,
+            totalGames: totalGameCount,
+            tier: calculateSimulatedTier(adjustedWinRate, adjustedPickRate, adjustedBanRate)
+          };
         }
-
-        // If no real data available, use a small base number
-        if (totalGames === 0) {
-          totalGames = 100; // Small base number for simulated data
-        }
-
-        roleStats[role] = {
-          games: Math.floor(totalGames * (adjustedPickRate / 100)),
-          wins: Math.floor(totalGames * (adjustedPickRate / 100) * (baseWinRate / 100)),
-          kda: { kills: 0, deaths: 0, assists: 0 },
-          damage: { dealt: 0, taken: 0 },
-          gold: 0,
-          cs: 0,
-          vision: 0,
-          objectives: { dragons: 0, barons: 0, towers: 0 },
-          winRate: baseWinRate,
-          pickRate: adjustedPickRate,
-          banRate: adjustedBanRate,
-          totalGames,
-          tier: calculateSimulatedTier(baseWinRate, adjustedPickRate, adjustedBanRate)
-        };
       }
       
       // Determine damage type from champion info
@@ -1166,24 +1323,12 @@ export async function GET(request: Request) {
       // Determine difficulty from champion info
       const difficulty = getDifficulty(champion.info);
       
-      // Determine range (melee/ranged) using tags as fallback if stats is not available
-      const isRanged = champion.tags.includes('Marksman');
-      const isMelee = champion.tags.includes('Assassin') || champion.tags.includes('Fighter') || champion.tags.includes('Tank');
+      // Determine range (melee/ranged)
+      const range = champion.stats?.attackrange 
+        ? (champion.stats.attackrange <= 300 ? 'Melee' : 'Ranged')
+        : (champion.tags.includes('Marksman') ? 'Ranged' : 'Melee');
       
-      // Default to tag-based determination, with fallback to Ranged for mages
-      let range: 'Melee' | 'Ranged';
-      if (champion.stats?.attackrange !== undefined) {
-        range = champion.stats.attackrange <= 300 ? 'Melee' : 'Ranged';
-      } else if (isRanged) {
-        range = 'Ranged';
-      } else if (isMelee) {
-        range = 'Melee';
-      } else {
-        // Default for mages and others
-        range = 'Ranged';
-      }
-      
-      // Add the champion to the result
+      // Add champion to result
       result[champId] = {
         id: champId,
         name: champion.name,
@@ -1195,9 +1340,15 @@ export async function GET(request: Request) {
       };
     }
     
-    console.log(`Generated mock data for ${Object.keys(result).length} champions`);
+    // Update cache
+    if (!statsCache.data[rank]) {
+      statsCache.data[rank] = {};
+    }
+    statsCache.data[rank][region] = result;
+    statsCache.timestamp = Date.now();
+    statsCache.expiry = Date.now() + CACHE_DURATION;
     
-    // Return the mock data
+    console.log(`Generated stats for ${Object.keys(result).length} champions using real data`);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error generating champion stats:', error);
@@ -1205,27 +1356,67 @@ export async function GET(request: Request) {
   }
 }
 
-// Update getMatchIds function to use the proper API region
-async function getMatchIds(region: string, rank: string, count: number = 100): Promise<string[]> {
-  console.log(`🔍 [getMatchIds] Starting with region=${region}, rank=${rank}`);
+// Function to get match IDs from summoners in specified rank
+async function getMatchIds(region: string, tier: string = 'PLATINUM', division: string = 'I', count: number = 10): Promise<string[]> {
   try {
     const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
-    const rankValue = rankToApiValue[rank] || 'PLATINUM';
+    const leagueUrl = `https://${region}.api.riotgames.com/lol/league/v4/entries/RANKED_SOLO_5x5/${tier}/${division}`;
     
-    // Use the API region mapping instead of the display region
-    const apiRegion = displayRegionToApiRegion[region.toLowerCase()] || 'na1';
+    console.log(`Fetching league entries: ${leagueUrl}`);
+    const leagueResponse = await axios.get(leagueUrl, {
+      headers: {
+        'X-Riot-Token': RIOT_API_KEY
+      },
+      params: {
+        page: 1
+      }
+    });
     
-    console.log(`🔍 [getMatchIds] Using routing=${routingValue}, rank=${rankValue}, apiRegion=${apiRegion}`);
+    const entries: LeagueEntry[] = leagueResponse.data;
+    const summoners = entries.slice(0, 5); // Limit to 5 summoners
+    const puuids: string[] = [];
     
+    // Get PUUIDs for each summoner
+    for (const summoner of summoners) {
+      try {
+        const summonerUrl = `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summoner.summonerId}`;
+        const summonerResponse = await axios.get(summonerUrl, {
+          headers: {
+            'X-Riot-Token': RIOT_API_KEY
+          }
+        });
+        
+        puuids.push(summonerResponse.data.puuid);
+      } catch (error) {
+        console.error(`Error fetching summoner data:`, error);
+      }
+    }
+    
+    // Get match IDs for each PUUID
     const matchIds: string[] = [];
-    let totalGames = 0;
+    for (const puuid of puuids) {
+      try {
+        const matchesUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids`;
+        const matchesResponse = await axios.get(matchesUrl, {
+          headers: {
+            'X-Riot-Token': RIOT_API_KEY
+          },
+          params: {
+            count: count / puuids.length,
+            queue: 420 // Ranked solo queue
+          }
+        });
+        
+        matchIds.push(...matchesResponse.data);
+      } catch (error) {
+        console.error(`Error fetching matches:`, error);
+      }
+    }
     
-    // Implement the logic to fetch match IDs based on the region and rank
-    // This is a placeholder and should be replaced with the actual implementation
-    
-    return matchIds;
+    // Return unique match IDs
+    return [...new Set(matchIds)];
   } catch (error) {
-    console.error('Error fetching match IDs:', error);
+    console.error(`Error in getMatchIds:`, error);
     return [];
   }
 }

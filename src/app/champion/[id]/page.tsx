@@ -1122,6 +1122,14 @@ export default function ChampionDetailsPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Display games analyzed count */}
+                  {metaData?.roleSpecificData?.skills?.games && (
+                    <div className="text-xs text-neutral-400 mb-3">
+                      {metaData.roleSpecificData.skills.games.toLocaleString()} games analyzed
+                    </div>
+                  )}
+
                   <div className="flex gap-3">
                     {(metaData?.roleSpecificData?.skillOrder?.maxPriority || ['Q', 'W', 'E', 'R']).map((ability, index) => (
                       <div key={ability} className={`relative w-10 h-10 rounded overflow-hidden border ${index === 0 ? 'border-yellow-600 ring-1 ring-yellow-600/30' : 'border-zinc-700'}`}>

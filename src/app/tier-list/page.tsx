@@ -1367,9 +1367,9 @@ export default function TierList() {
                           {champion.pickRate.toFixed(1)}% 
                         </td>
                         
-                        {/* Games Cell - Centered Text */}
-                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center text-zinc-500 text-xs sm:text-sm hidden md:table-cell">
-                          {champion.totalGames.toLocaleString()}
+                        {/* Games Played Cell - Now Hidden on Mobile */}
+                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm hidden md:table-cell">
+                          {champion.totalGames ? champion.totalGames.toLocaleString() : 'N/A'}
                         </td>
                       </Link>
                     </tr>

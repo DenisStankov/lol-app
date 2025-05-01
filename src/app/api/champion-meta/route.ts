@@ -200,19 +200,17 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     const version = "14.8.1"; // Specify a known working version
     console.log(`Fetching data for champion: ${championId} with version ${version}`);
     
-    // For certain champions, directly return pre-defined data for testing
-    if (championId === "test") {
-      console.log("Returning test data");
-      return {
-        championId: "test",
-        winRate: "50.0%",
-        pickRate: "10.0%",
-        banRate: "5.0%",
-        roleSpecificData: getRoleBasedMetaData("Fighter", version)
-      };
+    // Get real champion stats from our API
+    const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/champion-stats?rank=PLATINUM`);
+    
+    if (!statsResponse.ok) {
+      console.error(`Error fetching champion stats: ${statsResponse.status}`);
+      throw new Error(`Failed to fetch champion stats: ${statsResponse.status}`);
     }
     
-    // Get basic champion data to determine role
+    const statsData = await statsResponse.json();
+    
+    // Get basic champion data from Data Dragon to determine role
     const response = await fetch(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${championId}.json`);
     
     // Check if response is ok before parsing
@@ -221,75 +219,123 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
       throw new Error(`Failed to fetch champion data: ${response.status}`);
     }
     
-    const textData = await response.text();
-    let data;
-    try {
-      data = JSON.parse(textData);
-    } catch {
-      console.error("Failed to parse JSON response:", textData.substring(0, 100) + "...");
-      throw new Error("Invalid JSON response from Data Dragon API");
-    }
-    
-    if (!data.data || !data.data[championId]) {
-      console.error("Unexpected response format:", data);
-      throw new Error("Unexpected response format from Data Dragon API");
-    }
-    
-    const champion = data.data[championId];
+    const champData = await response.json();
+    const champion = champData.data[championId];
     const tags = champion.tags || [];
     const role = determineChampionRole(tags, championId);
+    
     console.log(`Champion ${championId} has role: ${role}`);
     
-    // Generate champion-specific metadata
-    const winRate = (45 + Math.random() * 10).toFixed(1) + '%';
-    const pickRate = (2 + Math.random() * 20).toFixed(1) + '%';
-    const banRate = (1 + Math.random() * 10).toFixed(1) + '%';
+    // Find the champion stats from our API
+    const champStats = statsData[championId];
+    
+    if (!champStats) {
+      console.log(`No stats found for ${championId}, using generated data instead`);
+      
+      // Fallback to generated data if champion stats not found
+      const winRate = (45 + Math.random() * 10).toFixed(1) + '%';
+      const pickRate = (2 + Math.random() * 20).toFixed(1) + '%';
+      const banRate = (1 + Math.random() * 10).toFixed(1) + '%';
+      
+      const runes = generateChampionSpecificRunes(championId, role, version);
+      const build = generateChampionSpecificBuilds(championId, role, version);
+      const counters = generateChampionCounters(championId, role, version);
+      const spells = champion.spells.map((spell: any) => ({
+        id: spell.id,
+        name: spell.name,
+        description: spell.description,
+        image: {
+          full: spell.image.full
+        }
+      }));
+      const skillOrder = generateChampionSkillOrder(championId, spells);
+      
+      return {
+        championId,
+        winRate,
+        pickRate,
+        banRate,
+        roleSpecificData: {
+          runes,
+          build,
+          counters,
+          skillOrder,
+          skills: {
+            winRate: (48 + Math.random() * 8).toFixed(1) + '%'
+          }
+        }
+      };
+    }
+    
+    // Find the best role stats
+    let bestRole = '';
+    let highestGames = 0;
+    
+    for (const [roleName, roleStats] of Object.entries(champStats.roles)) {
+      if (roleStats.games > highestGames) {
+        highestGames = roleStats.games;
+        bestRole = roleName;
+      }
+    }
+    
+    // If no best role found, use the first available role
+    if (!bestRole && Object.keys(champStats.roles).length > 0) {
+      bestRole = Object.keys(champStats.roles)[0];
+    }
+    
+    console.log(`Best role for ${championId} is ${bestRole} with ${highestGames} games`);
+    
+    // Get the stats for the best role
+    const roleStats = champStats.roles[bestRole];
+    
+    // Format the data
+    const winRate = roleStats.winRate.toFixed(1) + '%';
+    const pickRate = roleStats.pickRate.toFixed(1) + '%';
+    const banRate = roleStats.banRate.toFixed(1) + '%';
     
     // Get champion-specific builds, counters, and skill orders
     const runes = generateChampionSpecificRunes(championId, role, version);
     const build = generateChampionSpecificBuilds(championId, role, version);
     const counters = generateChampionCounters(championId, role, version);
-    const skillOrder = generateChampionSkillOrder(championId, champion.spells);
     
-    // Generate skills data
-    const skills = {
-      winRate: (48 + Math.random() * 7).toFixed(1) + '%',
-      games: Math.floor(500 + Math.random() * 1500)
-    };
-    
-    // Log to help debug
-    console.log(`Champion ${championId} meta data:`);
-    console.log(`- Role: ${role}`);
-    console.log(`- Runes: ${runes.primary.keystone} (${runes.primary.name})`);
-    console.log(`- Core items: ${build.core.map(item => item.name).join(', ')}`);
-    console.log(`- Countered by: ${counters.map(c => c.name).join(', ')}`);
-    console.log(`- Max priority: ${skillOrder.maxPriority.join(' > ')}`);
-    console.log(`- Skills win rate: ${skills.winRate}`);
-    
-    const roleSpecificData = {
-      runes,
-      build,
-      counters,
-      skillOrder,
-      skills
-    };
+    // Get skill order
+    const spells = champion.spells.map((spell: any) => ({
+      id: spell.id,
+      name: spell.name,
+      description: spell.description,
+      image: {
+        full: spell.image.full
+      }
+    }));
+    const skillOrder = generateChampionSkillOrder(championId, spells);
     
     return {
       championId,
       winRate,
       pickRate,
       banRate,
-      roleSpecificData
+      roleSpecificData: {
+        runes,
+        build,
+        counters,
+        skillOrder,
+        skills: {
+          winRate: (48 + Math.random() * 8).toFixed(1) + '%',
+          games: roleStats.games
+        }
+      }
     };
+    
   } catch (error) {
-    console.error(`Error processing champion ${championId}:`, error);
-    // Return a default fallback data to prevent page crashes
+    console.error('Error in fetchChampionMetaData:', error);
+    
+    // Fallback to generated data in case of error
     return {
       championId,
-      winRate: "50.0%",
-      pickRate: "10.0%",
-      banRate: "5.0%",
-      roleSpecificData: getRoleBasedMetaData("Fighter", "14.8.1") // Default to Fighter build as fallback
+      winRate: '50.0%',
+      pickRate: '10.0%',
+      banRate: '5.0%',
+      roleSpecificData: getRoleBasedMetaData("Fighter", version)
     };
   }
 }
