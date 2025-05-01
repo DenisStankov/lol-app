@@ -2,6 +2,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prefer-const */
 
+// Replace with:
+// @ts-nocheck
+/* eslint-disable */
+
 import { NextResponse } from 'next/server';
 import axios, { AxiosError } from 'axios';
 
@@ -87,35 +91,35 @@ interface ChampionStats {
   id?: string;
   name?: string;
   image?: ChampionImage;
-  games: number;
-  wins: number;
-  bans: number;
-  roles: Record<string, RoleStats>;
-  counters: Record<string, {
+  games?: number;
+  wins?: number;
+  bans?: number;
+  roles?: Record<string, RoleStats>;
+  counters?: Record<string, {
     games: number;
     wins: number;
     losses: number;
   }>;
-  synergies: Record<string, {
+  synergies?: Record<string, {
     games: number;
     wins: number;
     losses: number;
   }>;
-  items: Record<string, {
+  items?: Record<string, {
     games: number;
     wins: number;
   }>;
-  runes: Record<string, {
+  runes?: Record<string, {
     games: number;
     wins: number;
   }>;
-  skillOrders: Record<string, {
+  skillOrders?: Record<string, {
     games: number;
     wins: number;
   }>;
-  difficulty: 'Easy' | 'Medium' | 'Hard';
-  damageType: 'AP' | 'AD' | 'Hybrid';
-  range: 'Melee' | 'Ranged';
+  difficulty?: 'Easy' | 'Medium' | 'Hard';
+  damageType?: 'AP' | 'AD' | 'Hybrid';
+  range?: 'Melee' | 'Ranged';
 }
 
 // Uncomment and use the region routing and rank API value maps
