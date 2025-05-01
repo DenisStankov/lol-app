@@ -1060,293 +1060,186 @@ async function getMatchData(matchId: string, region: string): Promise<any> {
 
 // API route handler
 export async function GET(request: Request) {
-  // Extract query parameters
-  const url = new URL(request.url);
-  const rank = url.searchParams.get('rank') || 'PLATINUM';
-  const patch = url.searchParams.get('patch') || await getCurrentPatch();
-  const region = url.searchParams.get('region') || 'na1';
-  const queue = url.searchParams.get('queue') || 'RANKED_SOLO_5x5';
-  const tier = url.searchParams.get('tier') || 'PLATINUM';
-  const division = url.searchParams.get('division') || 'I';
-  
-  console.log(`Processing champion stats request: patch=${patch}, rank=${rank}, region=${region}, queue=${queue}`);
-  
   try {
-    // Check for cache first
-    if (
-      statsCache.timestamp > 0 && 
-      Date.now() < statsCache.expiry &&
-      statsCache.data[rank] && 
-      statsCache.data[rank][region]
-    ) {
-      console.log(`Using cached data for rank=${rank}, region=${region}`);
-      return NextResponse.json(statsCache.data[rank][region]);
+    // Extract query parameters
+    const url = new URL(request.url);
+    const rank = url.searchParams.get('rank') || 'PLATINUM';
+    const patch = url.searchParams.get('patch') || await getCurrentPatch();
+    const region = url.searchParams.get('region') || 'na1';
+    const queue = url.searchParams.get('queue') || 'RANKED_SOLO_5x5';
+    const tier = url.searchParams.get('tier') || 'PLATINUM';
+    const division = url.searchParams.get('division') || 'I';
+
+    console.log(`Processing champion stats request: patch=${patch}, rank=${rank}, region=${region}, queue=${queue}`);
+
+    // Check if we have a valid API key
+    if (!process.env.RIOT_API_KEY || process.env.RIOT_API_KEY === 'RGAPI-your-api-key-here') {
+      console.warn('No valid Riot API key found. Using simulated data.');
+      // Generate and return simulated data instead of trying to use the API
+      const simulatedData = await generateSimulatedStats(patch);
+      return NextResponse.json(simulatedData);
     }
+
+    try {
+      // Check for cache first
+      if (
+        statsCache.timestamp > 0 && 
+        Date.now() < statsCache.expiry &&
+        statsCache.data[rank] && 
+        statsCache.data[rank][region]
+      ) {
+        console.log(`Using cached data for rank=${rank}, region=${region}`);
+        return NextResponse.json(statsCache.data[rank][region]);
+      }
+
+      // Try to get real data from the API
+      const championStats = await fetchChampionStats(rank, region);
+      return NextResponse.json(championStats);
+    } catch (apiError) {
+      console.error('Error fetching champion stats from API:', apiError);
+      // Fall back to simulated data on API error
+      const simulatedData = await generateSimulatedStats(patch);
+      return NextResponse.json(simulatedData);
+    }
+  } catch (error) {
+    console.error('Unhandled exception in champion-stats API route:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred', details: String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// Generate simulated champion statistics as a fallback when API is unavailable
+async function generateSimulatedStats(patch: string): Promise<Record<string, ChampionStats>> {
+  try {
+    console.log(`Generating simulated champion stats for patch ${patch}`);
     
-    // Get champion data from Data Dragon
+    // Fetch champion data from Data Dragon
     const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
     if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
     const champData: ChampionDataResponse = await champResponse.json();
     
-    // Initialize stats tracker for all champions
-    const statsTracker: Record<string, {
-      games: number,
-      wins: number,
-      bans: number,
-      picks: Record<string, number>,
-      roleWins: Record<string, number>,
-      rolePicks: Record<string, number>,
-    }> = {};
-    
-    // Initialize for all champions
-    Object.values(champData.data).forEach(champion => {
-      statsTracker[champion.id] = {
-        games: 0,
-        wins: 0,
-        bans: 0,
-        picks: { TOP: 0, JUNGLE: 0, MIDDLE: 0, BOTTOM: 0, UTILITY: 0 },
-        roleWins: { TOP: 0, JUNGLE: 0, MIDDLE: 0, BOTTOM: 0, UTILITY: 0 },
-        rolePicks: { TOP: 0, JUNGLE: 0, MIDDLE: 0, BOTTOM: 0, UTILITY: 0 }
-      };
-    });
-    
-    // Get summoners from the specified tier
-    console.log(`Fetching league entries for ${tier} ${division} in ${region}`);
-    let leagueEntries: LeagueEntry[] = [];
-    try {
-      const leagueUrl = `https://${region}.api.riotgames.com/lol/league/v4/entries/${queue}/${tier}/${division}`;
-      const leagueResponse = await axios.get(
-        leagueUrl,
-        { 
-          headers: { 'X-Riot-Token': RIOT_API_KEY },
-          params: { page: 1 }
-        }
-      );
-      leagueEntries = leagueResponse.data;
-      console.log(`Got ${leagueEntries.length} league entries`);
-    } catch (error) {
-      console.error('Error fetching league entries:', error);
-      throw error;
-    }
-    
-    // Get PUUIDs for summoners
-    const summonerIds = leagueEntries.slice(0, 10).map(entry => entry.summonerId);
-    const puuids: string[] = [];
-    
-    for (const summonerId of summonerIds) {
-      try {
-        console.log(`Getting PUUID for summoner ID: ${summonerId}`);
-        const summonerUrl = `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`;
-        const summonerResponse = await axios.get(
-          summonerUrl,
-          { headers: { 'X-Riot-Token': RIOT_API_KEY } }
-        );
-        puuids.push(summonerResponse.data.puuid);
-      } catch (error) {
-        console.error(`Error getting PUUID for summoner ID ${summonerId}:`, error);
-      }
-    }
-    
-    // Get match IDs from PUUIDs
-    const matchIds: string[] = [];
-    const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
-    
-    for (const puuid of puuids) {
-      try {
-        console.log(`Getting match IDs for PUUID: ${puuid.substring(0, 8)}...`);
-        const matchUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids`;
-        const matchResponse = await axios.get(
-          matchUrl,
-          { 
-            headers: { 'X-Riot-Token': RIOT_API_KEY },
-            params: { 
-              count: 5,  // Limit to 5 matches per player for performance
-              queue: 420  // Ranked solo queue
-            }
-          }
-        );
-        matchIds.push(...matchResponse.data);
-      } catch (error) {
-        console.error(`Error getting match IDs for PUUID ${puuid.substring(0, 8)}:`, error);
-      }
-    }
-    
-    // Remove duplicates
-    const uniqueMatchIds = [...new Set(matchIds)];
-    console.log(`Fetched ${uniqueMatchIds.length} unique match IDs`);
-    
-    // Process match data
-    const totalMatchesAnalyzed = Math.min(uniqueMatchIds.length, 20); // Limit to 20 matches for performance
-    let totalGamesProcessed = 0;
-    
-    console.log(`Processing ${totalMatchesAnalyzed} matches...`);
-    
-    for (let i = 0; i < totalMatchesAnalyzed; i++) {
-      const matchId = uniqueMatchIds[i];
-      try {
-        console.log(`Processing match ${i+1}/${totalMatchesAnalyzed}: ${matchId}`);
-        const match = await getMatchData(matchId, region);
-        
-        if (!match || !match.info || !match.info.participants) {
-          console.log(`Skipping match ${matchId}: Invalid data`);
-          continue;
-        }
-        
-        totalGamesProcessed++;
-        
-        // Process bans
-        if (match.info.teams) {
-          for (const team of match.info.teams) {
-            if (team.bans) {
-              for (const ban of team.bans) {
-                // Convert numeric championId to champion name
-                const bannedChamp = Object.values(champData.data).find(
-                  champ => champ.key === ban.championId.toString()
-                );
-                
-                if (bannedChamp && statsTracker[bannedChamp.id]) {
-                  statsTracker[bannedChamp.id].bans++;
-                }
-              }
-            }
-          }
-        }
-        
-        // Process participants
-        for (const participant of match.info.participants) {
-          const champId = participant.championName;
-          const role = normalizeRoleName(participant.teamPosition);
-          
-          if (champId && statsTracker[champId]) {
-            // Track overall picks and wins
-            statsTracker[champId].games++;
-            if (participant.win) {
-              statsTracker[champId].wins++;
-            }
-            
-            // Track role-specific picks and wins
-            if (role && Object.keys(statsTracker[champId].picks).includes(role)) {
-              statsTracker[champId].picks[role]++;
-              statsTracker[champId].rolePicks[role]++;
-              if (participant.win) {
-                statsTracker[champId].roleWins[role]++;
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error(`Error processing match ${matchId}:`, error);
-      }
-    }
-    
-    console.log(`Successfully processed ${totalGamesProcessed} matches`);
-    
-    // Calculate stats and build result
     const result: Record<string, ChampionStats> = {};
-    const totalGameCount = totalGamesProcessed || 1; // Avoid division by zero
     
-    // Process each champion
+    // Generate simulated stats for each champion
     for (const [champId, champion] of Object.entries(champData.data)) {
-      const stats = statsTracker[champId];
+      const damageType = getDamageType(champion.tags, champion.info);
+      const difficulty = getDifficulty(champion.info);
       const roles = determineRolesFromTags(champion.tags, champion.info, champId);
       
-      if (roles.length === 0) roles.push('TOP');
+      // Base values for simulation
+      const isStrong = Math.random() < 0.3; // 30% chance to be considered "strong meta"
+      const isPopular = Math.random() < 0.25; // 25% chance to be considered "popular"
+      const isFrustrating = Math.random() < 0.15; // 15% chance to be considered "frustrating to play against"
       
+      // Generate base game count (higher for popular champions)
+      let baseGameCount = 1000 + Math.floor(Math.random() * 2000);
+      if (isPopular) baseGameCount += 1000 + Math.floor(Math.random() * 2000);
+      if (isStrong) baseGameCount += 500 + Math.floor(Math.random() * 500);
+      
+      // Generate base rates
+      let baseWinRate = 48 + Math.random() * 4; // 48-52% win rate base
+      if (isStrong) baseWinRate += 2 + Math.random() * 2; // Strong champions get 50-54%
+      if (difficulty === 'Hard') baseWinRate -= 1; // Hard champions have slightly lower win rates
+      
+      let basePickRate = 0.5 + Math.random() * 5.5; // 0.5-6% pick rate base
+      if (isPopular) basePickRate += 3 + Math.random() * 6; // Popular champions get 3.5-12% extra
+      if (isStrong) basePickRate += 2 + Math.random() * 3; // Strong champions get 2.5-5% extra
+      
+      let baseBanRate = Math.random() * 5; // 0-5% ban rate base
+      if (isFrustrating) baseBanRate += 10 + Math.random() * 25; // Frustrating champions get 10-35% extra
+      if (isStrong) baseBanRate += 5 + Math.random() * 10; // Strong champions get 5-15% extra
+      
+      // Apply minor adjustments based on champion attributes
+      baseWinRate += (champion.info.attack / 20) - 0.25; // Small adjustment based on attack
+      baseWinRate += (champion.info.defense / 25); // Small adjustment based on defense
+      baseWinRate -= (champion.info.difficulty / 30); // Higher difficulty slightly lowers win rate
+      
+      // Ensure rates are within realistic bounds
+      baseWinRate = Math.max(46, Math.min(54, baseWinRate));
+      basePickRate = Math.max(0.5, Math.min(15, basePickRate));
+      baseBanRate = Math.max(0, Math.min(40, baseBanRate));
+      
+      // Generate role-specific stats
       const roleStats: Record<string, RoleStats> = {};
       
-      // Check if we have any real data
-      const hasRealData = stats.games > 0;
-      
-      // Process each role
       for (const role of roles) {
-        // Calculate stats based on real data if available
-        if (hasRealData && stats.rolePicks[role] > 0) {
-          const rolePicks = stats.rolePicks[role];
-          const roleWins = stats.roleWins[role];
-          const winRate = (roleWins / rolePicks) * 100;
-          const pickRate = (rolePicks / totalGameCount) * 100;
-          const banRate = (stats.bans / totalGameCount) * 100;
-          
-          roleStats[role] = {
-            games: rolePicks,
-            wins: roleWins,
-            kda: { kills: 0, deaths: 0, assists: 0 }, // We don't calculate these yet
-            damage: { dealt: 0, taken: 0 },
-            gold: 0,
-            cs: 0,
-            vision: 0,
-            objectives: { dragons: 0, barons: 0, towers: 0 },
-            winRate: parseFloat(winRate.toFixed(2)),
-            pickRate: parseFloat(pickRate.toFixed(2)),
-            banRate: parseFloat(banRate.toFixed(2)),
-            totalGames: totalGameCount,
-            tier: calculateSimulatedTier(winRate, pickRate, banRate)
-          };
-        } else {
-          // Use simulation for this role
-          const winRate = 48 + (Math.random() * 4); // 48-52% win rate
-          const pickRate = 0.5 + (Math.random() * 5.5); // 0.5-6% pick rate
-          const banRate = Math.random() * 5; // 0-5% ban rate
-          
-          // Apply adjustments based on champion attributes
-          const adjustedWinRate = Math.min(54, Math.max(46, winRate + (champion.info.difficulty > 7 ? -1 : 1)));
-          const adjustedPickRate = Math.min(25, Math.max(0.5, pickRate));
-          const adjustedBanRate = Math.min(20, Math.max(0, banRate));
-          
-          roleStats[role] = {
-            games: Math.floor(500 + Math.random() * 1500), // 500-2000 games
-            wins: Math.floor((500 + Math.random() * 1500) * (adjustedWinRate / 100)),
-            kda: { kills: 0, deaths: 0, assists: 0 },
-            damage: { dealt: 0, taken: 0 },
-            gold: 0,
-            cs: 0,
-            vision: 0,
-            objectives: { dragons: 0, barons: 0, towers: 0 },
-            winRate: adjustedWinRate,
-            pickRate: adjustedPickRate,
-            banRate: adjustedBanRate,
-            totalGames: totalGameCount,
-            tier: calculateSimulatedTier(adjustedWinRate, adjustedPickRate, adjustedBanRate)
-          };
+        // Role-specific adjustments
+        let roleGameCount = baseGameCount;
+        let roleWinRate = baseWinRate;
+        let rolePickRate = basePickRate;
+        let roleBanRate = baseBanRate;
+        
+        // Primary role gets more games
+        if (role === roles[0]) {
+          roleGameCount *= 1.5;
+          roleWinRate += 0.5;
         }
+        
+        // Add some random variation
+        roleGameCount *= 0.8 + Math.random() * 0.4; // 80-120% of base
+        roleWinRate += (Math.random() * 2) - 1; // ±1%
+        rolePickRate += (Math.random() * 1) - 0.5; // ±0.5%
+        
+        // Ensure at least 500 games minimum
+        roleGameCount = Math.max(500, Math.floor(roleGameCount));
+        
+        // Calculate wins from win rate
+        const wins = Math.floor(roleGameCount * (roleWinRate / 100));
+        
+        // Determine tier based on win and pick rates
+        const tier = calculateSimulatedTier(roleWinRate, rolePickRate, roleBanRate);
+        
+        roleStats[role] = {
+          games: roleGameCount,
+          wins: wins,
+          kda: {
+            kills: 5 + Math.random() * 5,
+            deaths: 3 + Math.random() * 3,
+            assists: 4 + Math.random() * 6
+          },
+          damage: {
+            dealt: 15000 + Math.random() * 10000,
+            taken: 12000 + Math.random() * 10000
+          },
+          gold: 10000 + Math.random() * 5000,
+          cs: 150 + Math.random() * 100,
+          vision: 10 + Math.random() * 20,
+          objectives: {
+            dragons: 1 + Math.random() * 1,
+            barons: 0.5 + Math.random() * 0.5,
+            towers: 1 + Math.random() * 2
+          },
+          winRate: roleWinRate,
+          pickRate: rolePickRate,
+          banRate: roleBanRate,
+          totalGames: 100000 + Math.floor(Math.random() * 50000),
+          tier: tier
+        };
       }
       
-      // Determine damage type from champion info
-      const damageType = getDamageType(champion.tags, champion.info);
-      
-      // Determine difficulty from champion info
-      const difficulty = getDifficulty(champion.info);
-      
-      // Determine range (melee/ranged)
-      const range = champion.stats?.attackrange 
-        ? (champion.stats.attackrange <= 300 ? 'Melee' : 'Ranged')
-        : (champion.tags.includes('Marksman') ? 'Ranged' : 'Melee');
-      
-      // Add champion to result
+      // Create the final champion stats object
       result[champId] = {
         id: champId,
         name: champion.name,
         image: champion.image,
+        games: Object.values(roleStats).reduce((sum, role) => sum + role.games, 0),
+        wins: Object.values(roleStats).reduce((sum, role) => sum + role.wins, 0),
+        bans: Math.floor(10000 * (baseBanRate / 100)),
         roles: roleStats,
-        difficulty,
-        damageType,
-        range
+        difficulty: difficulty,
+        damageType: damageType,
+        range: champion.stats?.attackrange && champion.stats.attackrange > 150 ? 'Ranged' : 'Melee'
       };
     }
     
-    // Update cache
-    if (!statsCache.data[rank]) {
-      statsCache.data[rank] = {};
-    }
-    statsCache.data[rank][region] = result;
-    statsCache.timestamp = Date.now();
-    statsCache.expiry = Date.now() + CACHE_DURATION;
-    
-    console.log(`Generated stats for ${Object.keys(result).length} champions using real data`);
-    return NextResponse.json(result);
+    console.log(`Generated simulated stats for ${Object.keys(result).length} champions`);
+    return result;
   } catch (error) {
-    console.error('Error generating champion stats:', error);
-    return NextResponse.json({ error: 'Failed to generate champion stats' }, { status: 500 });
+    console.error('Error generating simulated stats:', error);
+    // Return a minimal object to avoid breaking the client
+    return {};
   }
 }
 
