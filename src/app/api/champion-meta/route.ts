@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars */
 import { NextResponse } from 'next/server';
 
 // Define types for KV store to avoid 'any'
@@ -272,9 +272,9 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
       throw new Error(`Failed to fetch champion data: ${response.status}`);
     }
     
-    // Replace any with RiotMatch on line 243
-    const match = await response.json() as RiotMatch;
-    const champData = match.data.champion;
+    // Parse champion data with the correct type
+    const matchData = await response.json() as ChampionDataResponse;
+    const champData = matchData.data[championId];
     const tags = champData.tags || [];
     const role = determineChampionRole(tags, championId);
     
@@ -354,7 +354,7 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     const counters = generateChampionCounters(championId, role, version);
     
     // Get skill order
-    // @ts-ignore
+    // @ts-expect-error - Property access on dynamically retrieved champion data
     const spells = champData.spells.map((spell) => ({
       id: spell.id,
       name: spell.name,
