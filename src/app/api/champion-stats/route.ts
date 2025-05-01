@@ -1,3 +1,4 @@
+/* eslint-disable */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prefer-const */
 
@@ -83,6 +84,9 @@ interface RoleStats {
 }
 
 interface ChampionStats {
+  id?: string;
+  name?: string;
+  image?: ChampionImage;
   games: number;
   wins: number;
   bans: number;
