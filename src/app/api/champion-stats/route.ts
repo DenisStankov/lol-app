@@ -1,11 +1,5 @@
-/* eslint-disable */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable prefer-const */
-
-// Replace with:
 // @ts-nocheck
 /* eslint-disable */
-
 import { NextResponse } from 'next/server';
 import axios, { AxiosError } from 'axios';
 
