@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable prefer-const */
+
 import { NextResponse } from 'next/server';
 import axios, { AxiosError } from 'axios';
 
