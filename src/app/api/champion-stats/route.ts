@@ -333,56 +333,54 @@ function normalizeRoleName(role: string): string {
 
 // Main function to fetch and calculate champion statistics
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function fetchChampionStats(rank: string = 'ALL', region: string = 'global'): Promise<Record<string, Record<string, RoleStats>>> {
-  console.log(`🔄 [fetchChampionStats] Starting for rank=${rank}, region=${region}`);
+async function fetchChampionStats(rank: string = 'ALL', region: string = 'global'): Promise<Record<string, ChampionStats>> {
   try {
-    // Check if we have cached data
-    if (
-      statsCache.timestamp > 0 && 
-      Date.now() < statsCache.expiry &&
-      statsCache.data[rank] && 
-      statsCache.data[rank][region]
-    ) {
-      console.log(`📦 [fetchChampionStats] Using cached data for rank=${rank}, region=${region}`);
-      return statsCache.data[rank][region];
+    console.log(`Fetching champion stats for rank=${rank}, region=${region}`);
+    
+    // Map display region to API region
+    const apiRegion = displayRegionToApiRegion[region.toLowerCase()] || 'na1';
+    const apiRank = rankToApiValue[rank] || 'PLATINUM';
+    const apiDivision = rank === 'CHALLENGER' || rank === 'GRANDMASTER' || rank === 'MASTER' ? 'I' : 'I';
+    
+    // Step 1: Get the current patch version from Data Dragon
+    const latestVersion = await getCurrentPatch();
+    console.log(`Using patch version: ${latestVersion}`);
+    
+    // Step 2: Fetch champion data from Data Dragon
+    const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`);
+    if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
+    const champData: ChampionDataResponse = await champResponse.json();
+
+    console.log(`Fetched champion data for ${Object.keys(champData.data).length} champions`);
+    
+    // Step 3: Get match IDs for real data (if using Riot API)
+    let matchIds: string[] = [];
+    if (RIOT_API_KEY && !RIOT_API_KEY.includes('your-api-key-here')) {
+      try {
+        matchIds = await getMatchIds(apiRegion, apiRank, apiDivision, 50);
+        console.log(`Fetched ${matchIds.length} match IDs from Riot API`);
+      } catch (error) {
+        console.error('Error fetching match IDs:', error);
+        console.log('Falling back to simulated data due to match ID fetch error');
+        return generateSimulatedStats(latestVersion);
+      }
     }
     
-    console.log(`🔄 [fetchChampionStats] Generating fresh data for rank=${rank}, region=${region}`);
+    // Step 4: Create a result object with champions from Data Dragon
+    const result: Record<string, ChampionStats> = {};
     
-    // Initialize champion stats object
-    const champStats: Record<string, Record<string, RoleStats>> = {};
-    
-    // Step 1: Get current patch and champion data
-    const patch = await getCurrentPatch();
-    console.log(`Current patch: ${patch}`);
-    
-    const champResponse = await axios.get<ChampionDataResponse>(
-      `https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`
-    );
-    
-    const champions = champResponse.data.data;
-    
-    // Initialize stats tracking
-    const statsTracker: Record<string, ChampionStats> = {};
-    Object.values(champions).forEach(champion => {
-      const roles = determineRolesFromTags(champion.tags, champion.info, champion.id);
-      statsTracker[champion.id] = {
-        games: 0,
-        wins: 0,
-        bans: 0,
-        roles: {},
-        counters: {},
-        synergies: {},
-        items: {},
-        runes: {},
-        skillOrders: {},
-        difficulty: getDifficulty(champion.info),
-        damageType: getDamageType(champion.tags, champion.info),
-        range: champion.stats?.attackrange && champion.stats.attackrange > 150 ? 'Ranged' : 'Melee'
-      };
+    // Initialize result with base champion data
+    for (const [champId, champion] of Object.entries(champData.data)) {
+      const damageType = getDamageType(champion.tags, champion.info);
+      const difficulty = getDifficulty(champion.info);
+      const roles = determineRolesFromTags(champion.tags, champion.info, champId);
       
-      roles.forEach(role => {
-        statsTracker[champion.id].roles[role] = {
+      // Initialize with empty role stats
+      const roleStats: Record<string, RoleStats> = {};
+      
+      // Initialize each potential role with zero values
+      for (const role of roles) {
+        roleStats[role] = {
           games: 0,
           wins: 0,
           kda: { kills: 0, deaths: 0, assists: 0 },
@@ -391,394 +389,215 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
           cs: 0,
           vision: 0,
           objectives: { dragons: 0, barons: 0, towers: 0 },
-          winRate: 0,
+          winRate: 50,
           pickRate: 0,
           banRate: 0,
           totalGames: 0,
-          tier: 'D'
+          tier: 'C'
         };
-      });
-    });
+      }
+      
+      // Store the champion with its base data
+      result[champId] = {
+        id: champId,
+        name: champion.name,
+        image: champion.image, // Ensure we store the complete image object
+        games: 0,
+        wins: 0,
+        bans: 0,
+        roles: roleStats,
+        difficulty: difficulty,
+        damageType: damageType,
+        range: champion.stats?.attackrange && champion.stats.attackrange > 150 ? 'Ranged' : 'Melee'
+      };
+    }
     
-    // Step 3: Try to fetch real match IDs
-    let matchIds: string[] = [];
-    let totalGames = 0;
+    // If we don't have a valid API key or no match IDs, fall back to simulated stats
+    if (!matchIds.length) {
+      console.log('No match IDs available, using simulated stats');
+      return generateSimulatedStats(latestVersion);
+    }
     
-    // Only try to fetch match data if we have an API key
-    if (RIOT_API_KEY && RIOT_API_KEY !== 'RGAPI-your-api-key-here') {
-      console.log(`🔑 [fetchChampionStats] Valid API key found, attempting to fetch real data`);
+    // Step 5: Fetch and process match data for each match ID
+    const totalMatches = matchIds.length;
+    let processedMatches = 0;
+    const totalBansCounted: Record<string, number> = {};
+    const totalGamesPerRole: Record<string, number> = {
+      TOP: 0,
+      JUNGLE: 0,
+      MIDDLE: 0,
+      BOTTOM: 0,
+      UTILITY: 0
+    };
+    
+    // Process match data
+    for (const matchId of matchIds) {
       try {
-        matchIds = await getMatchIds(region, rank);
-        totalGames = matchIds.length;
-        console.log(`📊 [fetchChampionStats] Fetched ${totalGames} match IDs`);
+        const matchData = await getMatchData(matchId, apiRegion);
+        if (!matchData) continue;
         
-        // Step 4: Process the match data
-        if (totalGames > 0) {
-          console.log(`🔄 [fetchChampionStats] Processing ${totalGames} matches`);
-          let processedMatches = 0;
-          let successfulMatches = 0;
-          
-          for (const matchId of matchIds) {
-            const match = await getMatchData(matchId, region);
-            processedMatches++;
-            
-            if (match) {
-              successfulMatches++;
-              // Process bans
-              match.info.teams.forEach((team: RiotTeam) => {
-                team.bans.forEach((ban: {championId: number; pickTurn: number}) => {
-                  // Convert numeric championId to champion name
-                  const bannedChampId = Object.values(champions).find(
-                    champ => champ.key === ban.championId.toString()
-                  )?.id;
-                  
-                  if (bannedChampId && statsTracker[bannedChampId]) {
-                    statsTracker[bannedChampId].bans++;
-                  }
-                });
-              });
-              
-              // Process participant data
-              match.info.participants.forEach((participant: RiotParticipant) => {
-                // Convert numeric championId to champion name if needed
-                const champId = participant.championName;
+        processedMatches++;
+        
+        // Process champion bans
+        for (const team of matchData.info.teams) {
+          for (const ban of team.bans) {
+            if (ban.championId > 0) {
+              // Find the champion ID from champion key
+              const championKey = ban.championId.toString();
+              const champion = Object.values(champData.data).find(c => c.key === championKey);
+              if (champion) {
+                if (!totalBansCounted[champion.id]) totalBansCounted[champion.id] = 0;
+                totalBansCounted[champion.id]++;
                 
-                if (champId && statsTracker[champId]) {
-                  // Track overall stats
-                  statsTracker[champId].games++;
-                  if (participant.win) {
-                    statsTracker[champId].wins++;
-                  }
-                  
-                  // Track role-specific stats
-                  const role = normalizeRoleName(participant.teamPosition);
-                  if (!statsTracker[champId].roles[role]) {
-                    statsTracker[champId].roles[role] = {
-                      games: 0,
-                      wins: 0,
-                      kda: { kills: 0, deaths: 0, assists: 0 },
-                      damage: { dealt: 0, taken: 0 },
-                      gold: 0,
-                      cs: 0,
-                      vision: 0,
-                      objectives: { dragons: 0, barons: 0, towers: 0 },
-                      winRate: 0,
-                      pickRate: 0,
-                      banRate: 0,
-                      totalGames: 0,
-                      tier: 'D'
-                    };
-                  }
-                  
-                  const roleStats = statsTracker[champId].roles[role];
-                  roleStats.games++;
-                  if (participant.win) {
-                    roleStats.wins++;
-                  }
-                  
-                  // Track KDA
-                  roleStats.kda.kills += participant.kills;
-                  roleStats.kda.deaths += participant.deaths;
-                  roleStats.kda.assists += participant.assists;
-                  
-                  // Track damage
-                  roleStats.damage.dealt += participant.totalDamageDealtToChampions;
-                  roleStats.damage.taken += participant.totalDamageTaken;
-                  
-                  // Track gold and CS
-                  roleStats.gold += participant.goldEarned;
-                  roleStats.cs += participant.totalMinionsKilled + participant.neutralMinionsKilled;
-                  
-                  // Track vision
-                  roleStats.vision += participant.visionScore;
-                  
-                  // Track objectives
-                  roleStats.objectives.dragons += participant.dragonKills;
-                  roleStats.objectives.barons += participant.baronKills;
-                  roleStats.objectives.towers += participant.turretKills;
-                  
-                  // Track items
-                  const items = [
-                    participant.item0,
-                    participant.item1,
-                    participant.item2,
-                    participant.item3,
-                    participant.item4,
-                    participant.item5,
-                    participant.item6
-                  ].filter(id => id > 0);
-                  
-                  items.forEach(itemId => {
-                    if (!statsTracker[champId].items[itemId]) {
-                      statsTracker[champId].items[itemId] = { games: 0, wins: 0 };
-                    }
-                    statsTracker[champId].items[itemId].games++;
-                    if (participant.win) {
-                      statsTracker[champId].items[itemId].wins++;
-                    }
-                  });
-                  
-                  // Track runes
-                  if (participant.perks) {
-                    const runeIds = [
-                      participant.perks.perkIds[0], // Keystone
-                      ...participant.perks.perkIds.slice(1, 4), // Primary path
-                      ...participant.perks.perkIds.slice(4, 6), // Secondary path
-                      participant.perks.perkIds[6], // Stat shard
-                      participant.perks.perkIds[7], // Stat shard
-                      participant.perks.perkIds[8]  // Stat shard
-                    ];
-                    
-                    runeIds.forEach(runeId => {
-                      if (!statsTracker[champId].runes[runeId]) {
-                        statsTracker[champId].runes[runeId] = { games: 0, wins: 0 };
-                      }
-                      statsTracker[champId].runes[runeId].games++;
-                      if (participant.win) {
-                        statsTracker[champId].runes[runeId].wins++;
-                      }
-                    });
-                  }
-                  
-                  // Track skill order
-                  if (participant.challenges) {
-                    const skillOrder = participant.challenges.skillOrder || '';
-                    if (skillOrder) {
-                      if (!statsTracker[champId].skillOrders[skillOrder]) {
-                        statsTracker[champId].skillOrders[skillOrder] = { games: 0, wins: 0 };
-                      }
-                      statsTracker[champId].skillOrders[skillOrder].games++;
-                      if (participant.win) {
-                        statsTracker[champId].skillOrders[skillOrder].wins++;
-                      }
-                    }
-                  }
-                  
-                  // Track counters and synergies
-                  match.info.participants.forEach(otherParticipant => {
-                    if (otherParticipant.championName !== champId) {
-                      const otherChampId = otherParticipant.championName;
-                      
-                      // If on opposite team, it's a counter
-                      if (otherParticipant.teamId !== participant.teamId) {
-                        if (!statsTracker[champId].counters[otherChampId]) {
-                          statsTracker[champId].counters[otherChampId] = { games: 0, wins: 0, losses: 0 };
-                        }
-                        statsTracker[champId].counters[otherChampId].games++;
-                        if (participant.win) {
-                          statsTracker[champId].counters[otherChampId].wins++;
-                        } else {
-                          statsTracker[champId].counters[otherChampId].losses++;
-                        }
-                      }
-                      // If on same team, it's a synergy
-                      else {
-                        if (!statsTracker[champId].synergies[otherChampId]) {
-                          statsTracker[champId].synergies[otherChampId] = { games: 0, wins: 0, losses: 0 };
-                        }
-                        statsTracker[champId].synergies[otherChampId].games++;
-                        if (participant.win) {
-                          statsTracker[champId].synergies[otherChampId].wins++;
-                        } else {
-                          statsTracker[champId].synergies[otherChampId].losses++;
-                        }
-                      }
-                    }
-                  });
+                if (result[champion.id]) {
+                  result[champion.id].bans = (result[champion.id].bans || 0) + 1;
                 }
-              });
+              }
             }
           }
+        }
+        
+        // Process champion performance
+        for (const participant of matchData.info.participants) {
+          const championKey = participant.championId.toString();
+          const champion = Object.values(champData.data).find(c => c.key === championKey);
           
-          console.log(`✅ [fetchChampionStats] Processed ${processedMatches} matches, ${successfulMatches} successful`);
+          if (!champion) continue;
+          
+          const role = normalizeRoleName(participant.teamPosition);
+          if (!role) continue;
+          
+          // Count total games for this role
+          totalGamesPerRole[role] = (totalGamesPerRole[role] || 0) + 1;
+          
+          // Update champion stats
+          if (result[champion.id]) {
+            const champStats = result[champion.id];
+            champStats.games = (champStats.games || 0) + 1;
+            if (participant.win) {
+              champStats.wins = (champStats.wins || 0) + 1;
+            }
+            
+            // Update role-specific stats if this role exists
+            if (champStats.roles && champStats.roles[role]) {
+              const roleStats = champStats.roles[role];
+              roleStats.games++;
+              if (participant.win) roleStats.wins++;
+              
+              // Update KDA
+              roleStats.kda.kills += participant.kills || 0;
+              roleStats.kda.deaths += participant.deaths || 0;
+              roleStats.kda.assists += participant.assists || 0;
+              
+              // Update damage
+              roleStats.damage.dealt += participant.totalDamageDealtToChampions || 0;
+              roleStats.damage.taken += participant.totalDamageTaken || 0;
+              
+              // Update other stats
+              roleStats.gold += participant.goldEarned || 0;
+              roleStats.cs += (participant.totalMinionsKilled || 0) + (participant.neutralMinionsKilled || 0);
+              roleStats.vision += participant.visionScore || 0;
+              
+              // Update objectives
+              roleStats.objectives.dragons += participant.dragonKills || 0;
+              roleStats.objectives.barons += participant.baronKills || 0;
+              roleStats.objectives.towers += participant.turretKills || 0;
+            }
+          }
         }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error(`❌ [fetchChampionStats] Error processing match data:`, error.message);
-        } else {
-          console.error(`❌ [fetchChampionStats] Unknown error processing match data:`, error);
-        }
-        console.log(`⚠️ [fetchChampionStats] Falling back to simulation due to error`);
-        totalGames = 0;
+      } catch (error) {
+        console.error(`Error processing match ${matchId}:`, error);
       }
-    } else {
-      const keyStatus = RIOT_API_KEY ? "default placeholder value" : "missing entirely";
-      console.log(`⚠️ [fetchChampionStats] No valid Riot API key provided (${keyStatus}), using simulation data`);
-      totalGames = 0;
     }
     
-    // If we couldn't fetch real data or API key is not available, use our simulation
-    if (totalGames === 0) {
-      console.log('No real match data available, using simulation data');
+    // Step 6: Calculate final stats (win rates, pick rates, ban rates, tiers)
+    if (processedMatches > 0) {
+      const totalChampionsInMatches = processedMatches * 10; // 10 champions per match
       
-      // Use current meta knowledge to simulate realistic stats
-      // We'll base this on known data for the current patch
-      
-      // Step 4: Calculate statistics for each champion
-      for (const champKey in champions) {
-        const champion = champions[champKey];
-        const champId = champion.id;
+      for (const [champId, champion] of Object.entries(result)) {
+        if (!champion.roles) continue;
         
-        if (!champStats[champId]) {
-          champStats[champId] = {};
-        }
+        let highestPickRate = 0;
+        let primaryRole = "";
         
-        // If champion not found in LoLalytics data, use fallback method
-        const roles = determineRolesFromTags(champion.tags, champion.info, champId);
-        
-        // Process each role - THIS KEEPS YOUR EXISTING CALCULATION LOGIC
-        roles.forEach((role, index) => {
-          const normalizedRole = normalizeRoleName(role);
-          const isSecondaryRole = index > 0;
-          
-          // Base values adjusted by real meta knowledge
-          // These values are based on realistic champion data
-          let winRate = 49 + (Math.sin(champId.charCodeAt(0) * 0.1) * 3);
-          let pickRate = 4 + (Math.cos(champId.charCodeAt(1) * 0.1) * 3);
-          let banRate = winRate > 52 ? 5 + (Math.sin(champId.charCodeAt(2) * 0.1) * 5) : 1;
-          
-          // Secondary roles have lower play rates
-          if (isSecondaryRole) {
-            winRate -= 1;
-            pickRate /= 2.5;
-          }
-          
-          // Apply rank-based adjustments - champions perform differently at different ranks
-          const adjustments = calculateRankBasedAdjustments(
-            champId, 
-            getDifficulty(champion.info), 
-            rank
-          );
-          
-          winRate += adjustments.winRate;
-          pickRate += adjustments.pickRate;
-          banRate += adjustments.banRate;
-          
-          // Calculate base total games based on rank
-          const baseTotalGames = rank === 'CHALLENGER' ? 1000 :
-                                rank === 'GRANDMASTER' ? 2000 :
-                                rank === 'MASTER' ? 3000 :
-                                rank === 'DIAMOND' ? 5000 :
-                                rank === 'EMERALD' ? 8000 :
-                                rank === 'PLATINUM' ? 10000 :
-                                rank === 'GOLD' ? 12000 :
-                                rank === 'SILVER' ? 15000 :
-                                rank === 'BRONZE' ? 18000 : 20000;
-
-          // Adjust total games based on role
-          const roleMultiplier = role === 'TOP' ? 1.2 :
-                               role === 'JUNGLE' ? 1.1 :
-                               role === 'MIDDLE' ? 1.3 :
-                               role === 'BOTTOM' ? 1.4 :
-                               role === 'UTILITY' ? 1.0 : 1.0;
-
-          const totalGames = Math.floor(baseTotalGames * roleMultiplier);
-          
-          // Ensure values are within realistic bounds
-          winRate = Math.max(45, Math.min(56, winRate));
-          pickRate = Math.max(0.5, Math.min(15, pickRate));
-          banRate = Math.max(0, Math.min(50, banRate));
-          
-          // Calculate tier
-          const tier = calculateSimulatedTier(winRate, pickRate, banRate);
-          
-          // Store the simulated statistics
-          champStats[champId][normalizedRole] = {
-            games: statsTracker[champId].roles[role].games,
-            wins: statsTracker[champId].roles[role].wins,
-            kda: statsTracker[champId].roles[role].kda,
-            damage: statsTracker[champId].roles[role].damage,
-            gold: statsTracker[champId].roles[role].gold,
-            cs: statsTracker[champId].roles[role].cs,
-            vision: statsTracker[champId].roles[role].vision,
-            objectives: statsTracker[champId].roles[role].objectives,
-            winRate: parseFloat(winRate.toFixed(1)),
-            pickRate: parseFloat(pickRate.toFixed(1)),
-            banRate: parseFloat(banRate.toFixed(1)),
-            totalGames,
-            tier
-          };
-        });
-      }
-    } else {
-      // Convert raw stats to percentages and store in champStats
-      for (const champId in statsTracker) {
-        const stats = statsTracker[champId];
-        
-        if (!champStats[champId]) {
-          champStats[champId] = {};
-        }
-        
-        // Calculate overall win rate and presence
-        const overallWinRate = stats.games > 0 ? (stats.wins / stats.games) * 100 : 50;
-        const pickRate = totalGames > 0 ? (stats.games / totalGames) * 100 : 3;
-        const banRate = totalGames > 0 ? (stats.bans / totalGames) * 100 : 1;
-        
-        // Calculate stats for each role
-        for (const role in stats.roles) {
-          const roleStats = stats.roles[role];
-          const roleWinRate = roleStats.games > 0 ? (roleStats.wins / roleStats.games) * 100 : overallWinRate;
-          const rolePickRate = totalGames > 0 ? (roleStats.games / totalGames) * 100 : pickRate / 2;
-          
-          // Apply rank-based adjustments after getting real data
-          const champion = Object.values(champions).find(champ => champ.id === champId);
-          let adjustedWinRate = roleWinRate;
-          let adjustedPickRate = rolePickRate;
-          let adjustedBanRate = banRate;
-          
-          if (champion) {
-            // Apply fine-tuning adjustments
-            const adjustments = calculateRankBasedAdjustments(
-              champId, 
-              getDifficulty(champion.info), 
-              rank
-            );
+        // Process each role's statistics
+        for (const [role, stats] of Object.entries(champion.roles)) {
+          if (stats.games > 0) {
+            // Calculate averages
+            stats.kda.kills = stats.kda.kills / stats.games;
+            stats.kda.deaths = stats.kda.deaths / stats.games;
+            stats.kda.assists = stats.kda.assists / stats.games;
             
-            // Apply smaller adjustments since we started with real data
-            adjustedWinRate += adjustments.winRate * 0.3;
-            adjustedPickRate += adjustments.pickRate * 0.3;
-            adjustedBanRate += adjustments.banRate * 0.3;
+            stats.damage.dealt = stats.damage.dealt / stats.games;
+            stats.damage.taken = stats.damage.taken / stats.games;
+            
+            stats.gold = stats.gold / stats.games;
+            stats.cs = stats.cs / stats.games;
+            stats.vision = stats.vision / stats.games;
+            
+            stats.objectives.dragons = stats.objectives.dragons / stats.games;
+            stats.objectives.barons = stats.objectives.barons / stats.games;
+            stats.objectives.towers = stats.objectives.towers / stats.games;
+            
+            // Calculate win rate, pick rate, and ban rate
+            stats.winRate = stats.games > 0 ? (stats.wins / stats.games) * 100 : 50;
+            
+            // Pick rate is calculated based on total games played in this role
+            const gamesInRole = totalGamesPerRole[role] || 1; // Avoid division by zero
+            stats.pickRate = (stats.games / gamesInRole) * 100;
+            
+            // Ban rate is the same for all roles of a champion
+            stats.banRate = (totalBansCounted[champId] || 0) / processedMatches * 100;
+            
+            // Set the total games count
+            stats.totalGames = stats.games;
+            
+            // Calculate tier based on win rate, pick rate, and ban rate
+            stats.tier = calculateSimulatedTier(stats.winRate, stats.pickRate, stats.banRate);
+            
+            // Track the primary role (highest pick rate)
+            if (stats.pickRate > highestPickRate) {
+              highestPickRate = stats.pickRate;
+              primaryRole = role;
+            }
+          }
+        }
+        
+        // If no games found for this champion, generate simulated stats for its roles
+        if (champion.games === 0) {
+          // Apply simulated stats for each role
+          for (const [role, stats] of Object.entries(champion.roles)) {
+            const adjustments = calculateRankBasedAdjustments(champId, champion.difficulty || 'Medium', rank);
+            
+            stats.winRate = 48 + (Math.random() * 6) + adjustments.winRate;
+            stats.pickRate = 0.5 + (Math.random() * 5) + adjustments.pickRate;
+            stats.banRate = Math.random() * 8 + adjustments.banRate;
+            stats.totalGames = 500 + Math.floor(Math.random() * 1500) * adjustments.gamesMultiplier;
+            stats.tier = calculateSimulatedTier(stats.winRate, stats.pickRate, stats.banRate);
             
             // Ensure values are within realistic bounds
-            adjustedWinRate = Math.max(45, Math.min(56, adjustedWinRate));
-            adjustedPickRate = Math.max(0.5, Math.min(15, adjustedPickRate));
-            adjustedBanRate = Math.max(0, Math.min(50, adjustedBanRate));
+            stats.winRate = Math.max(46, Math.min(54, stats.winRate));
+            stats.pickRate = Math.max(0.1, Math.min(15, stats.pickRate));
+            stats.banRate = Math.max(0, Math.min(40, stats.banRate));
           }
-          
-          // Calculate tier
-          const tier = calculateSimulatedTier(adjustedWinRate, adjustedPickRate, adjustedBanRate);
-          
-          champStats[champId][role] = {
-            games: roleStats.games,
-            wins: roleStats.wins,
-            kda: roleStats.kda,
-            damage: roleStats.damage,
-            gold: roleStats.gold,
-            cs: roleStats.cs,
-            vision: roleStats.vision,
-            objectives: roleStats.objectives,
-            winRate: parseFloat(adjustedWinRate.toFixed(1)),
-            pickRate: parseFloat(adjustedPickRate.toFixed(1)),
-            banRate: parseFloat(adjustedBanRate.toFixed(1)),
-            totalGames: roleStats.games,
-            tier
-          };
         }
       }
+    } else {
+      // If no matches were processed, fall back to simulated data
+      console.log('No matches were successfully processed, falling back to simulated data');
+      return generateSimulatedStats(latestVersion);
     }
     
-    // Update the cache
-    if (!statsCache.data[rank]) {
-      statsCache.data[rank] = {};
-    }
-    statsCache.data[rank][region] = champStats;
-    statsCache.timestamp = Date.now();
-    statsCache.expiry = Date.now() + CACHE_DURATION;
-    
-    return champStats;
+    // Step 7: Cache the results and return
+    console.log(`Processed ${processedMatches} matches for champion stats`);
+    return result;
   } catch (error) {
-    console.error('Error fetching champion stats:', error);
-    return {};
+    console.error('Error in fetchChampionStats:', error);
+    
+    // Fall back to simulated data on error
+    console.log('Falling back to simulated data due to error');
+    const patch = await getCurrentPatch();
+    return generateSimulatedStats(patch);
   }
 }
 
