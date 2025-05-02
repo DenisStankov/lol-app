@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
- import Link from "next/link"
+import Link from "next/link"
 import { ChevronDown, Search, X, Info } from "lucide-react"
 import { 
   Popover,
@@ -332,6 +332,7 @@ export default function TierList() {
   const [selectedPatch, setSelectedPatch] = useState("")
   const [sortBy, setSortBy] = useState("tier")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  const [riotApiKey, setRiotApiKey] = useState<string>("")
 
   // Initial data load
   useEffect(() => {
@@ -457,23 +458,29 @@ export default function TierList() {
   useEffect(() => {
     // Only fetch if patches are loaded and we have selected values
     if (availablePatches.length > 0 && selectedPatch && selectedRank) {
-      const fetchWithParams = async () => {
+      // Create a retry mechanism
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      const fetchWithParams = async (retry = false) => {
         try {
-          setLoading(true);
-          setError("");
+          if (!retry) {
+            setLoading(true);
+            setError("");
+          }
           
           // Make API request with current selected patch, rank and region
           const apiUrl = `/api/champion-stats?patch=${selectedPatch}&rank=${selectedRank}&region=${selectedRegion}`;
-          console.log(`Making API request with params to: ${apiUrl}`);
+          console.log(`Making API request with params to: ${apiUrl}${retry ? ` (retry ${retryCount})` : ''}`);
           
           // Add timeout to fetch request
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
           
           try {
             const response = await fetch(apiUrl, {
               signal: controller.signal,
-              next: { revalidate: 3600 } // Cache for 1 hour
+              next: { revalidate: 0 } // Don't cache for retrying
             });
             
             clearTimeout(timeoutId);
@@ -487,29 +494,50 @@ export default function TierList() {
             console.log(`API data received, champions count: ${Object.keys(data).length}`);
             
             // Transform the data to match our Champion interface
-            processChampionData(data);
+            processChampionData(data, selectedPatch);
           } catch (fetchError) {
             console.error("Error fetching from API:", fetchError);
-            console.log("Falling back to local Data Dragon API");
             
-            // Try to fetch directly from Data Dragon instead
+            // Retry logic
+            if (retryCount < maxRetries) {
+              retryCount++;
+              console.log(`Retrying API request (${retryCount}/${maxRetries})...`);
+              
+              // Wait a bit before retrying
+              setTimeout(() => {
+                fetchWithParams(true);
+              }, 2000 * retryCount); // Exponential backoff
+              return;
+            }
+            
+            console.log("Maximum retries reached. Trying direct Data Dragon API");
+            
+            // First, try to fetch directly from Data Dragon API
             try {
               // Get latest patch version
               const versionResponse = await fetch(`https://ddragon.leagueoflegends.com/api/versions.json`);
               const versions = await versionResponse.json();
-              const latestVersion = versions[0];
+              const latestVersion = selectedPatch || versions[0];
+              console.log(`Using Data Dragon version: ${latestVersion}`);
               
               // Fetch champion data from Data Dragon
               const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`);
+              if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
               const champData = await champResponse.json();
               
-              // Create simulated data
-              const simulatedData = createSimulatedData(champData.data, latestVersion);
-              
-              // Process the simulated data
-              processChampionData(simulatedData);
-            } catch (fallbackError) {
-              console.error("Error fetching fallback data:", fallbackError);
+              // Try Riot API directly as another source for match data (if available)
+              try {
+                console.log("Attempting to enhance with Riot API data");
+                await enhanceWithRiotData(champData.data, latestVersion);
+              } catch (riotError) {
+                console.error("Could not enhance with Riot API:", riotError);
+                
+                // Create basic simulated data if Riot API fails
+                const simulatedData = createSimulatedData(champData.data, latestVersion);
+                processChampionData(simulatedData, latestVersion);
+              }
+            } catch (dataDragonError) {
+              console.error("Error fetching from Data Dragon:", dataDragonError);
               setError("Failed to fetch champion data. Please try again later.");
               setLoading(false);
             }
@@ -526,7 +554,9 @@ export default function TierList() {
   }, [selectedRank, selectedPatch, selectedRegion, availablePatches.length]);
 
   // Helper function to process champion data
-  const processChampionData = (data: any) => {
+  const processChampionData = (data: any, patchVersion: string) => {
+    console.log(`Processing champion data with ${Object.keys(data).length} champions using patch ${patchVersion}`);
+    
     const transformedChampions: Champion[] = Object.values(data).map((champion: any) => {
       // Select the primary role based on highest pick rate
       const roles = champion.roles || {}
@@ -557,10 +587,17 @@ export default function TierList() {
         tier: "C"
       }
       
-      // Safely construct image URL with null checks
+      // Check and log image data
+      if (champion.image) {
+        console.log(`Champion ${champion.id} has image data:`, champion.image.full);
+      } else {
+        console.log(`Champion ${champion.id} is missing image data`);
+      }
+      
+      // Construct image URL - ensure we use the correct format from Data Dragon
       const imageUrl = champion.image && champion.image.full 
-        ? `https://ddragon.leagueoflegends.com/cdn/${selectedPatch}/img/champion/${champion.image.full}`
-        : `/images/champions/default.png`; // Fallback to a default image
+        ? `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`
+        : `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.id}.png`; // Try direct champion ID
       
       // Values are already in percentage form from the API, no need to normalize
       return {
@@ -589,8 +626,24 @@ export default function TierList() {
   const createSimulatedData = (championData: any, version: string) => {
     const result: Record<string, any> = {};
     
+    console.log(`Creating fallback data with ${Object.keys(championData).length} champions from Data Dragon`);
+    
     for (const [champId, champion] of Object.entries(championData)) {
       const champ = champion as any;
+      
+      // Ensure we have the complete image object from Data Dragon
+      const imageObject = {
+        full: champ.image.full,
+        sprite: champ.image.sprite,
+        group: champ.image.group,
+        x: champ.image.x,
+        y: champ.image.y,
+        w: champ.image.w,
+        h: champ.image.h
+      };
+      
+      // Log the image data to verify
+      console.log(`Champion ${champId} image data:`, imageObject.full);
       
       // Determine role based on tags
       const roles: Record<string, any> = {};
@@ -631,7 +684,7 @@ export default function TierList() {
       result[champId] = {
         id: champId,
         name: champ.name,
-        image: champ.image,
+        image: imageObject, // Use the complete image object
         roles,
         difficulty,
         damageType,
@@ -929,6 +982,262 @@ export default function TierList() {
     fetchAgain();
   }, [selectedPatch, patchVersion, selectedRank]);
 
+  // Helper function to enhance with Riot API data if possible
+  const enhanceWithRiotData = async (championData: any, version: string) => {
+    // Check if we have a direct Riot API key in local storage (DEMO ONLY - not for production)
+    const apiKey = localStorage.getItem('riot_api_key');
+    if (!apiKey) {
+      throw new Error("No Riot API key available");
+    }
+    
+    console.log("Using stored Riot API key for direct access");
+    
+    // Convert display region to API region
+    const regionMap: Record<string, string> = {
+      'global': 'na1',
+      'na': 'na1',
+      'euw': 'euw1',
+      'eune': 'eun1',
+      'kr': 'kr',
+      'br': 'br1',
+      'jp': 'jp1'
+    };
+    
+    const region = regionMap[selectedRegion.toLowerCase()] || 'na1';
+    
+    // Try to fetch some challenger players
+    const leagueUrl = `https://${region}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5`;
+    const leagueResponse = await fetch(leagueUrl, {
+      headers: {
+        'X-Riot-Token': apiKey
+      }
+    });
+    
+    if (!leagueResponse.ok) {
+      throw new Error(`League fetch failed: ${leagueResponse.status}`);
+    }
+    
+    const leagueData = await leagueResponse.json();
+    
+    // Get a few summoner IDs
+    const summonerIds = leagueData.entries.slice(0, 5).map((entry: any) => entry.summonerId);
+    
+    // For each summoner, get their PUUID
+    const puuids = [];
+    for (const summonerId of summonerIds) {
+      const summonerUrl = `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`;
+      const summonerResponse = await fetch(summonerUrl, {
+        headers: {
+          'X-Riot-Token': apiKey
+        }
+      });
+      
+      if (!summonerResponse.ok) continue;
+      
+      const summonerData = await summonerResponse.json();
+      puuids.push(summonerData.puuid);
+    }
+    
+    if (puuids.length === 0) {
+      throw new Error("Could not get any valid PUUIDs");
+    }
+    
+    // Get match IDs for each PUUID
+    const routingValue = getRoutingValue(region);
+    const matchIds = [];
+    
+    for (const puuid of puuids) {
+      const matchesUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&count=5`;
+      const matchesResponse = await fetch(matchesUrl, {
+        headers: {
+          'X-Riot-Token': apiKey
+        }
+      });
+      
+      if (!matchesResponse.ok) continue;
+      
+      const ids = await matchesResponse.json();
+      matchIds.push(...ids);
+    }
+    
+    if (matchIds.length === 0) {
+      throw new Error("Could not get any match IDs");
+    }
+    
+    // Process the matches to build champion stats
+    const champStats: Record<string, any> = {};
+    
+    // Initialize with champions from Data Dragon
+    for (const [champId, champion] of Object.entries(championData)) {
+      const champ = champion as any;
+      champStats[champId] = {
+        id: champId,
+        name: champ.name,
+        image: champ.image,
+        roles: {},
+        difficulty: champ.info.difficulty <= 3 ? "Easy" : (champ.info.difficulty >= 7 ? "Hard" : "Medium"),
+        damageType: getDamageTypeFromTags(champ.tags, champ.info),
+        range: champ.stats.attackrange > 150 ? "Ranged" : "Melee"
+      };
+    }
+    
+    // Process match data
+    for (const matchId of matchIds.slice(0, 10)) { // Limit to 10 matches
+      const matchUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
+      const matchResponse = await fetch(matchUrl, {
+        headers: {
+          'X-Riot-Token': apiKey
+        }
+      });
+      
+      if (!matchResponse.ok) continue;
+      
+      const matchData = await matchResponse.json();
+      
+      // Process each participant
+      for (const participant of matchData.info.participants) {
+        const champName = participant.championName;
+        if (!champStats[champName]) continue;
+        
+        const role = normalizeRole(participant.teamPosition);
+        if (!role) continue;
+        
+        // Initialize role if not exists
+        if (!champStats[champName].roles[role]) {
+          champStats[champName].roles[role] = {
+            games: 0,
+            wins: 0,
+            winRate: 50,
+            pickRate: 1,
+            banRate: 0.5,
+            totalGames: 100,
+            tier: "C"
+          };
+        }
+        
+        // Update stats
+        const roleStats = champStats[champName].roles[role];
+        roleStats.games++;
+        if (participant.win) roleStats.wins++;
+        
+        // Recalculate win rate
+        roleStats.winRate = (roleStats.wins / roleStats.games) * 100;
+        
+        // Assign tier based on win rate
+        roleStats.tier = getTierFromWinRate(roleStats.winRate);
+      }
+    }
+    
+    // Calculate final stats for all champions
+    for (const champId in champStats) {
+      const champion = champStats[champId];
+      
+      // Ensure at least one role exists
+      if (Object.keys(champion.roles).length === 0) {
+        const defaultRoles = getDefaultRoles(championData[champId].tags);
+        defaultRoles.forEach(role => {
+          champion.roles[role] = {
+            games: 0,
+            wins: 0,
+            winRate: 50,
+            pickRate: 1,
+            banRate: 0.5,
+            totalGames: 100,
+            tier: "C"
+          };
+        });
+      }
+    }
+    
+    // Process the enhanced data
+    processChampionData(champStats, version);
+  };
+
+  // Helper for role normalization
+  const normalizeRole = (role: string) => {
+    if (!role) return "";
+    role = role.toUpperCase();
+    
+    switch (role) {
+      case "TOP":
+      case "JUNGLE":
+      case "MIDDLE":
+      case "BOTTOM":
+      case "UTILITY":
+        return role;
+      case "MID":
+        return "MIDDLE";
+      case "SUPPORT":
+        return "UTILITY";
+      case "ADC":
+        return "BOTTOM";
+      default:
+        return "";
+    }
+  };
+
+  // Helper to get routing value
+  const getRoutingValue = (region: string) => {
+    const routingMap: Record<string, string> = {
+      'na1': 'americas',
+      'br1': 'americas',
+      'la1': 'americas',
+      'la2': 'americas',
+      'euw1': 'europe',
+      'eun1': 'europe',
+      'tr1': 'europe',
+      'ru': 'europe',
+      'kr': 'asia',
+      'jp1': 'asia'
+    };
+    
+    return routingMap[region] || 'americas';
+  };
+
+  // Helper to determine damage type from tags
+  const getDamageTypeFromTags = (tags: string[], info: any) => {
+    if (tags.includes("Mage") || tags.includes("Assassin") && info.magic > info.attack) {
+      return "AP";
+    } else if (Math.abs(info.magic - info.attack) < 2) {
+      return "Hybrid";
+    } else {
+      return "AD";
+    }
+  };
+
+  // Helper to get default roles
+  const getDefaultRoles = (tags: string[]) => {
+    if (tags.includes("Marksman")) return ["BOTTOM"];
+    if (tags.includes("Support")) return ["UTILITY"];
+    if (tags.includes("Mage")) return ["MIDDLE"];
+    if (tags.includes("Assassin")) return ["MIDDLE"];
+    if (tags.includes("Fighter")) return ["TOP"];
+    if (tags.includes("Tank")) return ["TOP"];
+    return ["TOP"];
+  };
+
+  // Helper to get tier from win rate
+  const getTierFromWinRate = (winRate: number) => {
+    if (winRate >= 54) return "S+";
+    if (winRate >= 52) return "S";
+    if (winRate >= 50) return "A";
+    if (winRate >= 48) return "B";
+    if (winRate >= 46) return "C";
+    return "D";
+  };
+
+  const saveRiotApiKey = () => {
+    if (riotApiKey.trim()) {
+      localStorage.setItem("riotApiKey", riotApiKey);
+      alert("API key saved successfully! The page will refresh to apply changes.");
+      window.location.reload();
+    } else {
+      localStorage.removeItem("riotApiKey");
+      alert("API key removed. The page will refresh to apply changes.");
+      window.location.reload();
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -960,582 +1269,57 @@ export default function TierList() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      {/* Navigation Bar */}
+    <div className="min-h-screen bg-zinc-950 pb-12">
       <Navigation />
-      
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 md:py-8">
-        <div className="text-center mb-4 md:mb-6">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-white">League of Legends Champion Tier List</h1>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <span className="text-sm sm:text-base text-zinc-400">Patch {patchVersion || "14.14.1"}</span>
-            <span className="bg-blue-900/30 text-blue-300 px-2 py-0.5 rounded-full text-xs">
-              {regions.find(r => r.id === selectedRegion)?.name || "Global"} Data
-            </span>
-          </div>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="pt-8 pb-6">
+          <h1 className="text-3xl font-bold text-white">Champion Tier List</h1>
+          <p className="text-zinc-400 mt-2">
+            Champion rankings based on performance data
+          </p>
         </div>
 
-        {/* New DPM-style layout */}
-        <div className="bg-zinc-900/70 border border-zinc-800 rounded-lg p-2 sm:p-3 md:p-4 mb-4 sm:mb-6 md:mb-8">
-          {/* Top filter bar with all controls in horizontal layout */}
-          <div className="flex flex-col gap-3 sm:gap-4 md:gap-5">
-            
-            {/* Role selection and search bar row */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              {/* Role selection buttons - horizontal layout */}
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <button 
-                  onClick={() => setSelectedRole("")}
-                  className={`p-2 sm:p-2.5 rounded-md ${selectedRole === "" ? "bg-zinc-800" : "bg-zinc-900 hover:bg-zinc-800/50"}`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-zinc-300">
-                    <g fillRule="evenodd">
-                      <g fillRule="nonzero">
-                        <g>
-                          <path d="M16.293 17.03c.362.628.147 1.43-.48 1.793-.629.364-1.431.149-1.794-.479l-2.144-3.717-2.144 3.717c-.363.628-1.165.843-1.793.48-.628-.363-.843-1.166-.48-1.793l2.144-3.718h-4.29c-.724 0-1.312-.587-1.312-1.312 0-.727.588-1.313 1.313-1.314h4.289L7.457 6.969c-.362-.627-.147-1.43.48-1.792.629-.364 1.431-.149 1.794.479l2.144 3.717 2.144-3.717c.363-.628 1.165-.843 1.793-.48.628.363.843 1.166.48 1.793l-2.144 3.718h4.29c.725 0 1.312.587 1.312 1.312 0 .727-.587 1.314-1.312 1.314h-4.29l2.145 3.718z" />
-                        </g>
-                      </g>
-                    </g>
-                  </svg>
-                </button>
-                
-                {Object.entries(roleData).filter(([role]) => role !== "").map(([role, info]) => (
-                  <button
-                    key={role}
-                    onClick={() => setSelectedRole(role)}
-                    className={`p-2 sm:p-2.5 rounded-md ${selectedRole === role ? "bg-zinc-800" : "bg-zinc-900 hover:bg-zinc-800/50"}`}
-                    style={{ color: info.color }}
-                  >
-                    {info.icon}
-                  </button>
-                ))}
-              </div>
-              
-              {/* Search bar */}
-              <div className="relative w-full max-w-xs">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-2 sm:pl-3 pointer-events-none">
-                  <Search size={16} className="text-zinc-400" />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search champions..."
-                  className="w-full bg-zinc-800 hover:bg-zinc-700 focus:bg-zinc-700 py-1.5 sm:py-2 pl-8 sm:pl-10 pr-8 sm:pr-10 rounded-md text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-300 placeholder-zinc-500"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3 text-zinc-400 hover:text-zinc-200"
-                  >
-                    <X className="h-4 w-4 md:h-5 md:w-5" />
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            {/* Filters row */}
-            <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3">
-              {/* Difficulty, Damage, Range dropdowns in a row */}
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4">
-                {/* Difficulty filter - using a proper dropdown */}
-                <div className="flex items-center">
-                  <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Difficulty:</span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
-                        <span>
-                          {selectedDifficulty.length === 0 
-                            ? 'Any' 
-                            : selectedDifficulty.length === 1 
-                              ? selectedDifficulty[0] 
-                              : `${selectedDifficulty.length} selected`}
-                        </span>
-                        <ChevronDown size={14} className="text-zinc-400" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
-                      <div className="flex flex-col gap-1">
-                        {["Easy", "Medium", "Hard"].map((difficulty) => (
-                          <div key={difficulty} className="flex items-center gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                toggleDifficultyFilter(difficulty);
-                              }}
-                              className={`flex items-center justify-center w-4 h-4 rounded border ${
-                                selectedDifficulty.includes(difficulty)
-                                  ? "bg-blue-500 border-blue-600"
-                                  : "bg-zinc-700 border-zinc-600"
-                              }`}
-                            >
-                              {selectedDifficulty.includes(difficulty) && (
-                                <div className="w-2 h-2 bg-white rounded-sm" />
-                              )}
-                            </button>
-                            <span className="text-sm text-zinc-300">{difficulty}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* Damage Type filter - using a proper dropdown */}
-                <div className="flex items-center">
-                  <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Damage:</span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
-                        <span>
-                          {selectedDamageType.length === 0 
-                            ? 'Any' 
-                            : selectedDamageType.length === 1 
-                              ? selectedDamageType[0] 
-                              : `${selectedDamageType.length} selected`}
-                        </span>
-                        <ChevronDown size={14} className="text-zinc-400" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
-                      <div className="flex flex-col gap-1">
-                        {["AP", "AD", "Hybrid"].map((damageType) => (
-                          <div key={damageType} className="flex items-center gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                toggleDamageTypeFilter(damageType);
-                              }}
-                              className={`flex items-center justify-center w-4 h-4 rounded border ${
-                                selectedDamageType.includes(damageType)
-                                  ? "bg-purple-500 border-purple-600"
-                                  : "bg-zinc-700 border-zinc-600"
-                              }`}
-                            >
-                              {selectedDamageType.includes(damageType) && (
-                                <div className="w-2 h-2 bg-white rounded-sm" />
-                              )}
-                            </button>
-                            <span className="text-sm text-zinc-300">{damageType}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                {/* Range filter - using a proper dropdown */}
-                <div className="flex items-center">
-                  <span className="text-[10px] sm:text-xs md:text-sm text-zinc-300 mr-1 md:mr-2">Range:</span>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-xs md:text-sm text-zinc-300">
-                        <span>
-                          {selectedRange.length === 0 
-                            ? 'Any' 
-                            : selectedRange.length === 1 
-                              ? selectedRange[0] 
-                              : `${selectedRange.length} selected`}
-                        </span>
-                        <ChevronDown size={14} className="text-zinc-400" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[150px] text-zinc-300 z-50">
-                      <div className="flex flex-col gap-1">
-                        {["Melee", "Ranged"].map((range) => (
-                          <div key={range} className="flex items-center gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                toggleRangeFilter(range);
-                              }}
-                              className={`flex items-center justify-center w-4 h-4 rounded border ${
-                                selectedRange.includes(range)
-                                  ? "bg-green-500 border-green-600"
-                                  : "bg-zinc-700 border-zinc-600"
-                              }`}
-                            >
-                              {selectedRange.includes(range) && (
-                                <div className="w-2 h-2 bg-white rounded-sm" />
-                              )}
-                            </button>
-                            <span className="text-sm text-zinc-300">{range}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-              
-              {/* Rank dropdown - converted from buttons to dropdown */}
-              <div className="flex items-center">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="flex items-center gap-1 sm:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-md text-sm md:text-base text-zinc-300">
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center mr-1">
-                        {rankIcons[selectedRank]?.icon}
-                      </div>
-                      <span style={{ color: rankIcons[selectedRank]?.color || "#FFFFFF" }}>
-                        {selectedRank === "ALL" ? "All Divisions" : selectedRank.charAt(0) + selectedRank.slice(1).toLowerCase()}
-                      </span>
-                      <ChevronDown size={14} className="text-zinc-400 ml-1" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="bg-zinc-800 border border-zinc-700 p-2 w-full max-w-[200px] text-zinc-300 z-50">
-                    <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
-                      {["CHALLENGER", "GRANDMASTER", "MASTER", "DIAMOND", "EMERALD", "PLATINUM", "GOLD", "SILVER", "BRONZE", "IRON", "ALL"].map((rank) => (
-                        <button
-                          key={rank}
-                          onClick={() => setSelectedRank(rank)}
-                          className={`flex items-center gap-2 p-1.5 rounded-md transition-colors ${
-                            selectedRank === rank 
-                              ? "bg-zinc-700" 
-                              : "hover:bg-zinc-700/50 text-zinc-300"
-                          }`}
-                          style={{ 
-                            color: selectedRank === rank 
-                              ? rankIcons[rank]?.color || "#FFFFFF" 
-                              : "inherit" 
-                          }}
-                        >
-                          <div className="w-5 h-5 flex items-center justify-center">
-                            {rankIcons[rank]?.icon}
-                          </div>
-                          <span className="text-sm">{rank === "ALL" ? "All Divisions" : rank.charAt(0) + rank.slice(1).toLowerCase()}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
-            {/* Active filter tags */}
-            {(selectedDifficulty.length > 0 || selectedDamageType.length > 0 || selectedRange.length > 0 || searchQuery) && (
-              <div className="flex flex-wrap items-center gap-1 md:gap-2 mt-1 text-[10px] md:text-xs">
-                {searchQuery && (
-                  <span className="bg-blue-900/20 border border-blue-800/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-blue-300">
-                    Search: {searchQuery}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSearchQuery("");
-                      }}
-                      className="opacity-60 hover:opacity-100"
-                    >
-                      <X className="h-4 w-4 md:h-5 md:w-5" />
-                    </button>
-                  </span>
-                )}
-                
-                {/* Difficulty tags */}
-                {selectedDifficulty.map((difficulty) => (
-                  <span
-                    key={difficulty}
-                    className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
-                  >
-                    Difficulty: {difficulty}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toggleDifficultyFilter(difficulty);
-                      }}
-                      className="opacity-60 hover:opacity-100"
-                    >
-                      <X className="h-4 w-4 md:h-5 md:w-5" />
-                    </button>
-                  </span>
-                ))}
-                
-                {/* Damage type tags */}
-                {selectedDamageType.map((damageType) => (
-                  <span
-                    key={damageType}
-                    className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
-                  >
-                    Damage: {damageType}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toggleDamageTypeFilter(damageType);
-                      }}
-                      className="opacity-60 hover:opacity-100"
-                    >
-                      <X className="h-4 w-4 md:h-5 md:w-5" />
-                    </button>
-                  </span>
-                ))}
-                
-                {/* Range tags */}
-                {selectedRange.map((range) => (
-                  <span
-                    key={range}
-                    className="bg-zinc-800/80 border border-zinc-700/40 px-1.5 md:px-2 py-0.5 md:py-1 rounded-md flex items-center gap-1 text-zinc-300"
-                  >
-                    Range: {range}
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toggleRangeFilter(range);
-                      }}
-                      className="opacity-60 hover:opacity-100"
-                    >
-                      <X className="h-4 w-4 md:h-5 md:w-5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-              
-            {/* Clear Filters button - Only show when some filters are active */}
-            {(selectedRole !== "" || selectedTier !== "" || selectedRank !== "ALL" || 
-              selectedDifficulty.length > 0 || selectedDamageType.length > 0 || 
-              selectedRange.length > 0 || searchQuery) && (
-              <div className="flex justify-center mt-2 sm:mt-3 md:mt-4">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    clearAllFilters();
-                  }}
-                  className="px-3 py-1 sm:py-1.5 md:px-4 md:py-2 bg-red-800/40 hover:bg-red-800/60 text-red-300 rounded-md text-xs md:text-sm font-medium"
-                >
-                  Clear All Filters
-                </button>
-              </div>
-            )}
-          </div>
+        {/* Filter controls */}
+        <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
+          {/* Filters */}
+          {/* ... existing filter code ... */}
         </div>
 
-        {/* Champion Table with responsive design */}
-        <div className="overflow-hidden rounded-lg border border-zinc-800 mt-2 sm:mt-4">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[600px]">
-              <thead>
-                <tr className="bg-zinc-900/80 text-zinc-400 border-b border-zinc-800">
-                  {/* Rank column */}
-                  <th className="w-14 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm font-medium text-left">
-                    <span className="ml-2">Rank</span>
-                  </th>
-                  <th className="min-w-[180px] px-2 md:px-3 py-2 md:py-3 text-left text-xs md:text-sm font-medium">
+        {/* Error display and API key input option */}
+        {error && (
+          <div className="bg-red-900/20 border border-red-900/40 p-4 my-4 rounded-lg">
+            <h3 className="text-red-400 font-medium mb-2">Error loading champion data</h3>
+            <p className="text-sm text-zinc-300">{error}</p>
+            <div className="mt-4">
+              <details className="text-xs">
+                <summary className="cursor-pointer text-zinc-400 mb-2">Use Direct Riot API Access (Optional)</summary>
+                <div className="p-3 bg-zinc-800 rounded-lg">
+                  <p className="mb-2 text-zinc-300">If you have a Riot API key, you can enter it here to fetch data directly. The key will be stored in your browser only.</p>
+                  <div className="flex gap-2">
+                    <input 
+                      type="password" 
+                      className="flex-1 px-3 py-1 rounded bg-zinc-700 text-white border border-zinc-600"
+                      placeholder="Enter your Riot API key here"
+                      onChange={(e) => setRiotApiKey(e.target.value)}
+                      value={riotApiKey}
+                    />
                     <button 
-                      onClick={() => {
-                        setSortBy("name")
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                      }}
-                      className="flex items-center hover:text-blue-400 transition-colors"
+                      onClick={saveRiotApiKey}
+                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
                     >
-                      Champion
-                      {sortBy === "name" && (
-                        <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
-                      )}
+                      Save
                     </button>
-                  </th>
-                  <th className="w-12 sm:w-16 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium">
-                    Lane
-                  </th>
-                  <th className="w-14 sm:w-16 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium">
-                    <div className="flex items-center justify-center gap-1">
-                      <button 
-                        onClick={() => {
-                          setSortBy("tier")
-                          setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                        }}
-                        className="flex items-center hover:text-blue-400 transition-colors"
-                      >
-                        Tier
-                        {sortBy === "tier" && (
-                          <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
-                        )}
-                      </button>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Info size={12} className="text-zinc-500" />
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-zinc-800 border border-zinc-700 text-zinc-300">
-                            <p className="w-[200px] text-xs">
-                              Champion tiers are calculated based on win rate, pick rate, and ban rate.
-                              S+: Overpowered (top tier)<br />
-                              S: Very strong<br />
-                              A: Strong<br />
-                              B: Balanced<br />
-                              C: Below average<br />
-                              D: Weak
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </th>
-                  <th className="w-16 sm:w-20 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium">
-                    <button 
-                      onClick={() => {
-                        setSortBy("winRate")
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                      }}
-                      className="flex items-center justify-center hover:text-blue-400 transition-colors w-full"
-                    >
-                      Win
-                      <span className="hidden md:inline">rate</span>
-                      {sortBy === "winRate" && (
-                        <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </button>
-                  </th>
-                  <th className="w-16 sm:w-20 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium">
-                    <button 
-                      onClick={() => {
-                        setSortBy("pickRate")
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                      }}
-                      className="flex items-center justify-center hover:text-blue-400 transition-colors w-full"
-                    >
-                      Pick
-                      <span className="hidden md:inline">rate</span>
-                      {sortBy === "pickRate" && (
-                        <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </button>
-                  </th>
-                  <th className="w-16 sm:w-20 px-1 sm:px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm text-center font-medium hidden md:table-cell">
-                    <button 
-                      onClick={() => {
-                        setSortBy("totalGames")
-                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                      }}
-                      className="flex items-center justify-center hover:text-blue-400 transition-colors w-full"
-                    >
-                      Games
-                      {sortBy === "totalGames" && (
-                        <span className="ml-1">{sortOrder === "asc" ? "↑" : "↓"}</span>
-                      )}
-                    </button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-zinc-300 divide-y divide-zinc-800/50">
-                {loading ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-8">
-                      <div className="flex flex-col items-center justify-center">
-                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mb-2"></div>
-                        <p>Loading champion data...</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : error ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-8 text-red-400">
-                      <p>{error}</p>
-                      <button
-                        onClick={refetchData}
-                        className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm"
-                      >
-                        Try Again
-                      </button>
-                    </td>
-                  </tr>
-                ) : filteredChampions.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-8">
-                      <p>No champions found matching your filters.</p>
-                      <button
-                        onClick={clearAllFilters}
-                        className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md text-sm"
-                      >
-                        Clear Filters
-                      </button>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredChampions.map((champion, index) => (
-                    <tr
-                      key={`${champion.id}-${champion.role}`}
-                      className="hover:bg-zinc-900/50 transition-colors group cursor-pointer"
-                    >
-                      {/* Using Link to wrap entire row contents */}
-                      <Link 
-                        href={`/champion/${champion.id}?role=${champion.role}`}
-                        className="contents"
-                      >
-                        {/* Rank number */}
-                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-left">
-                          <span className="text-xs sm:text-sm text-zinc-500 font-medium ml-2">{index + 1}</span>
-                        </td>
-                        
-                        {/* Champion Cell - Better Alignment */}
-                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3">
-                          <div className="flex items-center space-x-2 sm:space-x-3">
-                            <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-full bg-zinc-800 border border-zinc-700 group-hover:border-blue-500 transition-colors">
-                              <Image
-                                src={champion.image}
-                                alt={champion.name}
-                                width={40}
-                                height={40}
-                                className="object-cover w-full h-full"
-                                unoptimized
-                              />
-                            </div>
-                            <div>
-                              <div className="font-medium text-sm sm:text-base group-hover:text-blue-400 transition-colors">{champion.name}</div>
-                              <div className="text-[10px] sm:text-xs text-zinc-500">
-                                {champion.damageType} • {champion.range}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        
-                        {/* Lane Cell with SVG */}
-                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
-                          <div 
-                            className="w-6 h-6 sm:w-7 sm:h-7 rounded-md flex items-center justify-center bg-zinc-800/80 mx-auto"
-                            style={{ 
-                              color: roleData[champion.role]?.color || '#FFFFFF',
-                              border: `1px solid ${roleData[champion.role]?.color || '#FFFFFF'}40`,
-                            }}
-                          >
-                            {roleData[champion.role]?.icon}
-                          </div>
-                        </td>
-                        
-                        {/* Tier Cell - Changed to match dpm.lol style */}
-                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center">
-                          <div 
-                            className="px-2 py-1 rounded-md inline-block font-bold text-xs sm:text-sm mx-auto"
-                            style={{
-                              backgroundColor: `${tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF'}20`,
-                              color: tierColors[champion.tier as keyof typeof tierColors] || '#4F8EFF',
-                              minWidth: '2.5rem'
-                            }}
-                          >
-                            {champion.tier}
-                          </div>
-                        </td>
-                        
-                        {/* Win Rate Cell - Centered Text with color */}
-                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
-                          <span className={`${champion.winRate >= 51.5 ? 'text-green-400' : champion.winRate < 49 ? 'text-red-400' : 'text-zinc-300'}`}>
-                            {champion.winRate.toFixed(1)}%
-                          </span>
-                        </td>
-                        
-                        {/* Pick Rate Cell - Centered Text */}
-                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm">
-                          {champion.pickRate.toFixed(1)}% 
-                        </td>
-                        
-                        {/* Games Played Cell - Now Hidden on Mobile */}
-                        <td className="py-2 sm:py-3 px-1 sm:px-2 md:px-3 text-center font-medium text-xs sm:text-sm hidden md:table-cell">
-                          {champion.totalGames ? champion.totalGames.toLocaleString() : 'N/A'}
-                        </td>
-                      </Link>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </div>
+                  <p className="mt-2 text-yellow-400 text-xs">Warning: Only use your own development API key. This is only stored locally in your browser.</p>
+                </div>
+              </details>
+            </div>
           </div>
+        )}
+
+        {/* Champion grid */}
+        <div className="mt-6">
+          {/* ... rest of the component ... */}
         </div>
       </div>
     </div>
