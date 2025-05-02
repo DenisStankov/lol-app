@@ -460,7 +460,7 @@ export default function TierList() {
     if (availablePatches.length > 0 && selectedPatch && selectedRank) {
       // Create a retry mechanism
       let retryCount = 0;
-      const maxRetries = 3;
+      const maxRetries = 2;
       
       const fetchWithParams = async (retry = false) => {
         try {
@@ -475,7 +475,7 @@ export default function TierList() {
           
           // Add timeout to fetch request
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
           
           try {
             const response = await fetch(apiUrl, {
@@ -506,39 +506,18 @@ export default function TierList() {
               // Wait a bit before retrying
               setTimeout(() => {
                 fetchWithParams(true);
-              }, 2000 * retryCount); // Exponential backoff
+              }, 1500 * retryCount); // Exponential backoff
               return;
             }
             
-            console.log("Maximum retries reached. Trying direct Data Dragon API");
+            console.log("Maximum retries reached. Using Data Dragon directly.");
             
-            // First, try to fetch directly from Data Dragon API
+            // Use Data Dragon directly as a reliable fallback
             try {
-              // Get latest patch version
-              const versionResponse = await fetch(`https://ddragon.leagueoflegends.com/api/versions.json`);
-              const versions = await versionResponse.json();
-              const latestVersion = selectedPatch || versions[0];
-              console.log(`Using Data Dragon version: ${latestVersion}`);
-              
-              // Fetch champion data from Data Dragon
-              const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`);
-              if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
-              const champData = await champResponse.json();
-              
-              // Try Riot API directly as another source for match data (if available)
-              try {
-                console.log("Attempting to enhance with Riot API data");
-                await enhanceWithRiotData(champData.data, latestVersion);
-              } catch (riotError) {
-                console.error("Could not enhance with Riot API:", riotError);
-                
-                // Create basic simulated data if Riot API fails
-                const simulatedData = createSimulatedData(champData.data, latestVersion);
-                processChampionData(simulatedData, latestVersion);
-              }
-            } catch (dataDragonError) {
-              console.error("Error fetching from Data Dragon:", dataDragonError);
-              setError("Failed to fetch champion data. Please try again later.");
+              await fetchDataDragonFallback(selectedPatch);
+            } catch (fallbackError) {
+              console.error("Error with fallback:", fallbackError);
+              setError("Failed to fetch champion data. Please try again later or provide a Riot API key.");
               setLoading(false);
             }
           }
@@ -553,70 +532,125 @@ export default function TierList() {
     }
   }, [selectedRank, selectedPatch, selectedRegion, availablePatches.length]);
 
+  // Dedicated Data Dragon fallback function
+  const fetchDataDragonFallback = async (targetPatch: string) => {
+    console.log("Fetching fallback data from Data Dragon directly");
+    
+    // Get latest patch version
+    const versionResponse = await fetch(`https://ddragon.leagueoflegends.com/api/versions.json`);
+    if (!versionResponse.ok) throw new Error("Failed to fetch versions");
+    
+    const versions = await versionResponse.json();
+    const patchVersion = targetPatch || versions[0];
+    console.log(`Using Data Dragon version: ${patchVersion}`);
+    
+    // Fetch champion data from Data Dragon
+    const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/data/en_US/champion.json`);
+    if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
+    
+    const champData = await champResponse.json();
+    console.log(`Retrieved ${Object.keys(champData.data).length} champions from Data Dragon`);
+    
+    // Try to enhance with Riot API if key is available
+    try {
+      if (localStorage.getItem('riotApiKey')) {
+        console.log("Attempting to enhance with Riot API data");
+        await enhanceWithRiotData(champData.data, patchVersion);
+      } else {
+        throw new Error("No API key available");
+      }
+    } catch (riotError) {
+      console.log("Using pure Data Dragon data with simulated stats");
+      const simulatedData = createSimulatedData(champData.data, patchVersion);
+      processChampionData(simulatedData, patchVersion);
+    }
+  };
+
   // Helper function to process champion data
   const processChampionData = (data: any, patchVersion: string) => {
     console.log(`Processing champion data with ${Object.keys(data).length} champions using patch ${patchVersion}`);
     
     const transformedChampions: Champion[] = Object.values(data).map((champion: any) => {
-      // Select the primary role based on highest pick rate
-      const roles = champion.roles || {}
-      let primaryRole = ""
-      let highestPickRate = 0
-      
-      // Find the role with the highest pick rate
-      Object.entries(roles).forEach(([role, stats]: [string, any]) => {
-        if (stats.pickRate > highestPickRate) {
-          highestPickRate = stats.pickRate
-          primaryRole = role
-        }
-      })
-      
-      // If no primary role found, default to the first role or a placeholder
-      if (!primaryRole && Object.keys(roles).length > 0) {
-        primaryRole = Object.keys(roles)[0]
-      } else if (!primaryRole) {
-        primaryRole = "TOP" // Default fallback
+      // Skip any invalid or malformed champion data
+      if (!champion || !champion.id) {
+        console.warn("Skipping invalid champion data entry:", champion);
+        return null;
       }
-      
-      // Get the stats for the primary role
-      const primaryRoleStats = roles[primaryRole] || {
-        winRate: 50,
-        pickRate: 5,
-        banRate: 2,
-        totalGames: 1000,
-        tier: "C"
-      }
-      
-      // Check and log image data
-      if (champion.image) {
-        console.log(`Champion ${champion.id} has image data:`, champion.image.full);
-      } else {
-        console.log(`Champion ${champion.id} is missing image data`);
-      }
-      
-      // Construct image URL - ensure we use the correct format from Data Dragon
-      const imageUrl = champion.image && champion.image.full 
-        ? `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`
-        : `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.id}.png`; // Try direct champion ID
-      
-      // Values are already in percentage form from the API, no need to normalize
-      return {
-        id: champion.id,
-        name: champion.name,
-        image: imageUrl,
-        winRate: primaryRoleStats.winRate,
-        pickRate: primaryRoleStats.pickRate,
-        banRate: primaryRoleStats.banRate,
-        totalGames: primaryRoleStats.totalGames || 0,
-        role: primaryRole,
-        tier: primaryRoleStats.tier || "C",
-        roles: champion.roles,
-        difficulty: champion.difficulty || "Medium",
-        damageType: champion.damageType || "AD",
-        range: champion.range || "Melee",
-      }
-    })
 
+      try {
+        // Select the primary role based on highest pick rate
+        const roles = champion.roles || {}
+        let primaryRole = ""
+        let highestPickRate = 0
+        
+        // Find the role with the highest pick rate
+        Object.entries(roles).forEach(([role, stats]: [string, any]) => {
+          if (stats.pickRate > highestPickRate) {
+            highestPickRate = stats.pickRate
+            primaryRole = role
+          }
+        })
+        
+        // If no primary role found, default to the first role or a placeholder
+        if (!primaryRole && Object.keys(roles).length > 0) {
+          primaryRole = Object.keys(roles)[0]
+        } else if (!primaryRole) {
+          primaryRole = "TOP" // Default fallback
+        }
+        
+        // Get the stats for the primary role
+        const primaryRoleStats = roles[primaryRole] || {
+          winRate: 50,
+          pickRate: 5,
+          banRate: 2,
+          totalGames: 1000,
+          tier: "C"
+        }
+        
+        // Check and log image data
+        if (champion.image) {
+          console.log(`Champion ${champion.id} has image data:`, champion.image.full);
+        } else {
+          console.log(`Champion ${champion.id} is missing image data`);
+        }
+        
+        // Multiple approaches to handle image URL construction
+        let imageUrl: string;
+        
+        if (champion.image && champion.image.full) {
+          // Primary approach: Use the champion's actual image
+          imageUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`;
+        } else if (champion.id) {
+          // Fallback 1: Try constructing from champion ID
+          imageUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.id}.png`;
+        } else {
+          // Fallback 2: Use default image as last resort
+          imageUrl = `/images/champions/default.png`;
+        }
+        
+        // Values are already in percentage form from the API, no need to normalize
+        return {
+          id: champion.id,
+          name: champion.name,
+          image: imageUrl,
+          winRate: primaryRoleStats.winRate,
+          pickRate: primaryRoleStats.pickRate,
+          banRate: primaryRoleStats.banRate,
+          totalGames: primaryRoleStats.totalGames || 0,
+          role: primaryRole,
+          tier: primaryRoleStats.tier || "C",
+          roles: champion.roles,
+          difficulty: champion.difficulty || "Medium",
+          damageType: champion.damageType || "AD",
+          range: champion.range || "Melee",
+        }
+      } catch (error) {
+        console.error(`Error processing champion ${champion?.id || 'unknown'}:`, error);
+        return null;
+      }
+    }).filter(Boolean) as Champion[]; // Filter out null values
+
+    console.log(`Successfully processed ${transformedChampions.length} champions`);
     setChampions(transformedChampions)
     setFilteredChampions(transformedChampions)
     setLoading(false)
@@ -631,22 +665,30 @@ export default function TierList() {
     for (const [champId, champion] of Object.entries(championData)) {
       const champ = champion as any;
       
-      // Ensure we have the complete image object from Data Dragon
-      const imageObject = {
-        full: champ.image.full,
-        sprite: champ.image.sprite,
-        group: champ.image.group,
-        x: champ.image.x,
-        y: champ.image.y,
-        w: champ.image.w,
-        h: champ.image.h
+      result[champId] = {
+        id: champId,
+        key: champ.key,
+        name: champ.name,
+        // Include the complete image object - critical for proper display
+        image: {
+          full: champ.image.full,
+          sprite: champ.image.sprite,
+          group: champ.image.group,
+          x: champ.image.x,
+          y: champ.image.y,
+          w: champ.image.w,
+          h: champ.image.h
+        },
+        roles: {},
+        difficulty: champ.info.difficulty <= 3 ? "Easy" : (champ.info.difficulty >= 7 ? "Hard" : "Medium"),
+        damageType: getDamageTypeFromTags(champ.tags, champ.info),
+        range: champ.stats.attackrange > 150 ? "Ranged" : "Melee"
       };
       
-      // Log the image data to verify
-      console.log(`Champion ${champId} image data:`, imageObject.full);
+      // Log the image data for debugging
+      console.log(`Champion ${champId} image data from Data Dragon:`, champ.image.full);
       
       // Determine role based on tags
-      const roles: Record<string, any> = {};
       const possibleRoles = determineRolesFromTags(champ.tags, champ.info);
       
       possibleRoles.forEach(role => {
@@ -656,7 +698,7 @@ export default function TierList() {
         const banRate = Math.random() * 8;
         const tier = calculateTier(winRate, pickRate);
         
-        roles[role] = {
+        result[champId].roles[role] = {
           winRate,
           pickRate,
           banRate,
@@ -664,32 +706,6 @@ export default function TierList() {
           tier
         };
       });
-      
-      // Determine difficulty
-      let difficulty = "Medium";
-      if (champ.info.difficulty <= 3) difficulty = "Easy";
-      else if (champ.info.difficulty >= 7) difficulty = "Hard";
-      
-      // Determine damage type
-      let damageType = "AD";
-      if (champ.tags.includes("Mage") || champ.tags.includes("Assassin") && champ.info.magic > champ.info.attack) {
-        damageType = "AP";
-      } else if (Math.abs(champ.info.magic - champ.info.attack) < 2) {
-        damageType = "Hybrid";
-      }
-      
-      // Determine range
-      const range = champ.stats.attackrange > 150 ? "Ranged" : "Melee";
-      
-      result[champId] = {
-        id: champId,
-        name: champ.name,
-        image: imageObject, // Use the complete image object
-        roles,
-        difficulty,
-        damageType,
-        range
-      };
     }
     
     return result;
@@ -985,7 +1001,7 @@ export default function TierList() {
   // Helper function to enhance with Riot API data if possible
   const enhanceWithRiotData = async (championData: any, version: string) => {
     // Check if we have a direct Riot API key in local storage (DEMO ONLY - not for production)
-    const apiKey = localStorage.getItem('riot_api_key');
+    const apiKey = localStorage.getItem('riotApiKey');
     if (!apiKey) {
       throw new Error("No Riot API key available");
     }
