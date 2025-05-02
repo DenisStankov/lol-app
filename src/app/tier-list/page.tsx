@@ -29,7 +29,13 @@ interface Champion {
   totalGames: number
   role: string
   tier: string
-  image: string
+  image: {
+    icon: string
+    splash: string
+    loading: string
+    full: string | null
+    sprite: string | null
+  }
   difficulty: string
   damageType: string
   range: string
@@ -342,122 +348,80 @@ export default function TierList() {
         setLoading(true);
         setError("");
         
+        console.log("Starting initial fetch...");
+        
+        // Try to get Riot API key from local storage if it exists
+        const storedApiKey = localStorage.getItem('riotApiKey');
+        if (storedApiKey) {
+          console.log("Found stored Riot API key, will use for advanced features");
+          setRiotApiKey(storedApiKey);
+        }
+        
         // Fetch available patches from Data Dragon API
+        console.log("Fetching available patches from Data Dragon");
         try {
           const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+          console.log(`Patch versions response status: ${response.status}`);
+          
           if (response.ok) {
             const versions = await response.json();
+            console.log(`Received ${versions.length} patch versions, latest: ${versions[0]}`);
+            
             // Get the recent patches (top 10)
             const recentPatches = versions.slice(0, 10);
             setAvailablePatches(recentPatches);
             
             // Set the current patch
             const currentPatch = recentPatches[0];
+            console.log(`Setting current patch to ${currentPatch}`);
             setPatchVersion(currentPatch);
             setSelectedPatch(currentPatch);
+            
+            // IMPORTANT: Directly load from Data Dragon instead of trying API first
+            console.log("Skipping API call and loading directly from Data Dragon");
+            await loadDirectlyFromDataDragon(currentPatch);
+            return; // Exit early after starting the Data Dragon load
           } else {
+            console.error(`Failed to fetch patch versions: ${response.status} ${response.statusText}`);
             // Fallback to static version
-            setPatchVersion("14.14.1");
-            setSelectedPatch("14.14.1");
-            setAvailablePatches(["14.14.1", "14.13.1", "14.12.1", "14.11.1"]);
+            console.log("Falling back to static version 15.9.1");
+            setPatchVersion("15.9.1");
+            setSelectedPatch("15.9.1");
+            setAvailablePatches(["15.9.1", "15.8.1", "15.7.1", "15.6.1"]);
+            await loadDirectlyFromDataDragon("15.9.1");
+            return; // Exit early
           }
         } catch (error) {
           console.error("Error fetching patch version:", error);
-          setPatchVersion("14.14.1");
-          setSelectedPatch("14.14.1");
-          setAvailablePatches(["14.14.1", "14.13.1", "14.12.1", "14.11.1"]);
+          console.log("Falling back to static version 15.9.1 due to error");
+          setPatchVersion("15.9.1");
+          setSelectedPatch("15.9.1");
+          setAvailablePatches(["15.9.1", "15.8.1", "15.7.1", "15.6.1"]);
+          await loadDirectlyFromDataDragon("15.9.1");
+          return; // Exit early
         }
-        
-        const patchToUse = patchVersion || "14.14.1";
-        const rankToUse = selectedRank || "ALL";
-        
-        // Make API request
-        const apiUrl = `/api/champion-stats?patch=${patchToUse}&rank=${rankToUse}`;
-        console.log(`Making API request to: ${apiUrl}`);
-    
-        const response = await fetch(apiUrl);
-        console.log(`API response status: ${response.status}`);
-    
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
-        }
-    
-        const data = await response.json();
-        console.log(`API data received, champions count: ${Object.keys(data).length}`);
-    
-        // Transform the data to match our Champion interface
-        const transformedChampions: Champion[] = Object.values(data as ChampionStatsResponse).map((champion) => {
-          // Select the primary role based on highest pick rate
-          const roles = champion.roles || {}
-          let primaryRole = ""
-          let highestPickRate = 0
-          
-          // Find the role with the highest pick rate
-          Object.entries(roles).forEach(([role, stats]) => {
-            if (stats.pickRate > highestPickRate) {
-              highestPickRate = stats.pickRate
-              primaryRole = role
-            }
-          })
-          
-          // If no primary role found, default to the first role or a placeholder
-          if (!primaryRole && Object.keys(roles).length > 0) {
-            primaryRole = Object.keys(roles)[0]
-          } else if (!primaryRole) {
-            primaryRole = "TOP" // Default fallback
-          }
-          
-          // Get the stats for the primary role
-          const primaryRoleStats = roles[primaryRole] || {
-            winRate: 50,
-            pickRate: 5,
-            banRate: 2,
-            totalGames: 1000,
-            tier: "C"
-          }
-          
-          // Safely construct image URL with null checks
-          const imageUrl = champion.image && champion.image.full 
-            ? `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.image.full}`
-            : `/images/champions/default.png`; // Fallback to a default image
-          
-          // Values are already in percentage form from the API, no need to normalize
-          return {
-            id: champion.id,
-            name: champion.name,
-            image: imageUrl,
-            winRate: primaryRoleStats.winRate,
-            pickRate: primaryRoleStats.pickRate,
-            banRate: primaryRoleStats.banRate,
-            totalGames: primaryRoleStats.totalGames || 0,
-            role: primaryRole,
-            tier: primaryRoleStats.tier || "C",
-            roles: champion.roles,
-            difficulty: champion.difficulty || "Medium",
-            damageType: champion.damageType || "AD",
-            range: champion.range || "Melee",
-          }
-        })
-    
-        setChampions(transformedChampions)
-        setFilteredChampions(transformedChampions)
-        setLoading(false)
       } catch (error) {
-        console.error("Error fetching champions:", error)
-        setError(`Failed to fetch champion data: ${(error as Error).message}`)
-        setLoading(false)
-      } finally {
-        // ... cleanup ...
+        console.error("Error in initial fetch:", error);
+        setError(`Failed to fetch champion data: ${(error as Error).message}`);
+        setLoading(false);
       }
     };
     
     initialFetch();
-  }, [patchVersion, selectedRank]); // Empty dependency array since this should only run once on mount
+  }, []); // Empty dependency array since this should only run once on mount
 
   // Watch for changes in selected filters
   useEffect(() => {
     // Only fetch if patches are loaded and we have selected values
     if (availablePatches.length > 0 && selectedPatch && selectedRank) {
+      console.log(`Filter changed: patch=${selectedPatch}, rank=${selectedRank}, region=${selectedRegion}`);
+      
+      // IMPORTANT: Skip API and load directly from Data Dragon
+      loadDirectlyFromDataDragon(selectedPatch);
+      
+      // The following API request code is kept but not used
+      // It's been commented out to fully force the client-side solution
+      /*
       // Create a retry mechanism
       let retryCount = 0;
       const maxRetries = 1; // Reduce to just 1 retry attempt
@@ -529,18 +493,21 @@ export default function TierList() {
       };
       
       fetchWithParams();
+      */
     }
   }, [selectedRank, selectedPatch, selectedRegion, availablePatches.length]);
 
   // Completely client-side solution that doesn't depend on our API
   const loadDirectlyFromDataDragon = async (targetPatch: string) => {
-    console.log("Loading champion data directly from Data Dragon");
+    console.log("Loading champion data directly from Data Dragon for patch:", targetPatch);
     setLoading(true);
+    setError(null);
     
     try {
       // Step 1: Get the latest patch version if needed
       let patchVersion = targetPatch;
       if (!patchVersion) {
+        console.log("No patch version provided, fetching latest");
         const versionResponse = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
         if (!versionResponse.ok) throw new Error("Failed to fetch versions");
         const versions = await versionResponse.json();
@@ -549,9 +516,15 @@ export default function TierList() {
       console.log(`Using Data Dragon version: ${patchVersion}`);
       
       // Step 2: Fetch ALL champion data from Data Dragon
+      console.log(`Fetching champion data from Data Dragon for patch ${patchVersion}`);
       const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/data/en_US/champion.json`);
-      if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
+      if (!champResponse.ok) {
+        console.error(`Champion data fetch failed: ${champResponse.status} ${champResponse.statusText}`);
+        throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
+      }
+      
       const champData = await champResponse.json();
+      console.log(`Successfully received ${Object.keys(champData.data).length} champions from Data Dragon`);
       
       // Step 3: Create a complete dataset with all champions
       const result: Record<string, any> = {};
@@ -563,6 +536,7 @@ export default function TierList() {
           id: champId,
           key: champ.key,
           name: champ.name,
+          // Make sure to pass the ENTIRE image object, not just the filename
           image: champ.image,
           roles: {},
           difficulty: getDifficultyFromInfo(champ.info),
@@ -594,12 +568,15 @@ export default function TierList() {
         });
       }
       
+      // Verify the result
+      console.log(`Created champion data with ${Object.keys(result).length} champions and simulated stats`);
+      
       // Process the data just like we would with API data
       processChampionData(result, patchVersion);
       
     } catch (error) {
       console.error("Error in direct Data Dragon loading:", error);
-      setError("Failed to load champion data from Data Dragon. Please try again later.");
+      setError(`Failed to load champion data from Data Dragon: ${(error as Error).message}`);
       setLoading(false);
     }
   };
@@ -908,32 +885,40 @@ export default function TierList() {
           tier: "C"
         }
         
-        // Check and log image data
-        if (champion.image) {
-          console.log(`Champion ${champion.id} has image data:`, champion.image.full);
-        } else {
-          console.log(`Champion ${champion.id} is missing image data`);
-        }
+        // Log image data for debugging
+        console.log(`Champion ${champion.id} image data:`, 
+                   champion.image ? JSON.stringify(champion.image) : "missing");
         
-        // Multiple approaches to handle image URL construction
-        let imageUrl: string;
-        
+        // Construct image URLs with fallbacks
+        // 1. Try square icon from Data Dragon
+        let iconUrl = "/images/champions/default.png"; // Default fallback
         if (champion.image && champion.image.full) {
-          // Primary approach: Use the champion's actual image
-          imageUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`;
+          iconUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`;
         } else if (champion.id) {
-          // Fallback 1: Try constructing from champion ID
-          imageUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.id}.png`;
-        } else {
-          // Fallback 2: Use default image as last resort
-          imageUrl = `/images/champions/default.png`;
+          iconUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.id}.png`;
         }
+        
+        // 2. Try loading screen splash art
+        let splashUrl = `/images/champions/default.png`; // Default fallback
+        if (champion.id) {
+          splashUrl = `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_0.jpg`;
+        }
+        
+        // Create combined image object with both URLs
+        const imageData = {
+          icon: iconUrl,
+          splash: splashUrl,
+          loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`,
+          // Include original Data Dragon image data if available
+          full: champion.image?.full || null,
+          sprite: champion.image?.sprite || null
+        };
         
         // Values are already in percentage form from the API, no need to normalize
         return {
           id: champion.id,
           name: champion.name,
-          image: imageUrl,
+          image: imageData, // Use the enhanced image object
           winRate: primaryRoleStats.winRate,
           pickRate: primaryRoleStats.pickRate,
           banRate: primaryRoleStats.banRate,
@@ -1246,6 +1231,25 @@ export default function TierList() {
     }
   };
 
+  // Create a reusable function to render champion images
+  const renderChampionImage = (champion: Champion) => {
+    return (
+      <div className="relative w-12 h-12 rounded-full overflow-hidden bg-zinc-800">
+        <Image
+          src={champion.image.icon}
+          alt={champion.name}
+          width={48}
+          height={48}
+          className="object-cover"
+          onError={(e) => {
+            // Fallback if the image fails to load
+            (e.target as HTMLImageElement).src = "/images/champions/default.png";
+          }}
+        />
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -1327,7 +1331,73 @@ export default function TierList() {
 
         {/* Champion grid */}
         <div className="mt-6">
-          {/* ... rest of the component ... */}
+          <div className="grid grid-cols-1 gap-3">
+            {/* Group champions by tier */}
+            {Object.entries(tierColors).map(([tier, color]) => {
+              const championsInTier = filteredChampions.filter(
+                (champ) => champ.tier === tier
+              )
+
+              if (championsInTier.length === 0) return null
+
+              return (
+                <div key={tier} className="mb-5">
+                  <div
+                    className="flex items-center gap-2 mb-3 pb-2 border-b"
+                    style={{ borderColor: `${color}40` }}
+                  >
+                    <div
+                      className="w-8 h-8 rounded-md flex items-center justify-center text-black font-bold"
+                      style={{ backgroundColor: color }}
+                    >
+                      {tier}
+                    </div>
+                    <h3 className="text-white font-medium">
+                      Tier {tier} ({championsInTier.length})
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {championsInTier.map((champion) => (
+                      <div
+                        key={champion.id + champion.role}
+                        className="bg-zinc-900 rounded-lg p-3 flex items-center gap-3 hover:bg-zinc-800 transition-colors"
+                      >
+                        {/* Use the renderChampionImage function here */}
+                        {renderChampionImage(champion)}
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-white font-medium truncate">
+                              {champion.name}
+                            </span>
+                            <span
+                              className={`text-xs px-1.5 rounded-sm text-black font-medium`}
+                              style={{ backgroundColor: roleData[champion.role]?.color }}
+                            >
+                              {roleData[champion.role]?.label || champion.role}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-1 mt-1.5 text-xs">
+                            <div className="text-green-400">
+                              {champion.winRate.toFixed(1)}% WR
+                            </div>
+                            <div className="text-blue-400">
+                              {champion.pickRate.toFixed(1)}% PR
+                            </div>
+                            <div className="text-red-400">
+                              {champion.banRate.toFixed(1)}% BR
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
