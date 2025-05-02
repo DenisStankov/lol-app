@@ -460,7 +460,7 @@ export default function TierList() {
     if (availablePatches.length > 0 && selectedPatch && selectedRank) {
       // Create a retry mechanism
       let retryCount = 0;
-      const maxRetries = 2;
+      const maxRetries = 1; // Reduce to just 1 retry attempt
       
       const fetchWithParams = async (retry = false) => {
         try {
@@ -475,7 +475,7 @@ export default function TierList() {
           
           // Add timeout to fetch request
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
           
           try {
             const response = await fetch(apiUrl, {
@@ -506,15 +506,15 @@ export default function TierList() {
               // Wait a bit before retrying
               setTimeout(() => {
                 fetchWithParams(true);
-              }, 1500 * retryCount); // Exponential backoff
+              }, 1000); // Quicker retry
               return;
             }
             
-            console.log("Maximum retries reached. Using Data Dragon directly.");
+            console.log("Switching to client-side Data Dragon loading");
             
-            // Use Data Dragon directly as a reliable fallback
+            // IMPORTANT: Use Data Dragon directly instead of our API
             try {
-              await fetchDataDragonFallback(selectedPatch);
+              await loadDirectlyFromDataDragon(selectedPatch);
             } catch (fallbackError) {
               console.error("Error with fallback:", fallbackError);
               setError("Failed to fetch champion data. Please try again later or provide a Riot API key.");
@@ -532,227 +532,96 @@ export default function TierList() {
     }
   }, [selectedRank, selectedPatch, selectedRegion, availablePatches.length]);
 
-  // Dedicated Data Dragon fallback function
-  const fetchDataDragonFallback = async (targetPatch: string) => {
-    console.log("Fetching fallback data from Data Dragon directly");
+  // Completely client-side solution that doesn't depend on our API
+  const loadDirectlyFromDataDragon = async (targetPatch: string) => {
+    console.log("Loading champion data directly from Data Dragon");
+    setLoading(true);
     
-    // Get latest patch version
-    const versionResponse = await fetch(`https://ddragon.leagueoflegends.com/api/versions.json`);
-    if (!versionResponse.ok) throw new Error("Failed to fetch versions");
-    
-    const versions = await versionResponse.json();
-    const patchVersion = targetPatch || versions[0];
-    console.log(`Using Data Dragon version: ${patchVersion}`);
-    
-    // Fetch champion data from Data Dragon
-    const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/data/en_US/champion.json`);
-    if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
-    
-    const champData = await champResponse.json();
-    console.log(`Retrieved ${Object.keys(champData.data).length} champions from Data Dragon`);
-    
-    // Try to enhance with Riot API if key is available
     try {
-      if (localStorage.getItem('riotApiKey')) {
-        console.log("Attempting to enhance with Riot API data");
-        await enhanceWithRiotData(champData.data, patchVersion);
-      } else {
-        throw new Error("No API key available");
+      // Step 1: Get the latest patch version if needed
+      let patchVersion = targetPatch;
+      if (!patchVersion) {
+        const versionResponse = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+        if (!versionResponse.ok) throw new Error("Failed to fetch versions");
+        const versions = await versionResponse.json();
+        patchVersion = versions[0];
       }
-    } catch (riotError) {
-      console.log("Using pure Data Dragon data with simulated stats");
-      const simulatedData = createSimulatedData(champData.data, patchVersion);
-      processChampionData(simulatedData, patchVersion);
-    }
-  };
-
-  // Helper function to process champion data
-  const processChampionData = (data: any, patchVersion: string) => {
-    console.log(`Processing champion data with ${Object.keys(data).length} champions using patch ${patchVersion}`);
-    
-    const transformedChampions: Champion[] = Object.values(data).map((champion: any) => {
-      // Skip any invalid or malformed champion data
-      if (!champion || !champion.id) {
-        console.warn("Skipping invalid champion data entry:", champion);
-        return null;
-      }
-
-      try {
-        // Select the primary role based on highest pick rate
-        const roles = champion.roles || {}
-        let primaryRole = ""
-        let highestPickRate = 0
-        
-        // Find the role with the highest pick rate
-        Object.entries(roles).forEach(([role, stats]: [string, any]) => {
-          if (stats.pickRate > highestPickRate) {
-            highestPickRate = stats.pickRate
-            primaryRole = role
-          }
-        })
-        
-        // If no primary role found, default to the first role or a placeholder
-        if (!primaryRole && Object.keys(roles).length > 0) {
-          primaryRole = Object.keys(roles)[0]
-        } else if (!primaryRole) {
-          primaryRole = "TOP" // Default fallback
-        }
-        
-        // Get the stats for the primary role
-        const primaryRoleStats = roles[primaryRole] || {
-          winRate: 50,
-          pickRate: 5,
-          banRate: 2,
-          totalGames: 1000,
-          tier: "C"
-        }
-        
-        // Check and log image data
-        if (champion.image) {
-          console.log(`Champion ${champion.id} has image data:`, champion.image.full);
-        } else {
-          console.log(`Champion ${champion.id} is missing image data`);
-        }
-        
-        // Multiple approaches to handle image URL construction
-        let imageUrl: string;
-        
-        if (champion.image && champion.image.full) {
-          // Primary approach: Use the champion's actual image
-          imageUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`;
-        } else if (champion.id) {
-          // Fallback 1: Try constructing from champion ID
-          imageUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.id}.png`;
-        } else {
-          // Fallback 2: Use default image as last resort
-          imageUrl = `/images/champions/default.png`;
-        }
-        
-        // Values are already in percentage form from the API, no need to normalize
-        return {
-          id: champion.id,
-          name: champion.name,
-          image: imageUrl,
-          winRate: primaryRoleStats.winRate,
-          pickRate: primaryRoleStats.pickRate,
-          banRate: primaryRoleStats.banRate,
-          totalGames: primaryRoleStats.totalGames || 0,
-          role: primaryRole,
-          tier: primaryRoleStats.tier || "C",
-          roles: champion.roles,
-          difficulty: champion.difficulty || "Medium",
-          damageType: champion.damageType || "AD",
-          range: champion.range || "Melee",
-        }
-      } catch (error) {
-        console.error(`Error processing champion ${champion?.id || 'unknown'}:`, error);
-        return null;
-      }
-    }).filter(Boolean) as Champion[]; // Filter out null values
-
-    console.log(`Successfully processed ${transformedChampions.length} champions`);
-    setChampions(transformedChampions)
-    setFilteredChampions(transformedChampions)
-    setLoading(false)
-  };
-
-  // Helper function to create simulated data directly from Data Dragon
-  const createSimulatedData = (championData: any, version: string) => {
-    const result: Record<string, any> = {};
-    
-    console.log(`Creating fallback data with ${Object.keys(championData).length} champions from Data Dragon`);
-    
-    for (const [champId, champion] of Object.entries(championData)) {
-      const champ = champion as any;
+      console.log(`Using Data Dragon version: ${patchVersion}`);
       
-      result[champId] = {
-        id: champId,
-        key: champ.key,
-        name: champ.name,
-        // Include the complete image object - critical for proper display
-        image: {
-          full: champ.image.full,
-          sprite: champ.image.sprite,
-          group: champ.image.group,
-          x: champ.image.x,
-          y: champ.image.y,
-          w: champ.image.w,
-          h: champ.image.h
-        },
-        roles: {},
-        difficulty: champ.info.difficulty <= 3 ? "Easy" : (champ.info.difficulty >= 7 ? "Hard" : "Medium"),
-        damageType: getDamageTypeFromTags(champ.tags, champ.info),
-        range: champ.stats.attackrange > 150 ? "Ranged" : "Melee"
-      };
+      // Step 2: Fetch ALL champion data from Data Dragon
+      const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/data/en_US/champion.json`);
+      if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
+      const champData = await champResponse.json();
       
-      // Log the image data for debugging
-      console.log(`Champion ${champId} image data from Data Dragon:`, champ.image.full);
-      
-      // Determine role based on tags
-      const possibleRoles = determineRolesFromTags(champ.tags, champ.info);
-      
-      possibleRoles.forEach(role => {
-        // Generate simulated stats
-        const winRate = 48 + Math.random() * 6;
-        const pickRate = 1 + Math.random() * 10;
-        const banRate = Math.random() * 8;
-        const tier = calculateTier(winRate, pickRate);
+      // Step 3: Create a complete dataset with all champions
+      const result: Record<string, any> = {};
+      for (const [champId, champion] of Object.entries(champData.data)) {
+        const champ = champion as any;
         
-        result[champId].roles[role] = {
-          winRate,
-          pickRate,
-          banRate,
-          totalGames: 1000 + Math.floor(Math.random() * 10000),
-          tier
+        // Ensure champion ID is always available
+        result[champId] = {
+          id: champId,
+          key: champ.key,
+          name: champ.name,
+          image: champ.image,
+          roles: {},
+          difficulty: getDifficultyFromInfo(champ.info),
+          damageType: getDamageTypeFromTags(champ.tags, champ.info),
+          range: champ.stats?.attackrange > 150 ? "Ranged" : "Melee"
         };
-      });
+        
+        // Determine roles based on champion tags
+        const possibleRoles = determineRolesFromTags(champ.tags, champ.info);
+        
+        // Create realistic simulated stats for each role
+        possibleRoles.forEach(role => {
+          // Generate champion-specific stats that are somewhat consistent
+          // Use champion key to seed the random values so they're consistent per champion
+          const seed = parseInt(champ.key) || 1;
+          const baseWinRate = 47 + (seed % 10);
+          const winRate = Math.min(58, Math.max(42, baseWinRate + (Math.random() * 4 - 2)));
+          const pickRate = Math.min(25, Math.max(0.5, 3 + (seed % 6) + (Math.random() * 5)));
+          const banRate = Math.min(40, Math.max(0, (seed % 8) + (Math.random() * 4)));
+          const tier = calculateTierFromStats(winRate, pickRate, banRate);
+          
+          result[champId].roles[role] = {
+            winRate,
+            pickRate,
+            banRate,
+            totalGames: 1000 + Math.floor(Math.random() * 20000),
+            tier
+          };
+        });
+      }
+      
+      // Process the data just like we would with API data
+      processChampionData(result, patchVersion);
+      
+    } catch (error) {
+      console.error("Error in direct Data Dragon loading:", error);
+      setError("Failed to load champion data from Data Dragon. Please try again later.");
+      setLoading(false);
     }
-    
-    return result;
   };
-
-  // Helper to determine roles from champion tags
-  const determineRolesFromTags = (tags: string[], info: any) => {
-    const roles: string[] = [];
-    
-    if (tags.includes("Marksman") && info.attack >= 7) {
-      roles.push("BOTTOM");
-    }
-    
-    if (tags.includes("Support") || (tags.includes("Tank") && info.attack < 5)) {
-      roles.push("UTILITY");
-    }
-    
-    if (tags.includes("Mage") || tags.includes("Assassin")) {
-      roles.push("MIDDLE");
-    }
-    
-    if (tags.includes("Fighter") || (tags.includes("Tank") && info.attack >= 5)) {
-      roles.push("TOP");
-    }
-    
-    // Check jungler potential but don't use mobility since it doesn't exist in the Data Dragon API
-    if ((tags.includes("Fighter") || tags.includes("Assassin")) && info.attack > 5) {
-      roles.push("JUNGLE");
-    }
-    
-    // Ensure at least one role
-    if (roles.length === 0) {
-      roles.push("TOP");
-    }
-    
-    return roles;
+  
+  // Helper function to determine difficulty from champion info
+  const getDifficultyFromInfo = (info: any): string => {
+    const difficultyScore = info.difficulty;
+    if (difficultyScore <= 3) return "Easy";
+    if (difficultyScore >= 7) return "Hard";
+    return "Medium";
   };
-
-  // Helper to calculate tier based on win rate and pick rate
-  const calculateTier = (winRate: number, pickRate: number) => {
-    const score = winRate * 0.7 + pickRate * 0.3;
+  
+  // Helper function to calculate tier from stats
+  const calculateTierFromStats = (winRate: number, pickRate: number, banRate: number): string => {
+    // Calculate a score that weights win rate heavily, with pick rate and ban rate as modifiers
+    const score = (winRate * 0.7) + (pickRate * 0.15) + (banRate * 0.15);
     
-    if (score >= 56) return "S+";
-    if (score >= 54) return "S";
+    if (score >= 60) return "S+";
+    if (score >= 55) return "S";
     if (score >= 52) return "A";
-    if (score >= 50) return "B";
-    if (score >= 48) return "C";
+    if (score >= 48) return "B";
+    if (score >= 45) return "C";
     return "D";
   };
 
@@ -997,6 +866,129 @@ export default function TierList() {
     
     fetchAgain();
   }, [selectedPatch, patchVersion, selectedRank]);
+
+  // Helper function to process champion data
+  const processChampionData = (data: any, patchVersion: string) => {
+    console.log(`Processing champion data with ${Object.keys(data).length} champions using patch ${patchVersion}`);
+    
+    const transformedChampions: Champion[] = Object.values(data).map((champion: any) => {
+      // Skip any invalid or malformed champion data
+      if (!champion || !champion.id) {
+        console.warn("Skipping invalid champion data entry:", champion);
+        return null;
+      }
+
+      try {
+        // Select the primary role based on highest pick rate
+        const roles = champion.roles || {}
+        let primaryRole = ""
+        let highestPickRate = 0
+        
+        // Find the role with the highest pick rate
+        Object.entries(roles).forEach(([role, stats]: [string, any]) => {
+          if (stats.pickRate > highestPickRate) {
+            highestPickRate = stats.pickRate
+            primaryRole = role
+          }
+        })
+        
+        // If no primary role found, default to the first role or a placeholder
+        if (!primaryRole && Object.keys(roles).length > 0) {
+          primaryRole = Object.keys(roles)[0]
+        } else if (!primaryRole) {
+          primaryRole = "TOP" // Default fallback
+        }
+        
+        // Get the stats for the primary role
+        const primaryRoleStats = roles[primaryRole] || {
+          winRate: 50,
+          pickRate: 5,
+          banRate: 2,
+          totalGames: 1000,
+          tier: "C"
+        }
+        
+        // Check and log image data
+        if (champion.image) {
+          console.log(`Champion ${champion.id} has image data:`, champion.image.full);
+        } else {
+          console.log(`Champion ${champion.id} is missing image data`);
+        }
+        
+        // Multiple approaches to handle image URL construction
+        let imageUrl: string;
+        
+        if (champion.image && champion.image.full) {
+          // Primary approach: Use the champion's actual image
+          imageUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`;
+        } else if (champion.id) {
+          // Fallback 1: Try constructing from champion ID
+          imageUrl = `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.id}.png`;
+        } else {
+          // Fallback 2: Use default image as last resort
+          imageUrl = `/images/champions/default.png`;
+        }
+        
+        // Values are already in percentage form from the API, no need to normalize
+        return {
+          id: champion.id,
+          name: champion.name,
+          image: imageUrl,
+          winRate: primaryRoleStats.winRate,
+          pickRate: primaryRoleStats.pickRate,
+          banRate: primaryRoleStats.banRate,
+          totalGames: primaryRoleStats.totalGames || 0,
+          role: primaryRole,
+          tier: primaryRoleStats.tier || "C",
+          roles: champion.roles,
+          difficulty: champion.difficulty || "Medium",
+          damageType: champion.damageType || "AD",
+          range: champion.range || "Melee",
+        }
+      } catch (error) {
+        console.error(`Error processing champion ${champion?.id || 'unknown'}:`, error);
+        return null;
+      }
+    }).filter(Boolean) as Champion[]; // Filter out null values
+
+    console.log(`Successfully processed ${transformedChampions.length} champions`);
+    setChampions(transformedChampions)
+    setFilteredChampions(transformedChampions)
+    setLoading(false)
+  };
+
+  // Helper to determine roles from champion tags
+  const determineRolesFromTags = (tags: string[], info: any) => {
+    const roles: string[] = [];
+    
+    if (tags.includes("Marksman") && info.attack >= 7) {
+      roles.push("BOTTOM");
+    }
+    
+    if (tags.includes("Support") || (tags.includes("Tank") && info.attack < 5)) {
+      roles.push("UTILITY");
+    }
+    
+    if (tags.includes("Mage") || tags.includes("Assassin")) {
+      roles.push("MIDDLE");
+    }
+    
+    if (tags.includes("Fighter") || (tags.includes("Tank") && info.attack >= 5)) {
+      roles.push("TOP");
+    }
+    
+    // Check jungler potential but don't use mobility since it doesn't exist in the Data Dragon API
+    if ((tags.includes("Fighter") || tags.includes("Assassin")) && info.attack > 5) {
+      roles.push("JUNGLE");
+    }
+    
+    // Ensure at least one role
+    if (roles.length === 0) {
+      roles.push("TOP");
+    }
+    
+    return roles;
+  };
 
   // Helper function to enhance with Riot API data if possible
   const enhanceWithRiotData = async (championData: any, version: string) => {
