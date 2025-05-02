@@ -415,11 +415,16 @@ export default function TierList() {
             tier: "C"
           }
           
+          // Safely construct image URL with null checks
+          const imageUrl = champion.image && champion.image.full 
+            ? `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.image.full}`
+            : `/images/champions/default.png`; // Fallback to a default image
+          
           // Values are already in percentage form from the API, no need to normalize
           return {
             id: champion.id,
             name: champion.name,
-            image: `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.image.full}`,
+            image: imageUrl,
             winRate: primaryRoleStats.winRate,
             pickRate: primaryRoleStats.pickRate,
             banRate: primaryRoleStats.banRate,
@@ -502,11 +507,16 @@ export default function TierList() {
               tier: "C"
             }
             
+            // Safely construct image URL with null checks
+            const imageUrl = champion.image && champion.image.full 
+              ? `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.image.full}`
+              : `/images/champions/default.png`; // Fallback to a default image
+            
             // Values are already in percentage form from the API, no need to normalize
             return {
               id: champion.id,
               name: champion.name,
-              image: `https://ddragon.leagueoflegends.com/cdn/${selectedPatch}/img/champion/${champion.image.full}`,
+              image: imageUrl,
               winRate: primaryRoleStats.winRate,
               pickRate: primaryRoleStats.pickRate,
               banRate: primaryRoleStats.banRate,
@@ -740,11 +750,16 @@ export default function TierList() {
             tier: "C"
           }
           
+          // Safely construct image URL with null checks
+          const imageUrl = champion.image && champion.image.full 
+            ? `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.image.full}`
+            : `/images/champions/default.png`; // Fallback to a default image
+          
           // Values are already in percentage form from the API, no need to normalize
           return {
             id: champion.id,
             name: champion.name,
-            image: `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.image.full}`,
+            image: imageUrl,
             winRate: primaryRoleStats.winRate,
             pickRate: primaryRoleStats.pickRate,
             banRate: primaryRoleStats.banRate,
