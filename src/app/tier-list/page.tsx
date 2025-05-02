@@ -322,6 +322,7 @@ const rankIcons: Record<string, { icon: React.ReactNode, color: string }> = {
 };
 
 export default function TierList() {
+  // Define state variables for filters with consistent naming
   const [selectedRole, setSelectedRole] = useState("")
   const [selectedTier, setSelectedTier] = useState("")
   const [selectedRank, setSelectedRank] = useState("ALL")
@@ -726,22 +727,13 @@ export default function TierList() {
       setSelectedTier("");
     } else if (filter.startsWith("Difficulty:")) {
       const difficulty = filter.replace("Difficulty: ", "");
-      setSelectedDifficulty(prev => {
-        const updated = prev.filter(item => item !== difficulty);
-        return updated;
-      });
+      setSelectedDifficulty(prev => prev.filter(item => item !== difficulty));
     } else if (filter.startsWith("Damage:")) {
       const damageType = filter.replace("Damage: ", "");
-      setSelectedDamageType(prev => {
-        const updated = prev.filter(item => item !== damageType);
-        return updated;
-      });
+      setSelectedDamageType(prev => prev.filter(item => item !== damageType));
     } else if (filter.startsWith("Range:")) {
       const range = filter.replace("Range: ", "");
-      setSelectedRange(prev => {
-        const updated = prev.filter(item => item !== range);
-        return updated;
-      });
+      setSelectedRange(prev => prev.filter(item => item !== range));
     } else if (filter.startsWith("Search:")) {
       setSearchQuery("");
     }
@@ -1520,7 +1512,7 @@ export default function TierList() {
                     key={diff}
                     onClick={() => toggleDifficultyFilter(diff)}
                     className={`px-3 py-1 text-sm rounded-lg transition-all ${
-                      difficultyFilters.includes(diff)
+                      selectedDifficulty.includes(diff)
                         ? "bg-[#C89B3C] text-black"
                         : "bg-zinc-800 text-white hover:bg-zinc-700"
                     }`}
@@ -1540,7 +1532,7 @@ export default function TierList() {
                     key={type}
                     onClick={() => toggleDamageTypeFilter(type)}
                     className={`px-3 py-1 text-sm rounded-lg transition-all ${
-                      damageTypeFilters.includes(type)
+                      selectedDamageType.includes(type)
                         ? "bg-[#C89B3C] text-black"
                         : "bg-zinc-800 text-white hover:bg-zinc-700"
                     }`}
@@ -1560,7 +1552,7 @@ export default function TierList() {
                     key={range}
                     onClick={() => toggleRangeFilter(range)}
                     className={`px-3 py-1 text-sm rounded-lg transition-all ${
-                      rangeFilters.includes(range)
+                      selectedRange.includes(range)
                         ? "bg-[#C89B3C] text-black"
                         : "bg-zinc-800 text-white hover:bg-zinc-700"
                     }`}
@@ -1574,9 +1566,9 @@ export default function TierList() {
 
           {/* Active Filters */}
           {(selectedRole || 
-           difficultyFilters.length > 0 || 
-           damageTypeFilters.length > 0 || 
-           rangeFilters.length > 0 || 
+           selectedDifficulty.length > 0 || 
+           selectedDamageType.length > 0 || 
+           selectedRange.length > 0 || 
            searchQuery) && (
              <div className="mt-4 pt-4 border-t border-zinc-800">
                <div className="flex items-center gap-2 flex-wrap">
@@ -1592,10 +1584,10 @@ export default function TierList() {
                    </button>
                  )}
 
-                 {difficultyFilters.map((filter) => (
+                 {selectedDifficulty.map((filter) => (
                    <button
                      key={filter}
-                     onClick={() => removeFilter(filter)}
+                     onClick={() => removeFilter(`Difficulty: ${filter}`)}
                      className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
                    >
                      Difficulty: {filter}
@@ -1603,10 +1595,10 @@ export default function TierList() {
                    </button>
                  ))}
 
-                 {damageTypeFilters.map((filter) => (
+                 {selectedDamageType.map((filter) => (
                    <button
                      key={filter}
-                     onClick={() => removeFilter(filter)}
+                     onClick={() => removeFilter(`Damage: ${filter}`)}
                      className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
                    >
                      Damage: {filter}
@@ -1614,10 +1606,10 @@ export default function TierList() {
                    </button>
                  ))}
 
-                 {rangeFilters.map((filter) => (
+                 {selectedRange.map((filter) => (
                    <button
                      key={filter}
-                     onClick={() => removeFilter(filter)}
+                     onClick={() => removeFilter(`Range: ${filter}`)}
                      className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
                    >
                      Range: {filter}
@@ -1638,9 +1630,9 @@ export default function TierList() {
                  <button
                    onClick={() => {
                      setSelectedRole("");
-                     setDifficultyFilters([]);
-                     setDamageTypeFilters([]);
-                     setRangeFilters([]);
+                     setSelectedDifficulty([]);
+                     setSelectedDamageType([]);
+                     setSelectedRange([]);
                      setSearchQuery("");
                    }}
                    className="text-xs text-white/60 hover:text-white transition-colors underline"
@@ -1730,9 +1722,9 @@ export default function TierList() {
             <button
               onClick={() => {
                 setSelectedRole("");
-                setDifficultyFilters([]);
-                setDamageTypeFilters([]);
-                setRangeFilters([]);
+                setSelectedDifficulty([]);
+                setSelectedDamageType([]);
+                setSelectedRange([]);
                 setSearchQuery("");
               }}
               className="bg-[#C89B3C] text-black px-4 py-2 rounded-md hover:bg-[#C89B3C]/80 transition-colors"
