@@ -16,6 +16,7 @@ import {
   TooltipProvider
 } from "@/components/ui/tooltip"
 import Navigation from "@/components/navigation"
+import { useRouter } from "next/navigation"
 
 // Import regions from the correct file
 import { regions } from "@/app/api/champion-stats/regions"
@@ -339,6 +340,7 @@ export default function TierList() {
   const [sortBy, setSortBy] = useState("tier")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [riotApiKey, setRiotApiKey] = useState<string>("")
+  const router = useRouter()
 
   // Initial data load
   useEffect(() => {
@@ -1260,65 +1262,114 @@ export default function TierList() {
       setImageError(true);
     };
     
+    // Function to navigate to champion details page
+    const navigateToChampion = () => {
+      router.push(`/champion/${champion.id}`);
+    };
+    
     return (
-      <div className="bg-zinc-900 rounded-lg p-4 flex items-center gap-4 hover:bg-zinc-800 transition-colors border border-zinc-800 hover:border-zinc-700 shadow-md">
-        {/* Champion image with Next.js Image component */}
-        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-          {!imageError ? (
-            <Image
-              src={champion.image.icon}
-              alt={champion.name}
-              width={48}
-              height={48}
-              className="object-cover"
-              onError={handleImageError}
-              unoptimized={true}
-            />
-          ) : (
-            <>
-              <Image
-                src="/images/champions/fallback.png"
-                alt={champion.name}
-                width={48}
-                height={48}
-                className="object-cover opacity-70"
-              />
-              <div className="absolute inset-0 flex items-center justify-center bg-zinc-800 bg-opacity-50">
-                <span className="text-xs font-bold text-white text-center px-1">
-                  {champion.name.substring(0, 4)}
+      <div 
+        className="bg-zinc-900 rounded-lg overflow-hidden hover:bg-zinc-800 transition-all duration-200 border border-zinc-800 hover:border-[#C89B3C]/60 shadow-md hover:shadow-lg hover:shadow-[#C89B3C]/10 cursor-pointer transform hover:-translate-y-1"
+        onClick={navigateToChampion}
+      >
+        {/* Champion header with image and basic info */}
+        <div className="relative">
+          {/* Champion splash art as background */}
+          <div className="absolute inset-0 bg-cover bg-center opacity-20" 
+            style={{ backgroundImage: `url(${champion.image.splash})` }} 
+          />
+          
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/70 to-zinc-900"></div>
+          
+          <div className="relative p-4 flex items-center gap-4 z-10">
+            {/* Champion image with Next.js Image component */}
+            <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+              {!imageError ? (
+                <Image
+                  src={champion.image.icon}
+                  alt={champion.name}
+                  width={56}
+                  height={56}
+                  className="object-cover"
+                  onError={handleImageError}
+                  unoptimized={true}
+                />
+              ) : (
+                <>
+                  <Image
+                    src="/images/champions/fallback.png"
+                    alt={champion.name}
+                    width={56}
+                    height={56}
+                    className="object-cover opacity-70"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center bg-zinc-800 bg-opacity-50">
+                    <span className="text-xs font-bold text-white text-center px-1">
+                      {champion.name.substring(0, 4)}
+                    </span>
+                  </div>
+                </>
+              )}
+              
+              {/* Tier badge */}
+              <div 
+                className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-md text-black"
+                style={{ backgroundColor: tierColors[champion.tier] || '#5AC8FA' }}
+              >
+                {champion.tier}
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-white font-semibold truncate text-lg">
+                  {champion.name}
+                </span>
+                <span
+                  className="text-xs px-2 py-0.5 rounded-full text-black font-medium shadow-sm"
+                  style={{ backgroundColor: roleData[champion.role]?.color }}
+                >
+                  {roleData[champion.role]?.label || champion.role}
                 </span>
               </div>
-            </>
-          )}
+              
+              <div className="flex gap-2 items-center text-xs text-zinc-400">
+                <span className="px-1.5 py-0.5 bg-zinc-800 rounded-md border border-zinc-700">
+                  {champion.difficulty}
+                </span>
+                <span className="px-1.5 py-0.5 bg-zinc-800 rounded-md border border-zinc-700">
+                  {champion.damageType}
+                </span>
+                <span className="px-1.5 py-0.5 bg-zinc-800 rounded-md border border-zinc-700">
+                  {champion.range}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-white font-semibold truncate">
-              {champion.name}
-            </span>
-            <span
-              className={`text-xs px-2 py-0.5 rounded-full text-black font-medium shadow-sm`}
-              style={{ backgroundColor: roleData[champion.role]?.color }}
-            >
-              {roleData[champion.role]?.label || champion.role}
-            </span>
+        {/* Champion stats */}
+        <div className="p-3 grid grid-cols-3 gap-1 bg-zinc-800/50 border-t border-zinc-700/30">
+          <div className="text-center py-1 px-2 rounded-md bg-green-900/20 border border-green-900/30">
+            <div className="text-green-400 font-bold text-sm">{champion.winRate.toFixed(1)}%</div>
+            <div className="text-zinc-500 text-[10px]">Win Rate</div>
           </div>
-
-          <div className="grid grid-cols-3 gap-1 text-xs">
-            <div className="text-green-400 flex flex-col">
-              <span className="font-bold">{champion.winRate.toFixed(1)}%</span>
-              <span className="text-zinc-500 text-[10px]">Win Rate</span>
-            </div>
-            <div className="text-blue-400 flex flex-col">
-              <span className="font-bold">{champion.pickRate.toFixed(1)}%</span>
-              <span className="text-zinc-500 text-[10px]">Pick Rate</span>
-            </div>
-            <div className="text-red-400 flex flex-col">
-              <span className="font-bold">{champion.banRate.toFixed(1)}%</span>
-              <span className="text-zinc-500 text-[10px]">Ban Rate</span>
-            </div>
+          
+          <div className="text-center py-1 px-2 rounded-md bg-blue-900/20 border border-blue-900/30">
+            <div className="text-blue-400 font-bold text-sm">{champion.pickRate.toFixed(1)}%</div>
+            <div className="text-zinc-500 text-[10px]">Pick Rate</div>
           </div>
+          
+          <div className="text-center py-1 px-2 rounded-md bg-red-900/20 border border-red-900/30">
+            <div className="text-red-400 font-bold text-sm">{champion.banRate.toFixed(1)}%</div>
+            <div className="text-zinc-500 text-[10px]">Ban Rate</div>
+          </div>
+        </div>
+        
+        {/* View details indicator */}
+        <div className="px-3 py-2 text-xs text-center text-[#C89B3C] border-t border-zinc-800 bg-zinc-900/80 font-medium">
+          View Champion Details
         </div>
       </div>
     );
@@ -1355,57 +1406,276 @@ export default function TierList() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 pb-12">
+    <div className="min-h-screen bg-[#0E1015]">
       <Navigation />
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="pt-8 pb-6">
-          <h1 className="text-3xl font-bold text-white">Champion Tier List</h1>
-          <p className="text-zinc-400 mt-2">
-            Champion rankings based on performance data
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Hero Section */}
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 relative inline-block">
+            <span className="relative z-10">Champion Tier List</span>
+            <span className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-[#C89B3C]/0 via-[#C89B3C]/80 to-[#C89B3C]/0 transform -skew-x-12 z-0"></span>
+          </h1>
+          <p className="text-zinc-400 max-w-2xl mx-auto">
+            Discover the strongest champions for patch {patchVersion || '15.9.1'} based on win rates, pick rates, and overall performance
           </p>
         </div>
 
-        {/* Filter controls */}
-        <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
-          {/* Filters */}
-          {/* ... existing filter code ... */}
+        {/* Filters & Controls */}
+        <div className="mb-8 bg-zinc-900/70 border border-zinc-800 rounded-xl p-4 shadow-lg">
+          <div className="flex flex-col md:flex-row gap-4 mb-4">
+            {/* Patch Selection */}
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-zinc-500 mb-1">Patch Version</label>
+              <div className="relative">
+                <select
+                  className="w-full bg-zinc-800 text-white border border-zinc-700 rounded-lg px-4 py-2 appearance-none focus:ring-2 focus:ring-[#C89B3C] focus:border-[#C89B3C] focus:outline-none transition-all"
+                  value={selectedPatch}
+                  onChange={(e) => setSelectedPatch(e.target.value)}
+                >
+                  <option value="">-- All Patches --</option>
+                  <option value="15.9.1">Patch 15.9.1</option>
+                  <option value="15.8.1">Patch 15.8.1</option>
+                  <option value="15.7.1">Patch 15.7.1</option>
+                  <option value="15.6.1">Patch 15.6.1</option>
+                </select>
+                <ChevronDown className="absolute top-1/2 right-3 transform -translate-y-1/2 text-zinc-500 h-4 w-4 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Rank Selection */}
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-zinc-500 mb-1">Rank</label>
+              <div className="relative">
+                <select
+                  className="w-full bg-zinc-800 text-white border border-zinc-700 rounded-lg px-4 py-2 appearance-none focus:ring-2 focus:ring-[#C89B3C] focus:border-[#C89B3C] focus:outline-none transition-all"
+                  value={selectedRank}
+                  onChange={(e) => setSelectedRank(e.target.value)}
+                >
+                  <option value="ALL">All Ranks</option>
+                  <option value="MASTER">Master+</option>
+                  <option value="DIAMOND">Diamond+</option>
+                  <option value="PLATINUM">Platinum+</option>
+                  <option value="GOLD">Gold+</option>
+                  <option value="SILVER">Silver+</option>
+                  <option value="BRONZE">Bronze+</option>
+                  <option value="IRON">Iron</option>
+                </select>
+                <ChevronDown className="absolute top-1/2 right-3 transform -translate-y-1/2 text-zinc-500 h-4 w-4 pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Region Selection */}
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-zinc-500 mb-1">Region</label>
+              <div className="relative">
+                <select
+                  className="w-full bg-zinc-800 text-white border border-zinc-700 rounded-lg px-4 py-2 appearance-none focus:ring-2 focus:ring-[#C89B3C] focus:border-[#C89B3C] focus:outline-none transition-all"
+                  value={selectedRegion}
+                  onChange={(e) => setSelectedRegion(e.target.value)}
+                >
+                  <option value="global">Global</option>
+                  {Object.keys(regions).map((region) => (
+                    <option key={region} value={region}>
+                      {regions[region]}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute top-1/2 right-3 transform -translate-y-1/2 text-zinc-500 h-4 w-4 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+          {/* Role Filters */}
+          <div className="mb-4">
+            <label className="block text-xs font-medium text-zinc-500 mb-2">Filter by Role</label>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(roleData).map(([role, data]) => (
+                <button
+                  key={role}
+                  onClick={() => setSelectedRole(selectedRole === role ? "" : role)}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition-all ${
+                    selectedRole === role
+                      ? "bg-[#C89B3C] text-black"
+                      : "bg-zinc-800 text-white hover:bg-zinc-700"
+                  }`}
+                >
+                  <span className="w-4 h-4 flex items-center justify-center">
+                    {data.icon}
+                  </span>
+                  <span>{data.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Advanced Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Difficulty Filter */}
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-2">Difficulty</label>
+              <div className="flex flex-wrap gap-2">
+                {["Easy", "Medium", "Hard"].map((diff) => (
+                  <button
+                    key={diff}
+                    onClick={() => toggleDifficultyFilter(diff)}
+                    className={`px-3 py-1 text-sm rounded-lg transition-all ${
+                      difficultyFilters.includes(diff)
+                        ? "bg-[#C89B3C] text-black"
+                        : "bg-zinc-800 text-white hover:bg-zinc-700"
+                    }`}
+                  >
+                    {diff}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Damage Type Filter */}
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-2">Damage Type</label>
+              <div className="flex flex-wrap gap-2">
+                {["AD", "AP", "Hybrid"].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => toggleDamageTypeFilter(type)}
+                    className={`px-3 py-1 text-sm rounded-lg transition-all ${
+                      damageTypeFilters.includes(type)
+                        ? "bg-[#C89B3C] text-black"
+                        : "bg-zinc-800 text-white hover:bg-zinc-700"
+                    }`}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Range Filter */}
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-2">Range</label>
+              <div className="flex flex-wrap gap-2">
+                {["Melee", "Ranged"].map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => toggleRangeFilter(range)}
+                    className={`px-3 py-1 text-sm rounded-lg transition-all ${
+                      rangeFilters.includes(range)
+                        ? "bg-[#C89B3C] text-black"
+                        : "bg-zinc-800 text-white hover:bg-zinc-700"
+                    }`}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Active Filters */}
+          {(selectedRole || 
+           difficultyFilters.length > 0 || 
+           damageTypeFilters.length > 0 || 
+           rangeFilters.length > 0 || 
+           searchQuery) && (
+             <div className="mt-4 pt-4 border-t border-zinc-800">
+               <div className="flex items-center gap-2 flex-wrap">
+                 <span className="text-xs font-medium text-zinc-500">Active Filters:</span>
+                 
+                 {selectedRole && (
+                   <button
+                     onClick={() => setSelectedRole("")}
+                     className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
+                   >
+                     Role: {roleData[selectedRole]?.label || selectedRole}
+                     <X className="h-3 w-3" />
+                   </button>
+                 )}
+
+                 {difficultyFilters.map((filter) => (
+                   <button
+                     key={filter}
+                     onClick={() => removeFilter(filter)}
+                     className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
+                   >
+                     Difficulty: {filter}
+                     <X className="h-3 w-3" />
+                   </button>
+                 ))}
+
+                 {damageTypeFilters.map((filter) => (
+                   <button
+                     key={filter}
+                     onClick={() => removeFilter(filter)}
+                     className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
+                   >
+                     Damage: {filter}
+                     <X className="h-3 w-3" />
+                   </button>
+                 ))}
+
+                 {rangeFilters.map((filter) => (
+                   <button
+                     key={filter}
+                     onClick={() => removeFilter(filter)}
+                     className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
+                   >
+                     Range: {filter}
+                     <X className="h-3 w-3" />
+                   </button>
+                 ))}
+
+                 {searchQuery && (
+                   <button
+                     onClick={() => setSearchQuery("")}
+                     className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
+                   >
+                     Search: {searchQuery}
+                     <X className="h-3 w-3" />
+                   </button>
+                 )}
+                 
+                 <button
+                   onClick={() => {
+                     setSelectedRole("");
+                     setDifficultyFilters([]);
+                     setDamageTypeFilters([]);
+                     setRangeFilters([]);
+                     setSearchQuery("");
+                   }}
+                   className="text-xs text-white/60 hover:text-white transition-colors underline"
+                 >
+                   Clear All
+                 </button>
+               </div>
+             </div>
+           )}
         </div>
 
-        {/* Error display and API key input option */}
-        {error && (
-          <div className="bg-red-900/20 border border-red-900/40 p-4 my-4 rounded-lg">
-            <h3 className="text-red-400 font-medium mb-2">Error loading champion data</h3>
-            <p className="text-sm text-zinc-300">{error}</p>
-            <div className="mt-4">
-              <details className="text-xs">
-                <summary className="cursor-pointer text-zinc-400 mb-2">Use Direct Riot API Access (Optional)</summary>
-                <div className="p-3 bg-zinc-800 rounded-lg">
-                  <p className="mb-2 text-zinc-300">If you have a Riot API key, you can enter it here to fetch data directly. The key will be stored in your browser only.</p>
-                  <div className="flex gap-2">
-                    <input 
-                      type="password" 
-                      className="flex-1 px-3 py-1 rounded bg-zinc-700 text-white border border-zinc-600"
-                      placeholder="Enter your Riot API key here"
-                      onChange={(e) => setRiotApiKey(e.target.value)}
-                      value={riotApiKey}
-                    />
-                    <button 
-                      onClick={saveRiotApiKey}
-                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
-                    >
-                      Save
-                    </button>
-                  </div>
-                  <p className="mt-2 text-yellow-400 text-xs">Warning: Only use your own development API key. This is only stored locally in your browser.</p>
-                </div>
-              </details>
-            </div>
+        {/* Loading and Error States */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C89B3C]"></div>
+            <span className="ml-3 text-lg text-zinc-400">Loading champion data...</span>
           </div>
         )}
 
-        {/* Champion grid */}
-        <div className="mt-6">
-          <div className="grid grid-cols-1 gap-6">
+        {error && (
+          <div className="bg-red-500/20 border border-red-500/50 text-white p-4 rounded-lg mb-8">
+            <p className="font-medium">Error loading champion data</p>
+            <p className="text-sm text-white/80">{error}</p>
+            <button
+              onClick={fetchAgain}
+              className="mt-2 bg-red-500 text-white px-4 py-1 rounded-md text-sm hover:bg-red-600 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Champion Tier List */}
+        {!loading && !error && filteredChampions.length > 0 && (
+          <div className="grid grid-cols-1 gap-8 animate-fadeIn">
             {/* Group champions by tier */}
             {Object.entries(tierColors).map(([tier, color]) => {
               const championsInTier = filteredChampions.filter(
@@ -1415,23 +1685,30 @@ export default function TierList() {
               if (championsInTier.length === 0) return null
 
               return (
-                <div key={tier} className="mb-6">
+                <div key={tier} className="bg-zinc-900/70 border border-zinc-800 rounded-xl overflow-hidden shadow-lg">
+                  {/* Tier Header */}
                   <div
-                    className="flex items-center gap-3 mb-4 pb-2 border-b"
-                    style={{ borderColor: `${color}60` }}
+                    className="p-4 flex items-center gap-4 border-b border-zinc-800"
+                    style={{ backgroundColor: `${color}10` }}
                   >
                     <div
-                      className="w-10 h-10 rounded-md flex items-center justify-center text-black font-bold text-lg shadow-md"
+                      className="w-12 h-12 rounded-lg flex items-center justify-center text-black font-bold text-xl shadow-md"
                       style={{ backgroundColor: color }}
                     >
                       {tier}
                     </div>
-                    <h3 className="text-white text-xl font-medium">
-                      Tier {tier} ({championsInTier.length})
-                    </h3>
+                    <div>
+                      <h3 className="text-white text-xl font-medium">
+                        Tier {tier} Champions
+                      </h3>
+                      <p className="text-zinc-400 text-sm">
+                        {championsInTier.length} champion{championsInTier.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {/* Champions Grid */}
+                  <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {championsInTier.map((champion) => (
                       <ChampionCard key={champion.id + champion.role} champion={champion} />
                     ))}
@@ -1440,7 +1717,30 @@ export default function TierList() {
               )
             })}
           </div>
-        </div>
+        )}
+
+        {/* No Champions Found */}
+        {!loading && !error && filteredChampions.length === 0 && (
+          <div className="bg-zinc-900/70 border border-zinc-800 rounded-xl p-8 text-center">
+            <div className="text-zinc-400 mb-2 text-6xl">😢</div>
+            <h3 className="text-white text-xl font-medium mb-2">No Champions Found</h3>
+            <p className="text-zinc-400 mb-4">
+              No champions match your current filter criteria. Try removing some filters.
+            </p>
+            <button
+              onClick={() => {
+                setSelectedRole("");
+                setDifficultyFilters([]);
+                setDamageTypeFilters([]);
+                setRangeFilters([]);
+                setSearchQuery("");
+              }}
+              className="bg-[#C89B3C] text-black px-4 py-2 rounded-md hover:bg-[#C89B3C]/80 transition-colors"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
