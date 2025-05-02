@@ -557,14 +557,19 @@ export default function TierList() {
           };
         });
         
-        // Create champion object with proper structure
+        // Format champion image data with absolute URLs
+        // Need to ensure all image objects have the same format
+        const fullImageName = champ.image?.full || `${champId}.png`;
+        
         result[champId] = {
           id: champId,
           key: champ.key,
           name: champ.name,
+          // Create a properly structured image object with absolute URLs
           image: {
-            full: champ.image?.full || `${champId}.png`,
-            icon: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champ.image?.full || `${champId}.png`}`,
+            full: fullImageName,
+            // Use absolute URLs instead of relative ones
+            icon: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${fullImageName}`,
             splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champId}_0.jpg`,
             loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champId}_0.jpg`,
             sprite: champ.image?.sprite || null
@@ -574,6 +579,11 @@ export default function TierList() {
           damageType: getDamageTypeFromTags(champ.tags, champ.info),
           range: champ.stats?.attackrange > 150 ? "Ranged" : "Melee"
         };
+        
+        // Debug log for the first champion to ensure URL format
+        if (Object.keys(result).length === 1) {
+          console.log("First champion image structure:", result[champId].image);
+        }
       }
       
       // Process the data
@@ -849,7 +859,7 @@ export default function TierList() {
     fetchAgain();
   }, [selectedPatch, patchVersion, selectedRank]);
 
-  // Update the processChampionData function to be compatible with the new image structure
+  // Update the processChampionData function to handle image URLs properly
   const processChampionData = (data: any, patchVersion: string) => {
     console.log(`Processing champion data with ${Object.keys(data).length} champions using patch ${patchVersion}`);
     
@@ -890,36 +900,38 @@ export default function TierList() {
           tier: "C"
         }
         
-        // Ensure image structure is correct
+        // Ensure image structure is correct and absolute URLs are used
         let imageData: any;
         
-        // If the image is already correctly structured as an object with icon property
-        if (champion.image && typeof champion.image === 'object' && champion.image.icon) {
+        // If the image is already correctly structured with absolute URLs
+        if (champion.image && typeof champion.image === 'object' && champion.image.icon && champion.image.icon.startsWith('http')) {
           imageData = champion.image;
+          console.log(`Using existing image data for ${champion.id} with icon: ${champion.image.icon}`);
         } 
-        // If the image object is from Data Dragon but lacks direct URLs
+        // If the image object exists but needs URL construction
         else if (champion.image && typeof champion.image === 'object' && champion.image.full) {
+          const fullImageName = champion.image.full;
           imageData = {
-            full: champion.image.full,
-            icon: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.image.full}`,
+            full: fullImageName,
+            icon: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${fullImageName}`,
             splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_0.jpg`,
             loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`,
             sprite: champion.image.sprite || null
           };
+          console.log(`Created image URLs for ${champion.id} with icon: ${imageData.icon}`);
         } 
         // Fallback for any other case
         else {
+          const fullImageName = `${champion.id}.png`;
           imageData = {
-            full: `${champion.id}.png`,
-            icon: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champion.id}.png`,
+            full: fullImageName,
+            icon: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${fullImageName}`,
             splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_0.jpg`,
             loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`,
             sprite: null
           };
+          console.log(`Created fallback image URLs for ${champion.id} with icon: ${imageData.icon}`);
         }
-        
-        // Log the final image object for debugging
-        console.log(`Final image data for ${champion.id}:`, imageData);
         
         // Values are already in percentage form from the API, no need to normalize
         return {
@@ -1238,39 +1250,76 @@ export default function TierList() {
     }
   };
 
-  // Create a reusable function to render champion images with better error handling
-  const renderChampionImage = (champion: Champion) => {
-    // Use state to track if the primary image failed
+  // Replace the complex champion cards with a ChampionCard component
+  const ChampionCard = ({ champion }: { champion: Champion }) => {
     const [imageError, setImageError] = useState(false);
     
+    // Function to handle image errors
+    const handleImageError = () => {
+      console.log(`Image load error for ${champion.name}, using fallback`);
+      setImageError(true);
+    };
+    
     return (
-      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-        {/* Use a plain img tag instead of Next.js Image for better compatibility with external URLs */}
-        <img
-          src={imageError ? '/images/champions/fallback.png' : champion.image.icon}
-          alt={champion.name}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            console.log(`Image load error for ${champion.name}, using fallback`);
-            setImageError(true);
-            // Set a fallback directly on the element
-            (e.target as HTMLImageElement).src = "/images/champions/fallback.png";
-          }}
-          style={{ 
-            maxWidth: '100%', 
-            maxHeight: '100%',
-            opacity: imageError ? 0.7 : 1 // Slightly dim fallback images
-          }}
-        />
-        
-        {/* Display champion name as text if image fails */}
-        {imageError && (
-          <div className="absolute inset-0 flex items-center justify-center bg-zinc-800 bg-opacity-50">
-            <span className="text-xs font-bold text-white text-center px-1">
-              {champion.name.substring(0, 4)}
+      <div className="bg-zinc-900 rounded-lg p-4 flex items-center gap-4 hover:bg-zinc-800 transition-colors border border-zinc-800 hover:border-zinc-700 shadow-md">
+        {/* Champion image with Next.js Image component */}
+        <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+          {!imageError ? (
+            <Image
+              src={champion.image.icon}
+              alt={champion.name}
+              width={48}
+              height={48}
+              className="object-cover"
+              onError={handleImageError}
+              unoptimized={true}
+            />
+          ) : (
+            <>
+              <Image
+                src="/images/champions/fallback.png"
+                alt={champion.name}
+                width={48}
+                height={48}
+                className="object-cover opacity-70"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-zinc-800 bg-opacity-50">
+                <span className="text-xs font-bold text-white text-center px-1">
+                  {champion.name.substring(0, 4)}
+                </span>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-white font-semibold truncate">
+              {champion.name}
+            </span>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full text-black font-medium shadow-sm`}
+              style={{ backgroundColor: roleData[champion.role]?.color }}
+            >
+              {roleData[champion.role]?.label || champion.role}
             </span>
           </div>
-        )}
+
+          <div className="grid grid-cols-3 gap-1 text-xs">
+            <div className="text-green-400 flex flex-col">
+              <span className="font-bold">{champion.winRate.toFixed(1)}%</span>
+              <span className="text-zinc-500 text-[10px]">Win Rate</span>
+            </div>
+            <div className="text-blue-400 flex flex-col">
+              <span className="font-bold">{champion.pickRate.toFixed(1)}%</span>
+              <span className="text-zinc-500 text-[10px]">Pick Rate</span>
+            </div>
+            <div className="text-red-400 flex flex-col">
+              <span className="font-bold">{champion.banRate.toFixed(1)}%</span>
+              <span className="text-zinc-500 text-[10px]">Ban Rate</span>
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -1384,42 +1433,7 @@ export default function TierList() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {championsInTier.map((champion) => (
-                      <div
-                        key={champion.id + champion.role}
-                        className="bg-zinc-900 rounded-lg p-4 flex items-center gap-4 hover:bg-zinc-800 transition-colors border border-zinc-800 hover:border-zinc-700 shadow-md"
-                      >
-                        {/* Champion image with better styling */}
-                        {renderChampionImage(champion)}
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-white font-semibold truncate">
-                              {champion.name}
-                            </span>
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full text-black font-medium shadow-sm`}
-                              style={{ backgroundColor: roleData[champion.role]?.color }}
-                            >
-                              {roleData[champion.role]?.label || champion.role}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-1 text-xs">
-                            <div className="text-green-400 flex flex-col">
-                              <span className="font-bold">{champion.winRate.toFixed(1)}%</span>
-                              <span className="text-zinc-500 text-[10px]">Win Rate</span>
-                            </div>
-                            <div className="text-blue-400 flex flex-col">
-                              <span className="font-bold">{champion.pickRate.toFixed(1)}%</span>
-                              <span className="text-zinc-500 text-[10px]">Pick Rate</span>
-                            </div>
-                            <div className="text-red-400 flex flex-col">
-                              <span className="font-bold">{champion.banRate.toFixed(1)}%</span>
-                              <span className="text-zinc-500 text-[10px]">Ban Rate</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <ChampionCard key={champion.id + champion.role} champion={champion} />
                     ))}
                   </div>
                 </div>

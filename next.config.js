@@ -12,7 +12,18 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
-  output: 'standalone'
+  output: 'standalone',
+  images: {
+    domains: ['ddragon.leagueoflegends.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ddragon.leagueoflegends.com',
+        port: '',
+        pathname: '/cdn/**',
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig; 
