@@ -1048,16 +1048,6 @@ function getRolesFromTags(tags: string[], info: any) {
   return roles;
 }
 
-function getDamageType(tags: string[], info: any) {
-  if (tags.includes('Mage') || (tags.includes('Assassin') && info.magic > info.attack)) {
-    return 'AP';
-  } else if (Math.abs(info.magic - info.attack) < 2) {
-    return 'Hybrid';
-  } else {
-    return 'AD';
-  }
-}
-
 // Generate simulated champion statistics as a fallback when API is unavailable
 async function generateSimulatedStats(patch: string): Promise<Record<string, ChampionStats>> {
   try {
