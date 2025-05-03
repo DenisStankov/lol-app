@@ -464,6 +464,7 @@ export default function TierList() {
   const [sortBy, setSortBy] = useState("tier")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
   const [riotApiKey, setRiotApiKey] = useState<string>("")
+  const [usingFallbackData, setUsingFallbackData] = useState(false)
   
   // Define router at the component level
   const router = useRouter();
@@ -533,15 +534,33 @@ export default function TierList() {
           tier: "C"
         };
         
-        // Create proper image URL
-        const imageUrl = champion.image && champion.image.full 
-          ? `https://ddragon.leagueoflegends.com/cdn/img/champion/${champion.image.full}`
-          : `/images/champions/default.png`;
+        // Create proper image object with structure matching the Champion interface
+        let imageObject;
+        
+        if (champion.image && typeof champion.image === 'object') {
+          // If the image is already an object, ensure it has the correct structure
+          imageObject = {
+            icon: champion.image.icon || `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.id}.png`,
+            splash: champion.image.splash || `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_0.jpg`,
+            loading: champion.image.loading || `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`,
+            full: champion.image.full || null,
+            sprite: champion.image.sprite || null
+          };
+        } else {
+          // If the image is not an object, create a new image object
+          imageObject = {
+            icon: `https://ddragon.leagueoflegends.com/cdn/${patchToUse}/img/champion/${champion.id}.png`,
+            splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_0.jpg`,
+            loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`,
+            full: null,
+            sprite: null
+          };
+        }
         
         return {
           id: champion.id,
           name: champion.name,
-          image: imageUrl,
+          image: imageObject,
           winRate: primaryRoleStats.winRate,
           pickRate: primaryRoleStats.pickRate,
           banRate: primaryRoleStats.banRate,
@@ -558,18 +577,21 @@ export default function TierList() {
       setChampions(transformedChampions);
       setFilteredChampions(transformedChampions);
       setLoading(false);
+      setError(null);
     } catch (error) {
       console.error("Error fetching champions:", error);
-      setError(`Failed to fetch champion data: ${(error as Error).message}`);
-      setLoading(false);
       
       // Try fallback to Data Dragon API
       try {
-        console.log("Attempting fallback to Data Dragon API");
+        console.log("Starting Data Dragon fallback data fetch");
         await fetchDataDragonChampions();
+        // If fallback succeeded, show notification but don't stop the user
+        setError(null);
+        setUsingFallbackData(true);
       } catch (fallbackError) {
         console.error("Fallback also failed:", fallbackError);
         setError(`All data sources failed: ${(fallbackError as Error).message}`);
+        setLoading(false);
       }
     }
   };
@@ -577,6 +599,7 @@ export default function TierList() {
   // Fallback function to fetch from Data Dragon API
   const fetchDataDragonChampions = async () => {
     try {
+      console.log("Starting Data Dragon fallback data fetch");
       // Get latest version
       const versionsResponse = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
       const versions = await versionsResponse.json();
@@ -595,34 +618,65 @@ export default function TierList() {
         const tier = ["S+", "S", "A", "B", "C", "D"][Math.floor(Math.random() * 6)];
         const winRate = 45 + Math.random() * 10;
         const pickRate = 1 + Math.random() * 10;
+        const banRate = 1 + Math.random() * 5;
+        const totalGames = Math.floor(1000 + Math.random() * 9000);
         
         // Determine role from tags
         const role = determineRoleFromTags(champion.tags);
         
-        // Proper image URL
-        const imageUrl = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${champion.image.full}`;
+        // Create a properly structured image object
+        const imageObject = {
+          icon: `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/img/champion/${champion.image.full}`,
+          splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${champion.id}_0.jpg`,
+          loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${champion.id}_0.jpg`,
+          full: champion.image.full || null,
+          sprite: champion.image.sprite || null
+        };
+        
+        // Create role-specific stats for every possible role
+        const roles: Record<string, any> = {};
+        ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"].forEach(r => {
+          // Create slightly varied stats for each role
+          const variation = -5 + Math.random() * 10;
+          roles[r] = {
+            tier: ["S+", "S", "A", "B", "C", "D"][Math.floor(Math.random() * 6)],
+            winRate: Math.max(40, Math.min(60, winRate + variation)),
+            pickRate: Math.max(0.5, Math.min(20, pickRate + variation / 2)),
+            banRate: Math.max(0.1, Math.min(15, banRate + variation / 3)),
+            totalGames: Math.floor(totalGames * (0.5 + Math.random() * 1))
+          };
+        });
+        
+        // Ensure primary role has highest pickRate
+        roles[role].pickRate = Math.max(...Object.values(roles).map(r => r.pickRate)) + 5;
         
         return {
           id: champion.id,
           name: champion.name,
-          image: imageUrl,
+          image: imageObject,
           winRate: winRate,
           pickRate: pickRate,
-          banRate: 1 + Math.random() * 5,
-          totalGames: Math.floor(1000 + Math.random() * 9000),
+          banRate: banRate,
+          totalGames: totalGames,
           role: role,
           tier: tier,
-          roles: { [role]: { tier, winRate, pickRate } },
+          roles: roles,
           difficulty: champion.info.difficulty <= 3 ? "Easy" : (champion.info.difficulty >= 7 ? "Hard" : "Medium"),
           damageType: champion.tags.includes("Mage") ? "AP" : "AD",
           range: champion.stats.attackrange > 150 ? "Ranged" : "Melee",
         };
       });
       
+      console.log("Successfully processed fallback data");
+      
+      // Don't set an error, just show a one-time toast or notification instead
       setChampions(transformedChampions);
       setFilteredChampions(transformedChampions);
       setLoading(false);
-      setError("Using fallback data from Data Dragon API"); // Not a true error, but informational
+      
+      // Use a more subtle notification rather than an error screen
+      console.log("Using fallback data from Data Dragon API");
+      return true; // Return success
     } catch (error) {
       console.error("Fallback fetch failed:", error);
       throw error;
@@ -812,22 +866,22 @@ export default function TierList() {
     )
   }
   
-  // Handle error state
+  // Handle error state - check if it's a fallback data notification or a true error
   if (error) {
+    const isFallback = error.includes("Using fallback data");
+    
     return (
       <div className="min-h-screen bg-[#0E1015] p-8">
         <Navigation />
-        <div className="max-w-7xl mx-auto mt-8">
-          <div className="bg-red-500/20 border border-red-500/50 text-white p-8 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">Error Loading Data</h2>
-            <p className="mb-4">{error}</p>
-            <button
-              onClick={refetchData}
-              className="px-4 py-2 bg-red-500 text-white hover:bg-red-600 rounded-md transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
+        <div className={`${isFallback ? "bg-blue-500/20 border-blue-500/50" : "bg-red-500/20 border-red-500/50"} border text-white p-8 rounded-lg text-center`}>
+          <h2 className="text-2xl font-bold mb-4">{isFallback ? "Using Local Data" : "Error Loading Data"}</h2>
+          <p className="mb-4">{isFallback ? "Connected to Data Dragon API for champion information. Some statistics may be simulated." : error}</p>
+          <button
+            onClick={refetchData}
+            className={`px-4 py-2 ${isFallback ? "bg-blue-500 hover:bg-blue-600" : "bg-red-500 hover:bg-red-600"} text-white rounded-md transition-colors`}
+          >
+            {isFallback ? "Continue" : "Try Again"}
+          </button>
         </div>
       </div>
     )
@@ -839,6 +893,24 @@ export default function TierList() {
       <Navigation />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Fallback data notification banner */}
+        {usingFallbackData && (
+          <div className="mb-8 bg-blue-500/20 border border-blue-500/50 text-white p-4 rounded-lg text-center animate-fadeIn">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Info className="h-5 w-5 text-blue-400" />
+                <p>Using Data Dragon API for champion data. Some statistics are simulated.</p>
+              </div>
+              <button
+                onClick={refetchData}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-md text-white text-sm whitespace-nowrap"
+              >
+                Try API Again
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* Hero Section */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 relative inline-block">
