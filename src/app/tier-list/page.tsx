@@ -170,6 +170,9 @@ function ChampionCard({ champion, onNavigate }: { champion: Champion, onNavigate
     onNavigate(champion.id);
   };
   
+  // Get role data safely
+  const roleInfo = roleData[champion.role] || { label: champion.role, color: "#FFFFFF" };
+  
   return (
     <div 
       className="bg-zinc-900 rounded-lg overflow-hidden hover:bg-zinc-800 transition-all duration-200 border border-zinc-800 hover:border-[#C89B3C]/60 shadow-md hover:shadow-lg hover:shadow-[#C89B3C]/10 cursor-pointer transform hover:-translate-y-1"
@@ -231,9 +234,9 @@ function ChampionCard({ champion, onNavigate }: { champion: Champion, onNavigate
               </span>
               <span
                 className="text-xs px-2 py-0.5 rounded-full text-black font-medium shadow-sm"
-                style={{ backgroundColor: roleData[champion.role]?.color }}
+                style={{ backgroundColor: roleInfo.color }}
               >
-                {roleData[champion.role]?.label || String(champion.role)}
+                {roleInfo.label}
               </span>
             </div>
             
