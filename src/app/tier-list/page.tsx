@@ -475,7 +475,7 @@ export default function TierList() {
         ["TOP", "JUNGLE", "MIDDLE", "BOTTOM", "UTILITY"].forEach(r => {
           // Create slightly varied stats for each role
           const variation = -5 + Math.random() * 10;
-          roles[r] = {
+          roles[String(r)] = {
             tier: ["S+", "S", "A", "B", "C", "D"][Math.floor(Math.random() * 6)],
             winRate: Math.max(40, Math.min(60, winRate + variation)),
             pickRate: Math.max(0.5, Math.min(20, pickRate + variation / 2)),
@@ -485,7 +485,7 @@ export default function TierList() {
         });
         
         // Ensure primary role has highest pickRate
-        roles[role].pickRate = Math.max(...Object.values(roles).map(r => r.pickRate)) + 5;
+        roles[String(role)].pickRate = Math.max(...Object.values(roles).map(r => r.pickRate)) + 5;
         
         return {
           id: champion.id,
@@ -495,7 +495,7 @@ export default function TierList() {
           pickRate: pickRate,
           banRate: banRate,
           totalGames: totalGames,
-          role: role,
+          role: String(role), // Ensure role is a string
           tier: tier,
           roles: roles,
           difficulty: champion.info.difficulty <= 3 ? "Easy" : (champion.info.difficulty >= 7 ? "Hard" : "Medium"),
@@ -521,7 +521,7 @@ export default function TierList() {
   };
   
   // Helper function to determine role from champion tags
-  const determineRoleFromTags = (tags: string[]) => {
+  const determineRoleFromTags = (tags: string[]): string => {
     if (tags.includes("Marksman")) return "BOTTOM";
     if (tags.includes("Support")) return "UTILITY";
     if (tags.includes("Mage")) return "MIDDLE";
