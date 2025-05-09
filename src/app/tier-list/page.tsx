@@ -171,7 +171,7 @@ function ChampionCard({ champion, onNavigate }: { champion: Champion, onNavigate
   };
   
   // Get role data safely
-  const roleInfo = roleData[champion.role] || { label: champion.role, color: "#FFFFFF" };
+  const roleInfo = roleData[String(champion.role)] || { label: String(champion.role), color: "#FFFFFF" };
   
   return (
     <div 
@@ -353,14 +353,14 @@ export default function TierList() {
         Object.entries(roles).forEach(([role, stats]: [string, any]) => {
           if (stats.pickRate > highestPickRate) {
             highestPickRate = stats.pickRate;
-            primaryRole = role;
+            primaryRole = String(role); // Ensure role is a string
           }
         });
         
         if (!primaryRole && Object.keys(roles).length > 0) {
-          primaryRole = Object.keys(roles)[0];
+          primaryRole = String(Object.keys(roles)[0]); // Ensure role is a string
         } else if (!primaryRole) {
-          primaryRole = "TOP";
+          primaryRole = "TOP"; // Default role as string
         }
         
         const primaryRoleStats = roles[primaryRole] || {
@@ -561,7 +561,7 @@ export default function TierList() {
           banRate: roleStats.banRate,
           totalGames: roleStats.totalGames,
           tier: roleStats.tier || champ.tier,
-          role: selectedRole,
+          role: selectedRole, // Ensure role is always a string
         }
       })
     }
