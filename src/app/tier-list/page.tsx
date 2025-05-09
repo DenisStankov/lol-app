@@ -233,7 +233,7 @@ function ChampionCard({ champion, onNavigate }: { champion: Champion, onNavigate
                 className="text-xs px-2 py-0.5 rounded-full text-black font-medium shadow-sm"
                 style={{ backgroundColor: roleData[champion.role]?.color }}
               >
-                {roleData[champion.role]?.label || champion.role}
+                {roleData[champion.role]?.label || String(champion.role)}
               </span>
             </div>
             
@@ -838,7 +838,7 @@ export default function TierList() {
                   <span className="w-4 h-4 flex items-center justify-center">
                     {data.icon}
                   </span>
-                  <span>{data.label}</span>
+                  <span>{String(data.label)}</span>
                 </button>
               ))}
             </div>
@@ -922,7 +922,7 @@ export default function TierList() {
                      onClick={() => setSelectedRole("")}
                      className="flex items-center gap-1 bg-[#C89B3C]/20 text-[#C89B3C] px-2 py-1 rounded-md text-xs"
                    >
-                     Role: {roleData[selectedRole]?.label || selectedRole}
+                     Role: {String(roleData[selectedRole]?.label || selectedRole)}
                      <X className="h-3 w-3" />
                    </button>
                  )}
