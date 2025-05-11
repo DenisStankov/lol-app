@@ -941,6 +941,11 @@ function generateStats(champions: any, version: string, rank: string, region: st
     const roles: Record<string, any> = {};
     const possibleRoles = getRolesFromTags(data.tags, data.info);
     
+    // Ensure we have at least one role
+    if (possibleRoles.length === 0) {
+      possibleRoles.push('TOP');
+    }
+    
     possibleRoles.forEach(role => {
       // Vary stats by role
       const variation = -4 + (Math.random() * 8); // Random variation between -4 and +4
@@ -960,7 +965,8 @@ function generateStats(champions: any, version: string, rank: string, region: st
       else tier = 'D';
       
       // Set the role stats with string key
-      roles[String(role)] = {
+      const roleKey = String(role);
+      roles[roleKey] = {
         winRate: parseFloat(winRate.toFixed(2)),
         pickRate: parseFloat(pickRate.toFixed(2)),
         banRate: parseFloat(banRate.toFixed(2)),
@@ -988,7 +994,9 @@ function generateStats(champions: any, version: string, rank: string, region: st
       roles,
       difficulty: String(difficulty),
       damageType: String(damageType),
-      range: String(range)
+      range: String(range),
+      // Add a default role based on the first role in possibleRoles
+      role: String(possibleRoles[0] || 'TOP')
     };
   });
   
@@ -996,7 +1004,7 @@ function generateStats(champions: any, version: string, rank: string, region: st
 }
 
 // Helper functions to determine roles, damage type, etc.
-function getRolesFromTags(tags: string[], info: any) {
+function getRolesFromTags(tags: string[], info: any): string[] {
   const roles: string[] = [];
   
   // Assign roles based on champion tags
@@ -1040,12 +1048,13 @@ function getRolesFromTags(tags: string[], info: any) {
     }
   }
   
-  // Ensure at least one role
+  // Ensure at least one role and remove duplicates
   if (roles.length === 0) {
     roles.push('TOP');
   }
   
-  return roles;
+  // Remove duplicates and ensure all roles are strings
+  return [...new Set(roles.map(role => String(role)))];
 }
 
 // Generate simulated champion statistics as a fallback when API is unavailable
