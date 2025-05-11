@@ -959,13 +959,13 @@ function generateStats(champions: any, version: string, rank: string, region: st
       else if (score > 44) tier = 'C';
       else tier = 'D';
       
-      // Set the role stats
-      roles[role] = {
+      // Set the role stats with string key
+      roles[String(role)] = {
         winRate: parseFloat(winRate.toFixed(2)),
         pickRate: parseFloat(pickRate.toFixed(2)),
         banRate: parseFloat(banRate.toFixed(2)),
         totalGames: Math.floor(1000 + Math.random() * 9000),
-        tier
+        tier: String(tier)
       };
     });
     
@@ -976,19 +976,19 @@ function generateStats(champions: any, version: string, rank: string, region: st
     
     // Set champion data with proper image structure
     response[id] = {
-      id,
-      name: data.name,
+      id: String(id),
+      name: String(data.name),
       image: {
-        full: data.image.full,
+        full: String(data.image.full),
         icon: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${data.image.full}`,
         splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`,
         loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${id}_0.jpg`,
-        sprite: data.image.sprite
+        sprite: String(data.image.sprite)
       },
       roles,
-      difficulty,
-      damageType,
-      range
+      difficulty: String(difficulty),
+      damageType: String(damageType),
+      range: String(range)
     };
   });
   
