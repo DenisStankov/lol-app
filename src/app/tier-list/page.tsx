@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { ChevronDown, Search, X, Info } from "lucide-react"
+import { ChevronDown, ChevronUp, Search, X, Info } from "lucide-react"
 import Navigation from "@/components/navigation"
 
 // Define strict types for our data
@@ -76,35 +76,6 @@ const tierColors: Record<string, string> = {
   "C": "#5AC8FA",
   "D": "#AF52DE",
 }
-
-// Inline SVGs for role icons (from championList.tsx)
-const ROLE_ICONS: Record<string, JSX.Element> = {
-  TOP: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-      <path d="M17.7929 3C18.2383 3 18.4614 3.53857 18.1464 3.85355L15.1464 6.85355C15.0527 6.94732 14.9255 7 14.7929 7H7.5C7.22386 7 7 7.22386 7 7.5V14.7929C7 14.9255 6.94732 15.0527 6.85355 15.1464L3.85355 18.1464C3.53857 18.4614 3 18.2383 3 17.7929V3.5C3 3.22386 3.22386 3 3.5 3H17.7929Z"></path>
-    </svg>
-  ),
-  JUNGLE: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-      <path d="M5 2c1.58 1.21 5.58 5.02 6.98 9.95 1.4 4.93 0 10.05 0 10.05-2.75-3.16-5.9-5.2-6.18-5.38C5.45 13.81 3 8.79 3 8.79c3.54.87 4.93 4.28 4.93 4.28C7.56 8.7 5 2 5 2zm15 5.91s-1.24 2.47-1.81 4.6c-.24.88-.29 2.2-.29 3.06v.28c0 .35.01.57.01.57s-1.74 2.4-3.38 3.68c.09-1.6.06-3.44-.21-5.33.93-2.02 2.85-5.45 5.68-6.86zm-2.12-5.33s-2.33 3.05-2.84 6.03c-.11.64-.2 1.2-.28 1.7-.38.58-.73 1.16-1.05 1.73-.03-.13-.06-.25-.1-.38-.3-1.07-.7-2.1-1.16-3.08.05-.15.1-.29.17-.44 0 0 1.81-3.78 5.26-5.56z" />
-    </svg>
-  ),
-  MIDDLE: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-      <path d="M17.8536 3.14645C17.9473 3.05268 18.0745 3 18.2071 3H20.5C20.7761 3 21 3.22386 21 3.5V5.79289C21 5.9255 20.9473 6.05268 20.8536 6.14645L6.14645 20.8536C6.05268 20.9473 5.9255 21 5.79289 21H3.5C3.22386 21 3 20.7761 3 20.5V18.2071C3 18.0745 3.05268 17.9473 3.14645 17.8536L17.8536 3.14645Z"></path>
-    </svg>
-  ),
-  BOTTOM: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-      <path d="M6.20711 21C5.76165 21 5.53857 20.4614 5.85355 20.1464L8.85355 17.1464C8.94732 17.0527 9.0745 17 9.20711 17H16.5C16.7761 17 17 16.7761 17 16.5V9.20711C17 9.0745 17.0527 8.94732 17.1464 8.85355L20.1464 5.85355C20.4614 5.53857 21 5.76165 21 6.20711L21 20.5C21 20.7761 20.7761 21 20.5 21L6.20711 21Z"></path>
-    </svg>
-  ),
-  UTILITY: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-      <path d="M12.4622 10.2574C12.7023 10.2574 12.9114 10.4209 12.9694 10.6538L14.5978 17.1957C14.6081 17.237 14.6133 17.2794 14.6133 17.322V17.8818C14.6133 18.0204 14.5582 18.1534 14.4601 18.2514L13.0238 19.6869C12.9258 19.7848 12.7929 19.8398 12.6543 19.8398H11.3457C11.2071 19.8398 11.0742 19.7848 10.9762 19.6868L9.53979 18.2504C9.44177 18.1524 9.38671 18.0194 9.38671 17.8808V17.3209C9.38671 17.2784 9.39191 17.236 9.40219 17.1947L11.0306 10.6538C11.0886 10.4209 11.2977 10.2574 11.5377 10.2574H12.4622ZM6.55692 6.77339C6.69554 6.77339 6.82848 6.82845 6.9265 6.92647L9.143 9.14297C9.29085 9.29082 9.33635 9.51255 9.25869 9.70668L7.93856 13.0066C7.79919 13.355 7.34903 13.4474 7.08372 13.1821L5.29732 11.3957C5.13821 11.2366 5.09879 10.9935 5.19947 10.7922L5.52419 10.1432C5.69805 9.79566 5.44535 9.38668 5.05676 9.38668H3.56906C3.39433 9.38668 3.23115 9.29936 3.13421 9.15398L2.08869 7.586C1.85709 7.23867 2.10607 6.77339 2.52354 6.77339H6.55692ZM21.4765 6.77339C21.8939 6.77339 22.1429 7.23867 21.9113 7.586L20.8658 9.15398C20.7688 9.29936 20.6057 9.38668 20.4309 9.38668H18.9432C18.5546 9.38668 18.3019 9.79567 18.4758 10.1432L18.8005 10.7922C18.9012 10.9935 18.8618 11.2366 18.7027 11.3957L16.9163 13.1821C16.651 13.4474 16.2008 13.355 16.0614 13.0066L14.7413 9.70668C14.6636 9.51255 14.7092 9.29082 14.857 9.14297L17.0735 6.92647C17.1715 6.82845 17.3045 6.77339 17.4431 6.77339H21.4765Z"></path>
-    </svg>
-  ),
-};
 
 // ChampionCard component
 function ChampionCard({ champion, onNavigate }: { champion: Champion, onNavigate: (id: string) => void }) {
@@ -213,13 +184,20 @@ export default function TierList() {
   const [champions, setChampions] = useState<Champion[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sortBy, setSortBy] = useState<string>("tier")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [selectedDivision, setSelectedDivision] = useState("Emerald+")
+  const [showDivisionDropdown, setShowDivisionDropdown] = useState(false)
 
-  // Fetch champion data
+  const divisionOptions = [
+    "Iron+", "Bronze+", "Silver+", "Gold+", "Platinum+", "Emerald+", "Diamond+", "Master+", "Grandmaster+", "Challenger+"
+  ]
+
   useEffect(() => {
     const fetchChampions = async () => {
       try {
         setLoading(true)
-        const response = await fetch('/api/champion-stats')
+        const response = await fetch(`/api/champion-stats?rank=${encodeURIComponent(selectedDivision)}`)
         if (!response.ok) throw new Error('Failed to fetch champion data')
         const data = await response.json()
         // Transform the data to match our table format
@@ -269,14 +247,38 @@ export default function TierList() {
       }
     }
     fetchChampions()
-  }, [])
+  }, [selectedDivision])
 
-  // Filter champions based on selected role and search
-  const filteredChampions = champions.filter(
+  // Sorting logic
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortBy(column)
+      setSortDirection("desc")
+    }
+  }
+
+  // Filter and sort champions
+  let filteredChampions = champions.filter(
     (champion) =>
       (!selectedRole || champion.role === selectedRole) &&
       (!searchQuery || champion.name.toLowerCase().includes(searchQuery.toLowerCase()))
   )
+
+  filteredChampions = [...filteredChampions].sort((a, b) => {
+    let result = 0
+    if (sortBy === "tier") {
+      const tierOrder = ["S+", "S", "A", "B", "C", "D"]
+      result = tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier)
+    } else if (sortBy === "winRate") {
+      result = b.winRate - a.winRate
+    } else if (sortBy === "pickRate") {
+      result = b.pickRate - a.pickRate
+    }
+    return sortDirection === "asc" ? result : -result
+  })
+  filteredChampions = filteredChampions.map((champ, idx) => ({ ...champ, rank: idx + 1 }))
 
   // Format number with commas
   const formatNumber = (num: number) => {
@@ -313,6 +315,7 @@ export default function TierList() {
 
   return (
     <div className="min-h-screen bg-[#0E1015] text-white">
+      <Navigation />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Page Header */}
         <div className="mb-8">
@@ -326,7 +329,7 @@ export default function TierList() {
         <div className="mb-6 flex flex-col md:flex-row gap-4 md:items-center">
           {/* Role Filter */}
           <div className="flex gap-2">
-            {Object.entries(ROLE_ICONS).map(([role, icon]) => (
+            {Object.entries(roleData).map(([role, info]) => (
               <button
                 key={role}
                 onClick={() => setSelectedRole(selectedRole === role ? "" : role)}
@@ -336,7 +339,7 @@ export default function TierList() {
                     : "bg-[#242731] border border-[#2F323D] hover:bg-[#2F323D]"
                 }`}
               >
-                {icon}
+                <img src={`/images/roles/${role}.png`} alt={role} className="w-4 h-4" />
               </button>
             ))}
           </div>
@@ -353,6 +356,33 @@ export default function TierList() {
           </div>
         </div>
 
+        {/* Division Filter */}
+        <div className="relative mb-4">
+          <button
+            onClick={() => setShowDivisionDropdown(!showDivisionDropdown)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#242731] border border-[#2F323D] hover:bg-[#2F323D] transition-colors"
+          >
+            <span>Rank: {selectedDivision}</span>
+            <ChevronDown size={16} />
+          </button>
+          {showDivisionDropdown && (
+            <div className="absolute top-full left-0 mt-1 w-48 bg-[#242731] border border-[#2F323D] shadow-lg z-10">
+              {divisionOptions.map((division) => (
+                <button
+                  key={division}
+                  onClick={() => {
+                    setSelectedDivision(division)
+                    setShowDivisionDropdown(false)
+                  }}
+                  className={`w-full text-left px-4 py-2 hover:bg-[#2F323D] transition-colors ${selectedDivision === division ? "text-[#C89B3C]" : "text-white"}`}
+                >
+                  {division}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
@@ -361,9 +391,24 @@ export default function TierList() {
                 <th className="py-4 px-4 text-left font-medium text-zinc-400 text-sm w-16">RANK</th>
                 <th className="py-4 px-4 text-left font-medium text-zinc-400 text-sm">CHAMPION</th>
                 <th className="py-4 px-4 text-left font-medium text-zinc-400 text-sm w-20">LANE</th>
-                <th className="py-4 px-4 text-left font-medium text-zinc-400 text-sm w-20">TIER</th>
-                <th className="py-4 px-4 text-right font-medium text-zinc-400 text-sm w-24">WINRATE</th>
-                <th className="py-4 px-4 text-right font-medium text-zinc-400 text-sm w-24">PICKRATE</th>
+                <th
+                  className="py-4 px-4 text-left font-medium text-zinc-400 text-sm w-20 cursor-pointer select-none"
+                  onClick={() => handleSort("tier")}
+                >
+                  TIER {sortBy === "tier" && (sortDirection === "asc" ? <ChevronUp className="inline w-4 h-4" /> : <ChevronDown className="inline w-4 h-4" />)}
+                </th>
+                <th
+                  className="py-4 px-4 text-right font-medium text-zinc-400 text-sm w-24 cursor-pointer select-none"
+                  onClick={() => handleSort("winRate")}
+                >
+                  WINRATE {sortBy === "winRate" && (sortDirection === "asc" ? <ChevronUp className="inline w-4 h-4" /> : <ChevronDown className="inline w-4 h-4" />)}
+                </th>
+                <th
+                  className="py-4 px-4 text-right font-medium text-zinc-400 text-sm w-24 cursor-pointer select-none"
+                  onClick={() => handleSort("pickRate")}
+                >
+                  PICKRATE {sortBy === "pickRate" && (sortDirection === "asc" ? <ChevronUp className="inline w-4 h-4" /> : <ChevronDown className="inline w-4 h-4" />)}
+                </th>
                 <th className="py-4 px-4 text-right font-medium text-zinc-400 text-sm w-24">GAMES</th>
               </tr>
             </thead>
@@ -394,7 +439,7 @@ export default function TierList() {
                   <td className="py-3 px-4">
                     <div className="flex flex-col items-center">
                       <div className="w-8 h-8 rounded-full bg-[#242731] flex items-center justify-center">
-                        {ROLE_ICONS[champion.role] || null}
+                        <img src={`/images/roles/${champion.role}.png`} alt={champion.role} className="w-4 h-4" />
                       </div>
                       <span className="text-xs text-zinc-500 mt-1">{champion.rolePercentage ? `${champion.rolePercentage}%` : ""}</span>
                     </div>
