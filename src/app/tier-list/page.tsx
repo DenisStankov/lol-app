@@ -278,7 +278,7 @@ export default function TierList() {
                         className="object-cover"
                       />
                     </div>
-                    <SelectValue placeholder="Select Division" />
+                    <span>{selectedDivision}</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent className="bg-[#0F0F0F] border-[#333333]">
