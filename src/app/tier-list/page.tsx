@@ -1,247 +1,112 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import { ChevronDown, ChevronUp, Search, X, Info } from "lucide-react"
+import { Search, ArrowUp, ArrowDown } from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 import Navigation from "@/components/navigation"
 
-// Define strict types for our data
-interface ChampionRole {
-  winRate: number
-  pickRate: number
-  banRate: number
-  totalGames: number
-  tier: string
-}
+// Role types
+type Role = "top" | "jungle" | "mid" | "adc" | "support" | "all"
 
+// Division types
+type Division =
+  | "iron+"
+  | "bronze+"
+  | "silver+"
+  | "gold+"
+  | "platinum+"
+  | "emerald+"
+  | "diamond+"
+  | "master+"
+  | "grandmaster+"
+  | "challenger+"
+
+// Tier types
+type Tier = "S+" | "S" | "A" | "B" | "C" | "D"
+
+// Sort types
+type SortField = "tier" | "winrate" | "pickrate" | null
+type SortDirection = "asc" | "desc"
+
+// Champion data type
 interface Champion {
   id: string
   name: string
-  image: {
-    icon: string
-    splash: string
-    loading: string
-    full: string
-    sprite: string
-  }
-  role: string
-  roles: Record<string, ChampionRole>
-  difficulty: string
-  damageType: string
-  range: string
-  tier: string
-}
-
-// Role data with proper typing
-const roleData = {
-  "": { 
-    label: "ALL", 
-    color: "#FFFFFF",
-    icon: "ALL"
-  },
-  "TOP": { 
-    label: "TOP", 
-    color: "#FF9500",
-    icon: "TOP"
-  },
-  "JUNGLE": { 
-    label: "JNG", 
-    color: "#19B326",
-    icon: "JNG"
-  },
-  "MIDDLE": { 
-    label: "MID", 
-    color: "#4F8EFF",
-    icon: "MID"
-  },
-  "BOTTOM": { 
-    label: "BOT", 
-    color: "#FF4E50",
-    icon: "BOT"
-  },
-  "UTILITY": { 
-    label: "SUP", 
-    color: "#CC66FF",
-    icon: "SUP"
-  }
-}
-
-// Tier colors
-const tierColors: Record<string, string> = {
-  "S+": "#FF2D55",
-  "S": "#FF9500",
-  "A": "#FFCC00",
-  "B": "#34C759",
-  "C": "#5AC8FA",
-  "D": "#AF52DE",
-}
-
-// ChampionCard component
-function ChampionCard({ champion, onNavigate }: { champion: Champion, onNavigate: (id: string) => void }) {
-  const [imageError, setImageError] = useState(false)
-  
-  const handleImageError = () => {
-    setImageError(true)
-  }
-  
-  const roleInfo = roleData[champion.role] || { label: champion.role, color: "#FFFFFF", icon: champion.role }
-  
-  return (
-    <div 
-      className="bg-zinc-900 rounded-lg overflow-hidden hover:bg-zinc-800 transition-all duration-200 border border-zinc-800 hover:border-[#C89B3C]/60 shadow-md hover:shadow-lg hover:shadow-[#C89B3C]/10 cursor-pointer transform hover:-translate-y-1"
-      onClick={() => onNavigate(champion.id)}
-    >
-      <div className="relative">
-        <div className="absolute inset-0 bg-cover bg-center opacity-20" 
-          style={{ backgroundImage: `url(${champion.image.splash})` }} 
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/70 to-zinc-900"></div>
-        
-        <div className="relative p-4 flex items-center gap-4 z-10">
-          <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-            {!imageError ? (
-              <Image
-                src={champion.image.icon}
-                alt={champion.name}
-                width={56}
-                height={56}
-                className="object-cover"
-                onError={handleImageError}
-                unoptimized={true}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-zinc-800">
-                <span className="text-xs font-bold text-white">
-                  {champion.name.substring(0, 4)}
-                </span>
-              </div>
-            )}
-            
-            <div 
-              className="absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shadow-md text-black"
-              style={{ backgroundColor: tierColors[champion.tier] || '#5AC8FA' }}
-            >
-              {champion.tier}
-            </div>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-white font-semibold truncate text-lg">
-                {champion.name}
-              </span>
-              <span
-                className="text-xs px-2 py-0.5 rounded-full text-black font-medium shadow-sm"
-                style={{ backgroundColor: roleInfo.color }}
-              >
-                {roleInfo.label}
-              </span>
-            </div>
-            
-            <div className="flex gap-2 items-center text-xs text-zinc-400">
-              <span className="px-1.5 py-0.5 bg-zinc-800 rounded-md border border-zinc-700">
-                {champion.difficulty}
-              </span>
-              <span className="px-1.5 py-0.5 bg-zinc-800 rounded-md border border-zinc-700">
-                {champion.damageType}
-              </span>
-              <span className="px-1.5 py-0.5 bg-zinc-800 rounded-md border border-zinc-700">
-                {champion.range}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-3 grid grid-cols-3 gap-1 bg-zinc-800/50 border-t border-zinc-700/30">
-        <div className="text-center py-1 px-2 rounded-md bg-green-900/20 border border-green-900/30">
-          <div className="text-green-400 font-bold text-sm">{champion.roles[champion.role]?.winRate.toFixed(1)}%</div>
-          <div className="text-zinc-500 text-[10px]">Win Rate</div>
-        </div>
-        
-        <div className="text-center py-1 px-2 rounded-md bg-blue-900/20 border border-blue-900/30">
-          <div className="text-blue-400 font-bold text-sm">{champion.roles[champion.role]?.pickRate.toFixed(1)}%</div>
-          <div className="text-zinc-500 text-[10px]">Pick Rate</div>
-        </div>
-        
-        <div className="text-center py-1 px-2 rounded-md bg-red-900/20 border border-red-900/30">
-          <div className="text-red-400 font-bold text-sm">{champion.roles[champion.role]?.banRate.toFixed(1)}%</div>
-          <div className="text-zinc-500 text-[10px]">Ban Rate</div>
-        </div>
-      </div>
-      
-      <div className="px-3 py-2 text-xs text-center text-[#C89B3C] border-t border-zinc-800 bg-zinc-900/80 font-medium">
-        View Champion Details
-      </div>
-    </div>
-  )
+  icon: string
+  primaryRole: Role
+  secondaryRole?: Role
+  primaryRolePercentage: number
+  tier: Tier
+  winrate: number
+  winrateDelta: number
+  pickrate: number
+  games: number
 }
 
 export default function TierList() {
-  const [selectedRole, setSelectedRole] = useState("")
+  // State for filters
+  const [selectedRole, setSelectedRole] = useState<Role>("all")
+  const [selectedDivision, setSelectedDivision] = useState<Division>("platinum+")
   const [searchQuery, setSearchQuery] = useState("")
+
+  // State for sorting
+  const [sortField, setSortField] = useState<SortField>(null)
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+
+  // State for data
   const [champions, setChampions] = useState<Champion[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [sortBy, setSortBy] = useState<string>("tier")
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const [selectedDivision, setSelectedDivision] = useState("Emerald+")
-  const [showDivisionDropdown, setShowDivisionDropdown] = useState(false)
 
-  const divisionOptions = [
-    "Iron+", "Bronze+", "Silver+", "Gold+", "Platinum+", "Emerald+", "Diamond+", "Master+", "Grandmaster+", "Challenger+"
-  ]
+  // Handle sort click
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortDirection("desc")
+    }
+  }
 
+  // Fetch champions data (real API)
   useEffect(() => {
     const fetchChampions = async () => {
+      setLoading(true)
       try {
-        setLoading(true)
         const response = await fetch(`/api/champion-stats?rank=${encodeURIComponent(selectedDivision)}`)
-        if (!response.ok) throw new Error('Failed to fetch champion data')
+        if (!response.ok) throw new Error("Failed to fetch champion data")
         const data = await response.json()
-        // Transform the data to match our table format
-        let transformedChampions = Object.entries(data).map(([id, champ]: [string, any]) => {
+        // Transform API data to Champion[]
+        const championsArray: Champion[] = Object.entries(data).map(([id, champ]: [string, any]) => {
           // Find the main role (highest games or winrate, or use champ.role)
           const mainRole = champ.role || Object.keys(champ.roles)[0]
           const roleStats = champ.roles[mainRole]
+          // Map API role to v0 role
+          const roleMap: Record<string, Role> = {
+            TOP: "top",
+            JUNGLE: "jungle",
+            MIDDLE: "mid",
+            BOTTOM: "adc",
+            UTILITY: "support"
+          }
           return {
             id: String(id),
             name: String(champ.name),
-            image: {
-              icon: String(champ.image.icon),
-              splash: String(champ.image.splash),
-              loading: String(champ.image.loading),
-              full: String(champ.image.full),
-              sprite: String(champ.image.sprite)
-            },
-            role: mainRole,
-            roles: champ.roles,
-            difficulty: String(champ.difficulty),
-            damageType: String(champ.damageType),
-            range: String(champ.range),
-            tier: String(roleStats?.tier || 'C'),
-            winRate: Number(roleStats?.winRate || 0),
-            winRateDelta: Number(roleStats?.winRateDelta || 0),
-            pickRate: Number(roleStats?.pickRate || 0),
+            icon: String(champ.image.icon),
+            primaryRole: roleMap[mainRole] || "all",
+            primaryRolePercentage: Number(roleStats?.rolePercentage || 100),
+            tier: String(roleStats?.tier || "C") as Tier,
+            winrate: Number(roleStats?.winRate || 0),
+            winrateDelta: Number(roleStats?.winRateDelta || 0),
+            pickrate: Number(roleStats?.pickRate || 0),
             games: Number(roleStats?.totalGames || 0),
-            rolePercentage: Number(roleStats?.rolePercentage || 100),
           }
         })
-        // Sort by tier, then winrate, then games
-        const tierOrder = ["S+", "S", "A", "B", "C", "D"]
-        transformedChampions = transformedChampions
-          .sort((a, b) => {
-            const tierDiff = tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier)
-            if (tierDiff !== 0) return tierDiff
-            if (b.winRate !== a.winRate) return b.winRate - a.winRate
-            return b.games - a.games
-          })
-          .map((champ, idx) => ({ ...champ, rank: idx + 1 }))
-        setChampions(transformedChampions)
-        setError(null)
+        setChampions(championsArray)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
+        setChampions([])
       } finally {
         setLoading(false)
       }
@@ -249,248 +114,306 @@ export default function TierList() {
     fetchChampions()
   }, [selectedDivision])
 
-  // Sorting logic
-  const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-    } else {
-      setSortBy(column)
-      setSortDirection("desc")
+  // Filter champions based on selected filters
+  const filteredChampions = champions.filter((champion) => {
+    // Filter by role
+    if (selectedRole !== "all" && champion.primaryRole !== selectedRole) {
+      return false
     }
-  }
-
-  // Filter and sort champions
-  let filteredChampions = champions.filter(
-    (champion) =>
-      (!selectedRole || champion.role === selectedRole) &&
-      (!searchQuery || champion.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
-
-  filteredChampions = [...filteredChampions].sort((a, b) => {
-    let result = 0
-    if (sortBy === "tier") {
-      const tierOrder = ["S+", "S", "A", "B", "C", "D"]
-      result = tierOrder.indexOf(a.tier) - tierOrder.indexOf(b.tier)
-    } else if (sortBy === "winRate") {
-      result = b.winRate - a.winRate
-    } else if (sortBy === "pickRate") {
-      result = b.pickRate - a.pickRate
+    // Filter by search query
+    if (searchQuery && !champion.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false
     }
-    return sortDirection === "asc" ? result : -result
+    return true
   })
-  filteredChampions = filteredChampions.map((champ, idx) => ({ ...champ, rank: idx + 1 }))
 
-  // Format number with commas
-  const formatNumber = (num: number) => {
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  // Sort champions
+  const sortedChampions = [...filteredChampions].sort((a, b) => {
+    if (!sortField) {
+      // Default sort by tier
+      const tierOrder = { "S+": 0, S: 1, A: 2, B: 3, C: 4, D: 5 }
+      return tierOrder[a.tier] - tierOrder[b.tier]
+    }
+    if (sortField === "tier") {
+      const tierOrder = { "S+": 0, S: 1, A: 2, B: 3, C: 4, D: 5 }
+      return sortDirection === "asc" ? tierOrder[a.tier] - tierOrder[b.tier] : tierOrder[b.tier] - tierOrder[a.tier]
+    }
+    if (sortField === "winrate") {
+      return sortDirection === "asc" ? a.winrate - b.winrate : b.winrate - a.winrate
+    }
+    if (sortField === "pickrate") {
+      return sortDirection === "asc" ? a.pickrate - b.pickrate : b.pickrate - a.pickrate
+    }
+    return 0
+  })
+
+  // Get tier color
+  const getTierColor = (tier: Tier) => {
+    switch (tier) {
+      case "S+":
+        return "text-[#FF4E50] bg-[#FF4E50]/10"
+      case "S":
+        return "text-[#FF9800] bg-[#FF9800]/10"
+      case "A":
+        return "text-[#4CAF50] bg-[#4CAF50]/10"
+      case "B":
+        return "text-[#2196F3] bg-[#2196F3]/10"
+      case "C":
+        return "text-[#9C27B0] bg-[#9C27B0]/10"
+      case "D":
+        return "text-[#607D8B] bg-[#607D8B]/10"
+      default:
+        return "text-white"
+    }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#0E1015] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C89B3C]"></div>
-          <p className="text-xl text-white">Loading champion data...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-[#0E1015] p-8">
-        <div className="bg-red-500/20 border border-red-500/50 text-white p-8 rounded-lg text-center">
-          <h2 className="text-2xl font-bold mb-4">Error Loading Data</h2>
-          <p className="mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    )
+  // Get role icon
+  const getRoleIcon = (role: Role) => {
+    switch (role) {
+      case "top":
+        return "/roles/top.svg"
+      case "jungle":
+        return "/roles/jungle.svg"
+      case "mid":
+        return "/roles/mid.svg"
+      case "adc":
+        return "/roles/adc.svg"
+      case "support":
+        return "/roles/support.svg"
+      default:
+        return "/roles/all.svg"
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#0E1015] text-white">
       <Navigation />
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 relative inline-block">
-            <span className="relative z-10">Champion Tier List</span>
-            <span className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-[#C89B3C]/0 via-[#C89B3C]/80 to-[#C89B3C]/0 transform -skew-x-12 z-0"></span>
-          </h1>
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex flex-col items-center mb-8">
+          <div className="inline-flex items-center px-4 py-1.5 bg-[#1A1A1A] rounded-full mb-4">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="mr-2"
+            >
+              <path
+                d="M8 0L10.2 4.8L15.2 5.6L11.6 9.2L12.4 14.4L8 12L3.6 14.4L4.4 9.2L0.8 5.6L5.8 4.8L8 0Z"
+                fill="#C89B3C"
+              />
+            </svg>
+            <span className="text-sm text-[#C89B3C]">Live Stats & Analytics</span>
+          </div>
+          <h1 className="text-4xl font-bold text-[#C89B3C] mb-4">Champion Tier List</h1>
+          <p className="text-gray-400 text-center max-w-2xl">
+            Track champion performance, analyze meta picks, and stay updated with the latest patch information.
+          </p>
         </div>
 
-        {/* Filters */}
-        <div className="mb-6 flex flex-col md:flex-row gap-4 md:items-center">
-          {/* Role Filter */}
-          <div className="flex gap-2">
-            {Object.entries(roleData).map(([role, info]) => (
-              <button
-                key={role}
-                onClick={() => setSelectedRole(selectedRole === role ? "" : role)}
-                className={`w-10 h-10 flex items-center justify-center rounded-full transition-all ${
-                  selectedRole === role
-                    ? "bg-[#C89B3C]/20 border-2 border-[#C89B3C]"
-                    : "bg-[#242731] border border-[#2F323D] hover:bg-[#2F323D]"
-                }`}
-              >
-                <img src={`/images/roles/${role}.png`} alt={role} className="w-4 h-4" />
-              </button>
-            ))}
-          </div>
-          {/* Search */}
-          <div className="relative ml-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-500" size={16} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search champion..."
-              className="w-full md:w-64 pl-10 pr-4 py-2 bg-[#242731] border border-[#2F323D] focus:outline-none focus:border-[#C89B3C] transition-colors"
-            />
-          </div>
-        </div>
-
-        {/* Division Filter */}
-        <div className="relative mb-4">
-          <button
-            onClick={() => setShowDivisionDropdown(!showDivisionDropdown)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#242731] border border-[#2F323D] hover:bg-[#2F323D] transition-colors"
-          >
-            <span>Rank: {selectedDivision}</span>
-            <ChevronDown size={16} />
-          </button>
-          {showDivisionDropdown && (
-            <div className="absolute top-full left-0 mt-1 w-48 bg-[#242731] border border-[#2F323D] shadow-lg z-10">
-              {divisionOptions.map((division) => (
+        {/* Search and Filter Bar */}
+        <div className="bg-[#111111] border border-[#222222] rounded-lg p-4 mb-6 sticky top-0 z-10 shadow-md">
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            {/* Role Filter */}
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+              {(["all", "top", "jungle", "mid", "adc", "support"] as Role[]).map((role) => (
                 <button
-                  key={division}
-                  onClick={() => {
-                    setSelectedDivision(division)
-                    setShowDivisionDropdown(false)
-                  }}
-                  className={`w-full text-left px-4 py-2 hover:bg-[#2F323D] transition-colors ${selectedDivision === division ? "text-[#C89B3C]" : "text-white"}`}
+                  key={role}
+                  onClick={() => setSelectedRole(role)}
+                  className={cn(
+                    "flex flex-col items-center justify-center rounded-full w-12 h-12 transition-all",
+                    selectedRole === role
+                      ? "border-2 border-[#C89B3C]"
+                      : "border border-[#333333] hover:border-[#555555]",
+                    "bg-[#0F0F0F]",
+                  )}
+                  aria-label={`Filter by ${role} role`}
                 >
-                  {division}
+                  <img src={getRoleIcon(role) || "/placeholder.svg"} alt={`${role} role`} className="w-6 h-6" />
                 </button>
               ))}
             </div>
-          )}
-        </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead className="bg-[#242731] sticky top-0 z-10">
-              <tr className="border-b border-[#2F323D]">
-                <th className="py-4 px-4 text-left font-medium text-zinc-400 text-sm w-16">RANK</th>
-                <th className="py-4 px-4 text-left font-medium text-zinc-400 text-sm">CHAMPION</th>
-                <th className="py-4 px-4 text-left font-medium text-zinc-400 text-sm w-20">LANE</th>
-                <th
-                  className="py-4 px-4 text-left font-medium text-zinc-400 text-sm w-20 cursor-pointer select-none"
-                  onClick={() => handleSort("tier")}
-                >
-                  TIER {sortBy === "tier" && (sortDirection === "asc" ? <ChevronUp className="inline w-4 h-4" /> : <ChevronDown className="inline w-4 h-4" />)}
-                </th>
-                <th
-                  className="py-4 px-4 text-right font-medium text-zinc-400 text-sm w-24 cursor-pointer select-none"
-                  onClick={() => handleSort("winRate")}
-                >
-                  WINRATE {sortBy === "winRate" && (sortDirection === "asc" ? <ChevronUp className="inline w-4 h-4" /> : <ChevronDown className="inline w-4 h-4" />)}
-                </th>
-                <th
-                  className="py-4 px-4 text-right font-medium text-zinc-400 text-sm w-24 cursor-pointer select-none"
-                  onClick={() => handleSort("pickRate")}
-                >
-                  PICKRATE {sortBy === "pickRate" && (sortDirection === "asc" ? <ChevronUp className="inline w-4 h-4" /> : <ChevronDown className="inline w-4 h-4" />)}
-                </th>
-                <th className="py-4 px-4 text-right font-medium text-zinc-400 text-sm w-24">GAMES</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredChampions.map((champion) => (
-                <tr
-                  key={champion.id}
-                  className="border-b border-[#2F323D] hover:bg-[#242731] transition-colors cursor-pointer"
-                >
-                  {/* Rank */}
-                  <td className="py-3 px-4 text-left font-medium text-zinc-400">{champion.rank}</td>
-                  {/* Champion */}
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-[#242731] flex-shrink-0">
-                        <Image
-                          src={champion.image.icon || "/images/champions/fallback.png"}
-                          alt={champion.name}
-                          width={40}
-                          height={40}
-                          className="object-cover"
-                        />
-                      </div>
-                      <span className="font-bold">{champion.name}</span>
-                    </div>
-                  </td>
-                  {/* Lane */}
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-8 h-8 rounded-full bg-[#242731] flex items-center justify-center">
-                        <img src={`/images/roles/${champion.role}.png`} alt={champion.role} className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs text-zinc-500 mt-1">{champion.rolePercentage ? `${champion.rolePercentage}%` : ""}</span>
-                    </div>
-                  </td>
-                  {/* Tier */}
-                  <td className="py-3 px-4">
-                    <span className="font-bold text-lg" style={{ color: tierColors[champion.tier] }}>
-                      {champion.tier}
-                    </span>
-                  </td>
-                  {/* Winrate */}
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex flex-col items-end">
-                      <span className="font-bold">{champion.winRate?.toFixed(1)}%</span>
-                      {champion.winRateDelta !== undefined && (
-                        <span className={`text-xs ${champion.winRateDelta > 0 ? "text-green-500" : champion.winRateDelta < 0 ? "text-red-500" : "text-zinc-400"}`}>
-                          {champion.winRateDelta > 0 ? `+${champion.winRateDelta.toFixed(1)}%` : champion.winRateDelta < 0 ? `${champion.winRateDelta.toFixed(1)}%` : "0.0%"}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  {/* Pickrate */}
-                  <td className="py-3 px-4 text-right">
-                    <span className="font-bold">{champion.pickRate?.toFixed(1)}%</span>
-                  </td>
-                  {/* Games */}
-                  <td className="py-3 px-4 text-right">
-                    <span className="text-zinc-500">{formatNumber(champion.games)}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            {/* Division Filter */}
+            <div className="w-full md:w-48">
+              <Select value={selectedDivision} onValueChange={(value) => setSelectedDivision(value as Division)}>
+                <SelectTrigger className="bg-[#0F0F0F] border-[#333333] focus:ring-[#C89B3C] focus:ring-opacity-50">
+                  <SelectValue placeholder="Select Division" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0F0F0F] border-[#333333]">
+                  <SelectItem value="iron+">Iron+</SelectItem>
+                  <SelectItem value="bronze+">Bronze+</SelectItem>
+                  <SelectItem value="silver+">Silver+</SelectItem>
+                  <SelectItem value="gold+">Gold+</SelectItem>
+                  <SelectItem value="platinum+">Platinum+</SelectItem>
+                  <SelectItem value="emerald+">Emerald+</SelectItem>
+                  <SelectItem value="diamond+">Diamond+</SelectItem>
+                  <SelectItem value="master+">Master+</SelectItem>
+                  <SelectItem value="grandmaster+">Grandmaster+</SelectItem>
+                  <SelectItem value="challenger+">Challenger+</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        {/* Empty State */}
-        {filteredChampions.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 bg-[#242731] border border-[#2F323D] mt-8">
-            <Search size={32} className="text-zinc-600 mb-4" />
-            <h3 className="text-xl font-bold text-zinc-300 mb-2">No champions found</h3>
-            <p className="text-zinc-500 text-center max-w-md">
-              No champions match your current filters. Try selecting a different role or clearing filters.
-            </p>
-            <button
-              onClick={() => setSelectedRole("")}
-              className="mt-4 px-4 py-2 bg-[#C89B3C] text-zinc-900 font-medium hover:bg-[#D5B45C] transition-colors"
-            >
-              Clear Filters
-            </button>
+            {/* Search Bar */}
+            <div className="relative w-full md:w-64 ml-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search champions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-[#0F0F0F] border-[#333333] focus:ring-[#C89B3C] focus:ring-opacity-50"
+              />
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* Champion Table */}
+        <div className="bg-[#111111] border border-[#222222] rounded-lg overflow-hidden shadow-lg">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-[#0A0A0A] sticky top-0 z-10">
+                <TableRow className="border-b border-[#222222]">
+                  <TableHead className="w-16 text-center text-[#C89B3C]">Rank</TableHead>
+                  <TableHead className="w-64 text-[#C89B3C]">Champion</TableHead>
+                  <TableHead className="w-24 text-center text-[#C89B3C]">Lane</TableHead>
+                  <TableHead
+                    className="w-24 text-center cursor-pointer hover:bg-[#151515] transition-colors text-[#C89B3C]"
+                    onClick={() => handleSort("tier")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Tier
+                      {sortField === "tier" &&
+                        (sortDirection === "asc" ? (
+                          <ArrowUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ArrowDown className="ml-1 h-4 w-4" />
+                        ))}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="w-28 text-center cursor-pointer hover:bg-[#151515] transition-colors text-[#C89B3C]"
+                    onClick={() => handleSort("winrate")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Winrate
+                      {sortField === "winrate" &&
+                        (sortDirection === "asc" ? (
+                          <ArrowUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ArrowDown className="ml-1 h-4 w-4" />
+                        ))}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="w-28 text-center cursor-pointer hover:bg-[#151515] transition-colors text-[#C89B3C]"
+                    onClick={() => handleSort("pickrate")}
+                  >
+                    <div className="flex items-center justify-center">
+                      Pickrate
+                      {sortField === "pickrate" &&
+                        (sortDirection === "asc" ? (
+                          <ArrowUp className="ml-1 h-4 w-4" />
+                        ) : (
+                          <ArrowDown className="ml-1 h-4 w-4" />
+                        ))}
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-24 text-right text-[#C89B3C]">Games</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-96 text-center">
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <div className="w-12 h-12 rounded-full border-2 border-[#C89B3C] border-t-transparent animate-spin mb-4"></div>
+                        <p className="text-gray-400">Loading champion data...</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : sortedChampions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-96 text-center">
+                      <div className="flex flex-col items-center justify-center h-full">
+                        <p className="text-gray-400 mb-2">No champions found</p>
+                        <button
+                          onClick={() => {
+                            setSearchQuery("")
+                            setSelectedRole("all")
+                          }}
+                          className="text-[#C89B3C] hover:underline"
+                        >
+                          Clear filters
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sortedChampions.map((champion, index) => (
+                    <TableRow
+                      key={champion.id}
+                      className="border-b border-[#222222] hover:bg-[#151515] cursor-pointer transition-colors"
+                    >
+                      <TableCell className="text-center font-medium">{index + 1}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center">
+                          <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-[#0A0A0A] border border-[#333333]">
+                            <img
+                              src={champion.icon || "/placeholder.svg"}
+                              alt={champion.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <span className="font-bold">{champion.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-center">
+                          <div className="h-8 w-8 rounded-full overflow-hidden bg-[#0A0A0A] border border-[#333333] flex items-center justify-center">
+                            <img
+                              src={getRoleIcon(champion.primaryRole) || "/placeholder.svg"}
+                              alt={champion.primaryRole}
+                              className="h-5 w-5"
+                            />
+                          </div>
+                          <span className="text-xs text-gray-400 mt-1">{champion.primaryRolePercentage.toFixed(1)}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className={cn("inline-block px-3 py-1 rounded font-bold", getTierColor(champion.tier))}>
+                          {champion.tier}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold">{champion.winrate.toFixed(1)}%</span>
+                          <span
+                            className={cn(
+                              "text-xs",
+                              champion.winrateDelta > 0
+                                ? "text-green-500"
+                                : champion.winrateDelta < 0
+                                  ? "text-red-500"
+                                  : "text-gray-400",
+                            )}
+                          >
+                            {champion.winrateDelta > 0 ? "+" : ""}
+                            {champion.winrateDelta.toFixed(1)}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center font-bold">{champion.pickrate.toFixed(1)}%</TableCell>
+                      <TableCell className="text-right text-gray-400">{champion.games.toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
       </div>
     </div>
   )
