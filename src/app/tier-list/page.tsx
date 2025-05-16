@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Search, ArrowUp, ArrowDown } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/select"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/input"
 import { cn } from "@/lib/utils"
 import Navigation from "@/components/navigation"
 import { useRouter } from "next/navigation"
@@ -46,6 +46,20 @@ interface Champion {
   winrateDelta: number
   pickrate: number
   games: number
+}
+
+// Define rank map for use in multiple places
+const rankMap: Record<Division, string> = {
+  "iron+": "Iron",
+  "bronze+": "Bronze",
+  "silver+": "Silver",
+  "gold+": "Gold",
+  "platinum+": "Platinum",
+  "emerald+": "Emerald",
+  "diamond+": "Diamond",
+  "master+": "Master",
+  "grandmaster+": "Grandmaster",
+  "challenger+": "Challenger"
 }
 
 export default function TierList() {
@@ -196,20 +210,6 @@ export default function TierList() {
 
   // Function to get rank icon path based on selected division
   const getRankIcon = (division: Division) => {
-    // Map division to rank name
-    const rankMap: Record<Division, string> = {
-      "iron+": "Iron",
-      "bronze+": "Bronze",
-      "silver+": "Silver",
-      "gold+": "Gold",
-      "platinum+": "Platinum",
-      "emerald+": "Emerald",
-      "diamond+": "Diamond",
-      "master+": "Master",
-      "grandmaster+": "Grandmaster",
-      "challenger+": "Challenger"
-    }
-    
     const rankName = rankMap[division] || "Platinum"
     return `/images/ranks/Rank=${rankName}.png`
   }
@@ -265,35 +265,41 @@ export default function TierList() {
             </div>
 
             {/* Division Filter with Rank Icon */}
-            <div className="flex items-center gap-2">
-              <div className="h-10 w-10 rounded-full overflow-hidden bg-[#0F0F0F] border border-[#333333] flex-shrink-0">
-                <Image
-                  src={getRankIcon(selectedDivision)}
-                  alt={selectedDivision}
-                  width={40}
-                  height={40}
-                  className="object-cover"
-                />
-              </div>
-              <div className="w-full md:w-48">
-                <Select value={selectedDivision} onValueChange={(value) => setSelectedDivision(value as Division)}>
-                  <SelectTrigger className="bg-[#0F0F0F] border-[#333333] focus:ring-[#C89B3C] focus:ring-opacity-50">
+            <div className="w-full md:w-48">
+              <Select value={selectedDivision} onValueChange={(value) => setSelectedDivision(value as Division)}>
+                <SelectTrigger className="bg-[#0F0F0F] border-[#333333] focus:ring-[#C89B3C] focus:ring-opacity-50">
+                  <div className="flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full overflow-hidden flex-shrink-0">
+                      <Image
+                        src={getRankIcon(selectedDivision)}
+                        alt={selectedDivision}
+                        width={24}
+                        height={24}
+                        className="object-cover"
+                      />
+                    </div>
                     <SelectValue placeholder="Select Division" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#0F0F0F] border-[#333333]">
-                    <SelectItem value="iron+">Iron+</SelectItem>
-                    <SelectItem value="bronze+">Bronze+</SelectItem>
-                    <SelectItem value="silver+">Silver+</SelectItem>
-                    <SelectItem value="gold+">Gold+</SelectItem>
-                    <SelectItem value="platinum+">Platinum+</SelectItem>
-                    <SelectItem value="emerald+">Emerald+</SelectItem>
-                    <SelectItem value="diamond+">Diamond+</SelectItem>
-                    <SelectItem value="master+">Master+</SelectItem>
-                    <SelectItem value="grandmaster+">Grandmaster+</SelectItem>
-                    <SelectItem value="challenger+">Challenger+</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="bg-[#0F0F0F] border-[#333333]">
+                  {Object.entries(rankMap).map(([division, rankName]) => (
+                    <SelectItem key={division} value={division}>
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full overflow-hidden flex-shrink-0">
+                          <Image
+                            src={`/images/ranks/Rank=${rankName}.png`}
+                            alt={rankName}
+                            width={24}
+                            height={24}
+                            className="object-cover"
+                          />
+                        </div>
+                        <span>{division}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Search Bar */}
