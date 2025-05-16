@@ -46,6 +46,7 @@ interface Champion {
   winrateDelta: number
   pickrate: number
   games: number
+  banrate?: number
 }
 
 // Define rank map for use in multiple places
@@ -120,6 +121,7 @@ export default function TierList() {
             winrateDelta: Number(roleStats?.winRateDelta || 0),
             pickrate: Number(roleStats?.pickRate || 0),
             games: Number(roleStats?.totalGames || 0),
+            banrate: Number(roleStats?.banRate || 0),
           }
         })
         setChampions(championsArray)
@@ -445,7 +447,7 @@ export default function TierList() {
                           <span className="font-bold">{champion.winrate.toFixed(1)}%</span>
                           <span
                             className={cn(
-                              "text-xs",
+                              "text-xs flex items-center",
                               champion.winrateDelta > 0
                                 ? "text-green-500"
                                 : champion.winrateDelta < 0
@@ -453,12 +455,38 @@ export default function TierList() {
                                   : "text-gray-400",
                             )}
                           >
+                            {champion.winrateDelta > 0 ? (
+                              <ArrowUp className="h-3 w-3 mr-0.5" />
+                            ) : champion.winrateDelta < 0 ? (
+                              <ArrowDown className="h-3 w-3 mr-0.5" />
+                            ) : null}
                             {champion.winrateDelta > 0 ? "+" : ""}
                             {champion.winrateDelta.toFixed(1)}%
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-center font-bold">{champion.pickrate.toFixed(1)}%</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col items-center">
+                          <span className="font-bold">{champion.pickrate.toFixed(1)}%</span>
+                          {champion.banrate && (
+                            <span className="text-xs text-gray-400 flex items-center">
+                              <svg 
+                                width="10" 
+                                height="10" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="mr-0.5 opacity-75"
+                              >
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8 0-1.85.63-3.55 1.69-4.9L16.9 18.31A7.902 7.902 0 0 1 12 20zm6.31-3.1L7.1 5.69A7.902 7.902 0 0 1 12 4c4.42 0 8 3.58 8 8 0 1.85-.63 3.55-1.69 4.9z" 
+                                  fill="currentColor"
+                                />
+                              </svg>
+                              {champion.banrate.toFixed(1)}%
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right text-gray-400">{champion.games.toLocaleString()}</TableCell>
                     </TableRow>
                   ))

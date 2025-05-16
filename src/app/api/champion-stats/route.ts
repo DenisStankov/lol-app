@@ -886,23 +886,270 @@ export async function GET(request: NextRequest) {
     const rank = searchParams.get('rank') || 'ALL';
     const region = searchParams.get('region') || 'global';
     
-    console.log(`Champion stats API called with params: patch=${patch}, rank=${rank}, region=${region}`);
+    console.log(`[API] Champion stats API called with params: patch=${patch}, rank=${rank}, region=${region}`);
     
-    // Fetch data from Data Dragon directly
+    // Check if we have a valid Riot API key
+    const hasValidApiKey = RIOT_API_KEY && !RIOT_API_KEY.includes('your-api-key-here');
+    console.log(`[API] Using Riot API: ${hasValidApiKey ? 'YES' : 'NO'}`);
+    
+    if (hasValidApiKey) {
+      try {
+        console.log(`[API] Attempting to fetch real data from Riot API`);
+        const realData = await fetchChampionStats(rank, region);
+        console.log(`[API] Successfully fetched real data for ${Object.keys(realData).length} champions`);
+        
+        // Log some sample data
+        const sampleChampionId = Object.keys(realData)[0];
+        const sampleChampion = realData[sampleChampionId];
+        console.log(`[API] Sample champion data for ${sampleChampionId}:`, {
+          name: sampleChampion.name,
+          roles: Object.keys(sampleChampion.roles || {}),
+          stats: sampleChampion.roles ? 
+            Object.entries(sampleChampion.roles).map(([role, stats]) => ({
+              role,
+              winRate: (stats as any).winRate,
+              pickRate: (stats as any).pickRate,
+              totalGames: (stats as any).totalGames
+            })) : 'No role stats',
+        });
+        
+        return NextResponse.json(realData);
+      } catch (error) {
+        console.error('[API] Error fetching real data:', error);
+        console.log('[API] Falling back to simulated data due to error');
+      }
+    }
+    
+    console.log('[API] Using simulated data from Data Dragon');
+    // Fetch data from Data Dragon as a fallback
     const versions = await fetchVersions();
     const currentPatch = patch === 'latest' ? versions[0] : patch;
-    const champions = await fetchChampions(currentPatch);
+    console.log(`[API] Using patch version: ${currentPatch}`);
     
-    // Generate response with proper structure
-    const response = generateStats(champions, currentPatch, rank, region);
+    const champions = await fetchChampions(currentPatch);
+    console.log(`[API] Fetched base data for ${Object.keys(champions).length} champions`);
+    
+    // Generate simulated stats with improved realism
+    const response = await generateEnhancedStats(champions, currentPatch, rank, region);
+    
+    // Log sample simulated data
+    const sampleChampionId = Object.keys(response)[0];
+    const sampleChampion = response[sampleChampionId];
+    console.log(`[API] Sample simulated data for ${sampleChampionId}:`, {
+      name: sampleChampion.name,
+      roles: Object.keys(sampleChampion.roles || {}),
+      stats: sampleChampion.roles ? 
+        Object.entries(sampleChampion.roles).map(([role, stats]) => ({
+          role,
+          winRate: stats.winRate,
+          pickRate: stats.pickRate,
+          totalGames: stats.totalGames,
+          tier: stats.tier
+        })) : 'No role stats',
+    });
+    
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error in champion-stats API:', error);
+    console.error('[API] Fatal error in champion-stats API:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch champion stats' },
+      { error: 'Failed to fetch champion stats', details: String(error) },
       { status: 500 }
     );
   }
+}
+
+// Enhanced stats generation with more realistic data based on actual meta trends
+async function generateEnhancedStats(champions: any, version: string, rank: string, region: string) {
+  console.log(`[API] Generating enhanced stats for patch ${version}, rank ${rank}, region ${region}`);
+  
+  // Define meta champion tiers based on current patch analysis
+  // These represent the current meta state and should be updated between patches
+  const metaTiers: Record<string, Record<string, TierType>> = {
+    TOP: {
+      "Aatrox": "A", "Camille": "A", "ChoGath": "B", "Darius": "S", "Fiora": "S+",
+      "Gangplank": "A", "Garen": "B", "Gnar": "B", "Gwen": "S", "Illaoi": "B",
+      "Irelia": "A", "Jax": "S+", "Jayce": "A", "Kayle": "B", "Kennen": "B",
+      "Kled": "B", "Malphite": "B", "Maokai": "C", "Mordekaiser": "A", "Nasus": "B",
+      "Ornn": "A", "Pantheon": "B", "Poppy": "A", "Quinn": "C", "Renekton": "C",
+      "Riven": "A", "Sett": "A", "Shen": "A", "Singed": "B", "Sion": "B",
+      "TahmKench": "C", "Teemo": "C", "Trundle": "B", "Tryndamere": "B", "Urgot": "B",
+      "Vladimir": "A", "Volibear": "B", "Wukong": "A", "Yorick": "B", "Zac": "B",
+      "Yone": "A", "Yasuo": "B", "KSante": "A", "Briar": "S", "Sett": "A"
+    },
+    JUNGLE: {
+      "Amumu": "B", "Belveth": "A", "Diana": "A", "Ekko": "A", "Elise": "B",
+      "Evelynn": "A", "Fiddlesticks": "A", "Gragas": "B", "Graves": "A", "Hecarim": "S",
+      "Ivern": "C", "JarvanIV": "B", "Jax": "A", "Karthus": "A", "Kayn": "S",
+      "Khazix": "S", "Kindred": "A", "LeeSin": "A", "Lillia": "B", "MasterYi": "B",
+      "Nidalee": "B", "Nocturne": "B", "Nunu": "A", "Olaf": "B", "Poppy": "B",
+      "Rammus": "B", "RekSai": "A", "Rengar": "B", "Sejuani": "B", "Shaco": "B",
+      "Shyvana": "B", "Skarner": "C", "Taliyah": "B", "Trundle": "B", "Udyr": "B",
+      "Vi": "B", "Viego": "A", "Volibear": "B", "Warwick": "B", "XinZhao": "B",
+      "Zac": "A", "Briar": "S+", "Fiddlesticks": "S", "Shyvana": "S"
+    },
+    MIDDLE: {
+      "Ahri": "A", "Akali": "A", "Akshan": "B", "Anivia": "A", "Annie": "B",
+      "AurelionSol": "A", "Azir": "B", "Brand": "C", "Cassiopeia": "A", "Corki": "C",
+      "Diana": "B", "Ekko": "A", "Fizz": "B", "Galio": "B", "Heimerdinger": "B",
+      "Irelia": "B", "Kassadin": "B", "Katarina": "A", "LeBlanc": "B", "Lissandra": "A",
+      "Lux": "C", "Malzahar": "B", "Neeko": "C", "Orianna": "B", "Qiyana": "B",
+      "Ryze": "C", "Sylas": "S", "Syndra": "A", "Taliyah": "B", "Talon": "B",
+      "TwistedFate": "C", "Veigar": "B", "Viktor": "A", "Vladimir": "B", "Xerath": "B",
+      "Yasuo": "B", "Yone": "A", "Zed": "A", "Ziggs": "C", "Zoe": "B",
+      "Hwei": "S+", "Smolder": "S"
+    },
+    BOTTOM: {
+      "Aphelios": "A", "Ashe": "B", "Caitlyn": "A", "Draven": "B", "Ezreal": "A",
+      "Jhin": "S", "Jinx": "S", "Kaisa": "S+", "Kalista": "B", "KogMaw": "B",
+      "Lucian": "B", "MissFortune": "B", "Nilah": "C", "Samira": "A", "Senna": "B",
+      "Sivir": "C", "Twitch": "B", "Tristana": "A", "Varus": "B", "Vayne": "A",
+      "Xayah": "A", "Zeri": "B", "Smolder": "S"
+    },
+    UTILITY: {
+      "Alistar": "B", "Bard": "B", "Blitzcrank": "B", "Brand": "C", "Braum": "B",
+      "Janna": "A", "Karma": "A", "Leona": "B", "Lulu": "S", "Lux": "C",
+      "Maokai": "B", "Morgana": "A", "Nami": "A", "Nautilus": "B", "Pantheon": "C",
+      "Pyke": "B", "Rakan": "B", "RenataGlasc": "A", "Senna": "B", "Seraphine": "B",
+      "Sona": "B", "Soraka": "A", "Swain": "B", "TahmKench": "C", "Taric": "B",
+      "Thresh": "A", "VelKoz": "C", "Xerath": "B", "Yuumi": "A", "Zilean": "B",
+      "Zyra": "B", "Milio": "S", "Hwei": "A", "Neeko": "A"
+    }
+  };
+
+  // Define popularity tiers (pick rates) for different champion archetypes
+  const popularityTiers: Record<string, number> = {
+    "S+": 15 + Math.random() * 5,      // 15-20% pick rate
+    "S": 10 + Math.random() * 5,       // 10-15% pick rate
+    "A": 6 + Math.random() * 4,        // 6-10% pick rate
+    "B": 3 + Math.random() * 3,        // 3-6% pick rate
+    "C": 1 + Math.random() * 2,        // 1-3% pick rate
+    "D": 0.5 + Math.random() * 0.5     // 0.5-1% pick rate
+  };
+
+  // Define ban rate tiers
+  const banRateTiers: Record<string, number> = {
+    "S+": 25 + Math.random() * 15,     // 25-40% ban rate
+    "S": 15 + Math.random() * 10,      // 15-25% ban rate
+    "A": 5 + Math.random() * 10,       // 5-15% ban rate
+    "B": 2 + Math.random() * 3,        // 2-5% ban rate
+    "C": 0.5 + Math.random() * 1.5,    // 0.5-2% ban rate
+    "D": 0.1 + Math.random() * 0.4     // 0.1-0.5% ban rate
+  };
+  
+  // Define win rate adjustments based on tier and difficulty
+  const winRateAdjustments: Record<string, Record<string, number>> = {
+    "S+": { "Easy": 54, "Medium": 53, "Hard": 52 },
+    "S": { "Easy": 53, "Medium": 52, "Hard": 51 },
+    "A": { "Easy": 52, "Medium": 51, "Hard": 50 },
+    "B": { "Easy": 51, "Medium": 50, "Hard": 49 },
+    "C": { "Easy": 49, "Medium": 48, "Hard": 47 },
+    "D": { "Easy": 48, "Medium": 46, "Hard": 45 }
+  };
+  
+  const response: Record<string, any> = {};
+  let championsProcessed = 0;
+  
+  for (const [id, data] of Object.entries(champions)) {
+    championsProcessed++;
+    // Generate roles based on champion tags
+    const possibleRoles = getRolesFromTags(data.tags, data.info);
+    
+    // Ensure we have at least one role
+    if (possibleRoles.length === 0) {
+      possibleRoles.push('TOP');
+    }
+    
+    // Determine difficulty
+    const difficulty = getDifficulty(data.info);
+    
+    // Generate stats for each role
+    const roles: Record<string, any> = {};
+    for (const roleRaw of possibleRoles) {
+      const role = String(roleRaw);
+      
+      // Get tier from meta data or calculate a default
+      let tier: TierType = 'C';
+      if (metaTiers[role] && metaTiers[role][id]) {
+        tier = metaTiers[role][id];
+      } else {
+        // Default tier calculation as fallback
+        const score = (
+          data.info.attack * 0.2 + 
+          data.info.defense * 0.2 + 
+          data.info.magic * 0.2 + 
+          (10 - data.info.difficulty) * 0.4
+        );
+        
+        if (score > 8) tier = 'S+';
+        else if (score > 7) tier = 'S';
+        else if (score > 6) tier = 'A';
+        else if (score > 5) tier = 'B';
+        else if (score > 4) tier = 'C';
+        else tier = 'D';
+      }
+      
+      // Get base values from tiers
+      const pickRate = popularityTiers[tier];
+      const banRate = banRateTiers[tier];
+      
+      // Add slight random variation to win rate based on tier and difficulty
+      const baseWinRate = winRateAdjustments[tier][difficulty];
+      const winRate = baseWinRate + (Math.random() * 2 - 1); // Add ±1% random variation
+      
+      // Generate realistic game count based on pick rate
+      const totalGames = Math.floor(10000 + (pickRate * 2000));
+      
+      // Add win rate trend data
+      const winRateDelta = (Math.random() * 4 - 2).toFixed(2); // ±2% random trend
+      
+      // Set detailed stats for the role
+      roles[role] = {
+        winRate: parseFloat(winRate.toFixed(2)),
+        pickRate: parseFloat(pickRate.toFixed(2)),
+        banRate: parseFloat(banRate.toFixed(2)),
+        totalGames: totalGames,
+        tier: tier,
+        winRateDelta: parseFloat(winRateDelta),
+        // Add KDA data
+        kda: {
+          kills: parseFloat((tier === 'S+' || tier === 'S' ? 6 + Math.random() * 2 : 4 + Math.random() * 2).toFixed(1)),
+          deaths: parseFloat((3 + Math.random() * 2).toFixed(1)),
+          assists: parseFloat((tier === 'S+' || tier === 'S' ? 7 + Math.random() * 3 : 5 + Math.random() * 3).toFixed(1))
+        }
+      };
+    }
+    
+    // Determine damage type, and range
+    const damageType = getDamageType(data.tags, data.info);
+    const range = data.stats?.attackrange > 150 ? "Ranged" : "Melee";
+    
+    // Set champion data with proper image structure
+    response[id] = {
+      id: String(id),
+      name: String(data.name),
+      image: {
+        full: String(data.image.full),
+        icon: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${data.image.full}`,
+        splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`,
+        loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${id}_0.jpg`,
+        sprite: String(data.image.sprite)
+      },
+      roles,
+      difficulty: String(difficulty),
+      damageType: String(damageType),
+      range: String(range),
+      // Add a default role based on the first role in possibleRoles
+      role: String(possibleRoles[0] || 'TOP')
+    };
+    
+    // Log progress periodically
+    if (championsProcessed % 50 === 0 || championsProcessed === Object.keys(champions).length) {
+      console.log(`[API] Generated stats for ${championsProcessed}/${Object.keys(champions).length} champions`);
+    }
+  }
+  
+  console.log(`[API] Completed generating enhanced stats for ${championsProcessed} champions`);
+  return response;
 }
 
 // Fetch version data from Data Dragon
@@ -925,136 +1172,6 @@ async function fetchChampions(version: string) {
     console.error(`Error fetching champions for version ${version}:`, error);
     throw new Error(`Failed to fetch champion data for version ${version}`);
   }
-}
-
-// Generate champion stats based on Data Dragon data - synchronous to avoid timeout
-function generateStats(champions: any, version: string, rank: string, region: string) {
-  const response: Record<string, any> = {};
-  
-  Object.entries(champions).forEach(([id, data]: [string, any]) => {
-    // Generate stats based on champion info
-    const baseWinRate = 48 + (Math.random() * 8); // Random win rate between 48-56%
-    const basePickRate = 2 + (Math.random() * 18); // Random pick rate between 2-20%
-    const baseBanRate = 1 + (Math.random() * 14); // Random ban rate between 1-15%
-    
-    // Determine roles based on champion tags
-    const roles: Record<string, any> = {};
-    const possibleRoles = getRolesFromTags(data.tags, data.info);
-    
-    // Ensure we have at least one role
-    if (possibleRoles.length === 0) {
-      possibleRoles.push('TOP');
-    }
-    
-    possibleRoles.forEach(role => {
-      // Vary stats by role
-      const variation = -4 + (Math.random() * 8); // Random variation between -4 and +4
-      const winRate = Math.min(59, Math.max(41, baseWinRate + variation));
-      const pickRate = Math.min(25, Math.max(0.5, basePickRate + (variation * 0.5)));
-      const banRate = Math.min(30, Math.max(0.1, baseBanRate + (variation * 0.3)));
-      
-      // Assign tier based on win rate and pick rate
-      let tier = 'C';
-      const score = (winRate * 0.7) + (pickRate * 0.2) + (banRate * 0.1);
-      
-      if (score > 60) tier = 'S+';
-      else if (score > 55) tier = 'S';
-      else if (score > 52) tier = 'A';
-      else if (score > 48) tier = 'B';
-      else if (score > 44) tier = 'C';
-      else tier = 'D';
-      
-      // Set the role stats with string key
-      const roleKey = String(role);
-      roles[roleKey] = {
-        winRate: parseFloat(winRate.toFixed(2)),
-        pickRate: parseFloat(pickRate.toFixed(2)),
-        banRate: parseFloat(banRate.toFixed(2)),
-        totalGames: Math.floor(1000 + Math.random() * 9000),
-        tier: String(tier)
-      };
-    });
-    
-    // Determine difficulty, damage type, and range
-    const difficulty = data.info.difficulty <= 3 ? "Easy" : (data.info.difficulty >= 7 ? "Hard" : "Medium");
-    const damageType = getDamageType(data.tags, data.info);
-    const range = data.stats.attackrange > 150 ? "Ranged" : "Melee";
-    
-    // Set champion data with proper image structure
-    response[id] = {
-      id: String(id),
-      name: String(data.name),
-      image: {
-        full: String(data.image.full),
-        icon: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${data.image.full}`,
-        splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`,
-        loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${id}_0.jpg`,
-        sprite: String(data.image.sprite)
-      },
-      roles,
-      difficulty: String(difficulty),
-      damageType: String(damageType),
-      range: String(range),
-      // Add a default role based on the first role in possibleRoles
-      role: String(possibleRoles[0] || 'TOP')
-    };
-  });
-  
-  return response;
-}
-
-// Helper functions to determine roles, damage type, etc.
-function getRolesFromTags(tags: string[], info: any): string[] {
-  const roles: string[] = [];
-  
-  // Assign roles based on champion tags
-  if (tags.includes('Marksman')) {
-    roles.push('BOTTOM');
-  }
-  
-  if (tags.includes('Support')) {
-    roles.push('UTILITY');
-  }
-  
-  if (tags.includes('Mage')) {
-    roles.push('MIDDLE');
-    // Some mages can be support
-    if (info.difficulty < 7) {
-      roles.push('UTILITY');
-    }
-  }
-  
-  if (tags.includes('Assassin')) {
-    roles.push('MIDDLE');
-    // Some assassins can jungle
-    if (info.attack > 5) {
-      roles.push('JUNGLE');
-    }
-  }
-  
-  if (tags.includes('Fighter')) {
-    roles.push('TOP');
-    // Fighters often can jungle
-    roles.push('JUNGLE');
-  }
-  
-  if (tags.includes('Tank')) {
-    roles.push('TOP');
-    // Some tanks support or jungle
-    if (info.attack < 5) {
-      roles.push('UTILITY');
-    } else {
-      roles.push('JUNGLE');
-    }
-  }
-  
-  // Ensure at least one role and remove duplicates
-  if (roles.length === 0) {
-    roles.push('TOP');
-  }
-  
-  // Remove duplicates and ensure all roles are strings
-  return [...new Set(roles.map(role => String(role)))];
 }
 
 // Generate simulated champion statistics as a fallback when API is unavailable
@@ -1190,69 +1307,58 @@ async function generateSimulatedStats(patch: string): Promise<Record<string, Cha
   }
 }
 
-// Function to get match IDs from summoners in specified rank
-async function getMatchIds(region: string, tier: string = 'PLATINUM', division: string = 'I', count: number = 10): Promise<string[]> {
-  try {
-    const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
-    const leagueUrl = `https://${region}.api.riotgames.com/lol/league/v4/entries/RANKED_SOLO_5x5/${tier}/${division}`;
-    
-    console.log(`Fetching league entries: ${leagueUrl}`);
-    const leagueResponse = await axios.get(leagueUrl, {
-      headers: {
-        'X-Riot-Token': RIOT_API_KEY
-      },
-      params: {
-        page: 1
-      }
-    });
-    
-    const entries: LeagueEntry[] = leagueResponse.data;
-    const summoners = entries.slice(0, 5); // Limit to 5 summoners
-    const puuids: string[] = [];
-    
-    // Get PUUIDs for each summoner
-    for (const summoner of summoners) {
-      try {
-        const summonerUrl = `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summoner.summonerId}`;
-        const summonerResponse = await axios.get(summonerUrl, {
-          headers: {
-            'X-Riot-Token': RIOT_API_KEY
-          }
-        });
-        
-        puuids.push(summonerResponse.data.puuid);
-      } catch (error) {
-        console.error(`Error fetching summoner data:`, error);
-      }
-    }
-    
-    // Get match IDs for each PUUID
-    const matchIds: string[] = [];
-    for (const puuid of puuids) {
-      try {
-        const matchesUrl = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids`;
-        const matchesResponse = await axios.get(matchesUrl, {
-          headers: {
-            'X-Riot-Token': RIOT_API_KEY
-          },
-          params: {
-            count: count / puuids.length,
-            queue: 420 // Ranked solo queue
-          }
-        });
-        
-        matchIds.push(...matchesResponse.data);
-      } catch (error) {
-        console.error(`Error fetching matches:`, error);
-      }
-    }
-    
-    // Return unique match IDs
-    return [...new Set(matchIds)];
-  } catch (error) {
-    console.error(`Error in getMatchIds:`, error);
-    return [];
+// Helper functions to determine roles, damage type, etc.
+function getRolesFromTags(tags: string[], info: any): string[] {
+  const roles: string[] = [];
+  
+  // Assign roles based on champion tags
+  if (tags.includes('Marksman')) {
+    roles.push('BOTTOM');
   }
+  
+  if (tags.includes('Support')) {
+    roles.push('UTILITY');
+  }
+  
+  if (tags.includes('Mage')) {
+    roles.push('MIDDLE');
+    // Some mages can be support
+    if (info.difficulty < 7) {
+      roles.push('UTILITY');
+    }
+  }
+  
+  if (tags.includes('Assassin')) {
+    roles.push('MIDDLE');
+    // Some assassins can jungle
+    if (info.attack > 5) {
+      roles.push('JUNGLE');
+    }
+  }
+  
+  if (tags.includes('Fighter')) {
+    roles.push('TOP');
+    // Fighters often can jungle
+    roles.push('JUNGLE');
+  }
+  
+  if (tags.includes('Tank')) {
+    roles.push('TOP');
+    // Some tanks support or jungle
+    if (info.attack < 5) {
+      roles.push('UTILITY');
+    } else {
+      roles.push('JUNGLE');
+    }
+  }
+  
+  // Ensure at least one role and remove duplicates
+  if (roles.length === 0) {
+    roles.push('TOP');
+  }
+  
+  // Remove duplicates and ensure all roles are strings
+  return [...new Set(roles.map(role => String(role)))];
 }
 
 // Helper function to calculate simulated tier
@@ -1267,4 +1373,5 @@ function calculateSimulatedTier(winRate: number, pickRate: number, banRate: numb
   if (performanceScore >= 48) return 'B';
   if (performanceScore >= 46) return 'C';
   return 'D';
+}
 }
