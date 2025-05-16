@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Search, ArrowUp, ArrowDown } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/select"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import Navigation from "@/components/navigation"
