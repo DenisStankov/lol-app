@@ -194,17 +194,17 @@ export default function TierList() {
   const getRoleIcon = (role: Role) => {
     switch (role) {
       case "top":
-        return "/images/roles/official/Top icon.png"
+        return "/images/roles/official/Top_icon.png"
       case "jungle":
-        return "/images/roles/official/Jungle icon.png"
+        return "/images/roles/official/Jungle_icon.webp"
       case "mid":
-        return "/images/roles/official/Middle icon.png"
+        return "/images/roles/official/Middle_icon.webp"
       case "adc":
-        return "/images/roles/official/Bottom icon.png"
+        return "/images/roles/official/Bottom_icon.webp"
       case "support":
-        return "/images/roles/official/Support icon.png"
+        return "/images/roles/official/Support_icon.webp"
       default:
-        return "/images/roles/official/All roles icon.png"
+        return "/images/roles/official/All_roles_icon.png"
     }
   }
 
