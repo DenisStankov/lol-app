@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import Navigation from "@/components/navigation"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 // Role types
 type Role = "top" | "jungle" | "mid" | "adc" | "support" | "all"
@@ -193,6 +194,26 @@ export default function TierList() {
     }
   }
 
+  // Function to get rank icon path based on selected division
+  const getRankIcon = (division: Division) => {
+    // Map division to rank name
+    const rankMap: Record<Division, string> = {
+      "iron+": "Iron",
+      "bronze+": "Bronze",
+      "silver+": "Silver",
+      "gold+": "Gold",
+      "platinum+": "Platinum",
+      "emerald+": "Emerald",
+      "diamond+": "Diamond",
+      "master+": "Master",
+      "grandmaster+": "Grandmaster",
+      "challenger+": "Challenger"
+    }
+    
+    const rankName = rankMap[division] || "Platinum"
+    return `/images/ranks/Rank=${rankName}.png`
+  }
+
   return (
     <div className="min-h-screen bg-[#0E1015] text-white">
       <Navigation />
@@ -238,30 +259,41 @@ export default function TierList() {
                   )}
                   aria-label={`Filter by ${role} role`}
                 >
-                  <img src={getRoleIcon(role) || "/placeholder.svg"} alt={`${role} role`} className="w-6 h-6" />
+                  <img src={getRoleIcon(role)} alt={`${role} role`} className="w-6 h-6" />
                 </button>
               ))}
             </div>
 
-            {/* Division Filter */}
-            <div className="w-full md:w-48">
-              <Select value={selectedDivision} onValueChange={(value) => setSelectedDivision(value as Division)}>
-                <SelectTrigger className="bg-[#0F0F0F] border-[#333333] focus:ring-[#C89B3C] focus:ring-opacity-50">
-                  <SelectValue placeholder="Select Division" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#0F0F0F] border-[#333333]">
-                  <SelectItem value="iron+">Iron+</SelectItem>
-                  <SelectItem value="bronze+">Bronze+</SelectItem>
-                  <SelectItem value="silver+">Silver+</SelectItem>
-                  <SelectItem value="gold+">Gold+</SelectItem>
-                  <SelectItem value="platinum+">Platinum+</SelectItem>
-                  <SelectItem value="emerald+">Emerald+</SelectItem>
-                  <SelectItem value="diamond+">Diamond+</SelectItem>
-                  <SelectItem value="master+">Master+</SelectItem>
-                  <SelectItem value="grandmaster+">Grandmaster+</SelectItem>
-                  <SelectItem value="challenger+">Challenger+</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Division Filter with Rank Icon */}
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 rounded-full overflow-hidden bg-[#0F0F0F] border border-[#333333] flex-shrink-0">
+                <Image
+                  src={getRankIcon(selectedDivision)}
+                  alt={selectedDivision}
+                  width={40}
+                  height={40}
+                  className="object-cover"
+                />
+              </div>
+              <div className="w-full md:w-48">
+                <Select value={selectedDivision} onValueChange={(value) => setSelectedDivision(value as Division)}>
+                  <SelectTrigger className="bg-[#0F0F0F] border-[#333333] focus:ring-[#C89B3C] focus:ring-opacity-50">
+                    <SelectValue placeholder="Select Division" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0F0F0F] border-[#333333]">
+                    <SelectItem value="iron+">Iron+</SelectItem>
+                    <SelectItem value="bronze+">Bronze+</SelectItem>
+                    <SelectItem value="silver+">Silver+</SelectItem>
+                    <SelectItem value="gold+">Gold+</SelectItem>
+                    <SelectItem value="platinum+">Platinum+</SelectItem>
+                    <SelectItem value="emerald+">Emerald+</SelectItem>
+                    <SelectItem value="diamond+">Diamond+</SelectItem>
+                    <SelectItem value="master+">Master+</SelectItem>
+                    <SelectItem value="grandmaster+">Grandmaster+</SelectItem>
+                    <SelectItem value="challenger+">Challenger+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Search Bar */}
