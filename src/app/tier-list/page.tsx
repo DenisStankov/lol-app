@@ -190,21 +190,21 @@ export default function TierList() {
     }
   }
 
-  // Get role icon - update paths to match your project structure
+  // Get role icon - update paths to match official League icons
   const getRoleIcon = (role: Role) => {
     switch (role) {
       case "top":
-        return "/images/roles/TOP.png"
+        return "/images/roles/official/Top icon.png"
       case "jungle":
-        return "/images/roles/JUNGLE.png"
+        return "/images/roles/official/Jungle icon.png"
       case "mid":
-        return "/images/roles/MIDDLE.png"
+        return "/images/roles/official/Middle icon.png"
       case "adc":
-        return "/images/roles/BOTTOM.png"
+        return "/images/roles/official/Bottom icon.png"
       case "support":
-        return "/images/roles/UTILITY.png"
+        return "/images/roles/official/Support icon.png"
       default:
-        return "/placeholder.svg"
+        return "/images/roles/official/All roles icon.png"
     }
   }
 
@@ -253,13 +253,19 @@ export default function TierList() {
                   className={cn(
                     "flex flex-col items-center justify-center rounded-full w-12 h-12 transition-all",
                     selectedRole === role
-                      ? "border-2 border-[#C89B3C]"
-                      : "border border-[#333333] hover:border-[#555555]",
-                    "bg-[#0F0F0F]",
+                      ? "bg-[#0F0F0F] border-2 border-[#C89B3C]"
+                      : "bg-[#0A0A0A] border border-[#333333] hover:border-[#555555]",
                   )}
                   aria-label={`Filter by ${role} role`}
                 >
-                  <img src={getRoleIcon(role)} alt={`${role} role`} className="w-6 h-6" />
+                  <img 
+                    src={getRoleIcon(role)} 
+                    alt={`${role} role`} 
+                    className={cn(
+                      "w-7 h-7", 
+                      selectedRole === role ? "brightness-125" : "opacity-75 hover:opacity-100"
+                    )}
+                  />
                 </button>
               ))}
             </div>
@@ -421,9 +427,9 @@ export default function TierList() {
                         <div className="flex flex-col items-center">
                           <div className="h-8 w-8 rounded-full overflow-hidden bg-[#0A0A0A] border border-[#333333] flex items-center justify-center">
                             <img
-                              src={getRoleIcon(champion.primaryRole) || "/placeholder.svg"}
+                              src={getRoleIcon(champion.primaryRole)}
                               alt={champion.primaryRole}
-                              className="h-5 w-5"
+                              className="h-6 w-6 opacity-90"
                             />
                           </div>
                           <span className="text-xs text-gray-400 mt-1">{champion.primaryRolePercentage.toFixed(1)}%</span>
