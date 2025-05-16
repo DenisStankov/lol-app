@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import Navigation from "@/components/navigation"
+import { useRouter } from "next/navigation"
 
 // Role types
 type Role = "top" | "jungle" | "mid" | "adc" | "support" | "all"
@@ -59,6 +60,8 @@ export default function TierList() {
   // State for data
   const [champions, setChampions] = useState<Champion[]>([])
   const [loading, setLoading] = useState(true)
+
+  const router = useRouter()
 
   // Handle sort click
   const handleSort = (field: SortField) => {
@@ -147,6 +150,11 @@ export default function TierList() {
     return 0
   })
 
+  // Function to navigate to champion details
+  const navigateToChampion = (championId: string) => {
+    router.push(`/champion/${championId}`)
+  }
+
   // Get tier color
   const getTierColor = (tier: Tier) => {
     switch (tier) {
@@ -167,21 +175,21 @@ export default function TierList() {
     }
   }
 
-  // Get role icon
+  // Get role icon - update paths to match your project structure
   const getRoleIcon = (role: Role) => {
     switch (role) {
       case "top":
-        return "/roles/top.svg"
+        return "/images/roles/TOP.png"
       case "jungle":
-        return "/roles/jungle.svg"
+        return "/images/roles/JUNGLE.png"
       case "mid":
-        return "/roles/mid.svg"
+        return "/images/roles/MIDDLE.png"
       case "adc":
-        return "/roles/adc.svg"
+        return "/images/roles/BOTTOM.png"
       case "support":
-        return "/roles/support.svg"
+        return "/images/roles/UTILITY.png"
       default:
-        return "/roles/all.svg"
+        return "/placeholder.svg"
     }
   }
 
@@ -356,6 +364,7 @@ export default function TierList() {
                     <TableRow
                       key={champion.id}
                       className="border-b border-[#222222] hover:bg-[#151515] cursor-pointer transition-colors"
+                      onClick={() => navigateToChampion(champion.id)}
                     >
                       <TableCell className="text-center font-medium">{index + 1}</TableCell>
                       <TableCell>
