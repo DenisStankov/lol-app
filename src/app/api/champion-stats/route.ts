@@ -1374,4 +1374,3 @@ function calculateSimulatedTier(winRate: number, pickRate: number, banRate: numb
   if (performanceScore >= 46) return 'C';
   return 'D';
 }
-}
