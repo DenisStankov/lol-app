@@ -37,7 +37,7 @@ type SortDirection = "asc" | "desc"
 interface Champion {
   id: string
   name: string
-  icon: string
+    icon: string
   primaryRole: Role
   secondaryRole?: Role
   primaryRolePercentage: number
@@ -97,6 +97,17 @@ export default function TierList() {
         const response = await fetch(`/api/champion-stats?rank=${encodeURIComponent(selectedDivision)}`)
         if (!response.ok) throw new Error("Failed to fetch champion data")
         const data = await response.json()
+        
+        // Log the data structure for debugging
+        console.log("API Response:", {
+          dataType: typeof data,
+          champions: Object.keys(data).length,
+          sampleChampion: Object.keys(data).length > 0 ? {
+            champion: data[Object.keys(data)[0]],
+            imageStructure: data[Object.keys(data)[0]].image
+          } : 'No champions found'
+        });
+        
         // Transform API data to Champion[]
         const championsArray: Champion[] = Object.entries(data).map(([id, champ]: [string, any]) => {
           // Find the main role (highest games or winrate, or use champ.role)
@@ -110,10 +121,19 @@ export default function TierList() {
             BOTTOM: "adc",
             UTILITY: "support"
           }
+          
+          // Make sure we have a valid icon URL
+          let iconUrl = "";
+          if (champ.image && typeof champ.image === 'object') {
+            // Use the icon property if it exists, otherwise construct from full
+            iconUrl = champ.image.icon || 
+              `https://ddragon.leagueoflegends.com/cdn/14.14.1/img/champion/${champ.image.full}`;
+          }
+          
           return {
             id: String(id),
             name: String(champ.name),
-            icon: String(champ.image.icon),
+            icon: iconUrl,
             primaryRole: roleMap[mainRole] || "all",
             primaryRolePercentage: Number(roleStats?.rolePercentage || 100),
             tier: String(roleStats?.tier || "C") as Tier,
@@ -287,7 +307,7 @@ export default function TierList() {
                       />
                     </div>
                     <span>{selectedDivision}</span>
-                  </div>
+          </div>
                 </SelectTrigger>
                 <SelectContent className="bg-[#0F0F0F] border-[#333333]">
                   {Object.entries(rankMap).map(([division, rankName]) => (
@@ -301,9 +321,9 @@ export default function TierList() {
                             height={24}
                             className="object-cover"
                           />
-                        </div>
+              </div>
                         <span>{division}</span>
-                      </div>
+            </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -372,8 +392,8 @@ export default function TierList() {
                           <ArrowUp className="ml-1 h-4 w-4" />
                         ) : (
                           <ArrowDown className="ml-1 h-4 w-4" />
-                        ))}
-                    </div>
+                    ))}
+                  </div>
                   </TableHead>
                   <TableHead className="w-24 text-right text-[#C89B3C]">Games</TableHead>
                 </TableRow>
@@ -385,7 +405,7 @@ export default function TierList() {
                       <div className="flex flex-col items-center justify-center h-full">
                         <div className="w-12 h-12 rounded-full border-2 border-[#C89B3C] border-t-transparent animate-spin mb-4"></div>
                         <p className="text-gray-400">Loading champion data...</p>
-                      </div>
+                </div>
                     </TableCell>
                   </TableRow>
                 ) : sortedChampions.length === 0 ? (
@@ -393,15 +413,15 @@ export default function TierList() {
                     <TableCell colSpan={7} className="h-96 text-center">
                       <div className="flex flex-col items-center justify-center h-full">
                         <p className="text-gray-400 mb-2">No champions found</p>
-                        <button
-                          onClick={() => {
+            <button
+              onClick={() => {
                             setSearchQuery("")
                             setSelectedRole("all")
                           }}
                           className="text-[#C89B3C] hover:underline"
                         >
                           Clear filters
-                        </button>
+            </button>
                       </div>
                     </TableCell>
                   </TableRow>
