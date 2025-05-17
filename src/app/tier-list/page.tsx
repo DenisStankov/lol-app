@@ -258,13 +258,60 @@ export default function TierList() {
             <span className="text-sm text-[#C89B3C]">Live Stats & Analytics</span>
           </div>
           <h1 className="text-4xl font-bold text-[#C89B3C] mb-4">Champion Tier List</h1>
-          <p className="text-gray-400 text-center max-w-2xl">
+          <p className="text-gray-400 text-center max-w-2xl mb-4">
             Track champion performance, analyze meta picks, and stay updated with the latest patch information.
           </p>
+
+          {/* Updated tier list with distribution summary */}
+          {!loading && champions.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-2">
+              {["S+", "S", "A", "B", "C", "D"].map((tier) => {
+                const count = filteredChampions.filter(c => c.tier === tier).length;
+                const percent = Math.round((count / filteredChampions.length) * 100) || 0;
+                return (
+                  <div 
+                    key={tier} 
+                    className={cn(
+                      "flex items-center px-3 py-1 rounded-md", 
+                      getTierColor(tier as Tier)
+                    )}
+                  >
+                    <span className="font-bold mr-2">{tier}</span>
+                    <span className="text-xs opacity-90">{count} ({percent}%)</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Search and Filter Bar */}
         <div className="bg-[#111111] border border-[#222222] rounded-lg p-4 mb-6 sticky top-0 z-10 shadow-md">
+          {/* Tier Distribution Summary */}
+          {champions.length > 0 && (
+            <div className="mb-4 border-b border-[#222222] pb-3">
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <div className="text-sm font-semibold text-gray-400">Tier Distribution:</div>
+                {["S+", "S", "A", "B", "C", "D"].map((tier) => {
+                  const count = filteredChampions.filter(c => c.tier === tier).length;
+                  const percent = Math.round((count / filteredChampions.length) * 100) || 0;
+                  return (
+                    <div 
+                      key={tier} 
+                      className={cn(
+                        "flex items-center px-3 py-1 rounded-md", 
+                        getTierColor(tier as Tier)
+                      )}
+                    >
+                      <span className="font-bold mr-2">{tier}</span>
+                      <span className="text-xs opacity-90">{count} ({percent}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
             {/* Role Filter */}
             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">

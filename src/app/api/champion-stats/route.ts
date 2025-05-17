@@ -978,14 +978,14 @@ async function generateEnhancedStats(champions: any, version: string, rank: stri
     },
     JUNGLE: {
       "Amumu": "B", "Belveth": "A", "Diana": "A", "Ekko": "A", "Elise": "B",
-      "Evelynn": "A", "Fiddlesticks": "A", "Gragas": "B", "Graves": "A", "Hecarim": "S",
+      "Evelynn": "A", "Fiddlesticks": "S", "Gragas": "B", "Graves": "A", "Hecarim": "S",
       "Ivern": "C", "JarvanIV": "B", "Jax": "A", "Karthus": "A", "Kayn": "S",
       "Khazix": "S", "Kindred": "A", "LeeSin": "A", "Lillia": "B", "MasterYi": "B",
       "Nidalee": "B", "Nocturne": "B", "Nunu": "A", "Olaf": "B", "Poppy": "B",
       "Rammus": "B", "RekSai": "A", "Rengar": "B", "Sejuani": "B", "Shaco": "B",
-      "Shyvana": "B", "Skarner": "C", "Taliyah": "B", "Trundle": "B", "Udyr": "B",
+      "Shyvana": "S", "Skarner": "C", "Taliyah": "B", "Trundle": "B", "Udyr": "B",
       "Vi": "B", "Viego": "A", "Volibear": "B", "Warwick": "B", "XinZhao": "B",
-      "Zac": "A", "Briar": "S+", "Fiddlesticks": "S", "Shyvana": "S"
+      "Zac": "A", "Briar": "S+", "Fiddlesticks": "S"
     },
     MIDDLE: {
       "Ahri": "A", "Akali": "A", "Akshan": "B", "Anivia": "A", "Annie": "B",
@@ -994,7 +994,7 @@ async function generateEnhancedStats(champions: any, version: string, rank: stri
       "Irelia": "B", "Kassadin": "B", "Katarina": "A", "LeBlanc": "B", "Lissandra": "A",
       "Lux": "C", "Malzahar": "B", "Neeko": "C", "Orianna": "B", "Qiyana": "B",
       "Ryze": "C", "Sylas": "S", "Syndra": "A", "Taliyah": "B", "Talon": "B",
-      "TwistedFate": "C", "Veigar": "B", "Viktor": "A", "Vladimir": "B", "Xerath": "B",
+      "TwistedFate": "C", "Veigar": "B", "Viktor": "S", "Vladimir": "B", "Xerath": "B",
       "Yasuo": "B", "Yone": "A", "Zed": "A", "Ziggs": "C", "Zoe": "B",
       "Hwei": "S+", "Smolder": "S"
     },
@@ -1018,32 +1018,32 @@ async function generateEnhancedStats(champions: any, version: string, rank: stri
 
   // Define popularity tiers (pick rates) for different champion archetypes
   const popularityTiers: Record<string, number> = {
-    "S+": 15 + Math.random() * 5,      // 15-20% pick rate
-    "S": 10 + Math.random() * 5,       // 10-15% pick rate
-    "A": 6 + Math.random() * 4,        // 6-10% pick rate
-    "B": 3 + Math.random() * 3,        // 3-6% pick rate
-    "C": 1 + Math.random() * 2,        // 1-3% pick rate
-    "D": 0.5 + Math.random() * 0.5     // 0.5-1% pick rate
+    "S+": 10 + Math.random() * 5,     // 10-15% pick rate
+    "S": 7 + Math.random() * 3,       // 7-10% pick rate
+    "A": 4 + Math.random() * 3,       // 4-7% pick rate
+    "B": 2 + Math.random() * 2,       // 2-4% pick rate
+    "C": 1 + Math.random() * 1,       // 1-2% pick rate
+    "D": 0.5 + Math.random() * 0.5    // 0.5-1% pick rate
   };
 
   // Define ban rate tiers
   const banRateTiers: Record<string, number> = {
-    "S+": 25 + Math.random() * 15,     // 25-40% ban rate
-    "S": 15 + Math.random() * 10,      // 15-25% ban rate
-    "A": 5 + Math.random() * 10,       // 5-15% ban rate
-    "B": 2 + Math.random() * 3,        // 2-5% ban rate
-    "C": 0.5 + Math.random() * 1.5,    // 0.5-2% ban rate
-    "D": 0.1 + Math.random() * 0.4     // 0.1-0.5% ban rate
+    "S+": 30 + Math.random() * 20,    // 30-50% ban rate
+    "S": 15 + Math.random() * 15,     // 15-30% ban rate
+    "A": 5 + Math.random() * 10,      // 5-15% ban rate
+    "B": 1 + Math.random() * 4,       // 1-5% ban rate
+    "C": 0.5 + Math.random() * 0.5,   // 0.5-1% ban rate
+    "D": 0.1 + Math.random() * 0.4    // 0.1-0.5% ban rate
   };
   
   // Define win rate adjustments based on tier and difficulty
   const winRateAdjustments: Record<string, Record<string, number>> = {
-    "S+": { "Easy": 54, "Medium": 53, "Hard": 52 },
-    "S": { "Easy": 53, "Medium": 52, "Hard": 51 },
-    "A": { "Easy": 52, "Medium": 51, "Hard": 50 },
-    "B": { "Easy": 51, "Medium": 50, "Hard": 49 },
-    "C": { "Easy": 49, "Medium": 48, "Hard": 47 },
-    "D": { "Easy": 48, "Medium": 46, "Hard": 45 }
+    "S+": { "Easy": 53.5, "Medium": 52.5, "Hard": 51.5 },
+    "S": { "Easy": 52.0, "Medium": 51.0, "Hard": 50.5 },
+    "A": { "Easy": 51.0, "Medium": 50.5, "Hard": 50.0 },
+    "B": { "Easy": 50.5, "Medium": 50.0, "Hard": 49.5 },
+    "C": { "Easy": 49.0, "Medium": 48.5, "Hard": 48.0 },
+    "D": { "Easy": 47.5, "Medium": 47.0, "Hard": 46.5 }
   };
   
   const response: Record<string, any> = {};
@@ -1363,14 +1363,14 @@ function getRolesFromTags(tags: string[], info: any): string[] {
 
 // Helper function to calculate simulated tier
 function calculateSimulatedTier(winRate: number, pickRate: number, banRate: number): TierType {
-  // Calculate performance score based on win rate, pick rate, and ban rate
-  const performanceScore = (winRate * 0.6) + (pickRate * 0.2) + (banRate * 0.2);
+  // Calculate performance score that weighs win rate most heavily, then pick rate, then ban rate
+  const performanceScore = (winRate - 45) * 1.5 + pickRate * 0.8 + banRate * 0.3;
   
   // Determine tier based on performance score
-  if (performanceScore >= 55) return 'S+';
-  if (performanceScore >= 52) return 'S';
-  if (performanceScore >= 50) return 'A';
-  if (performanceScore >= 48) return 'B';
-  if (performanceScore >= 46) return 'C';
+  if (performanceScore >= 15) return 'S+';
+  if (performanceScore >= 11) return 'S';
+  if (performanceScore >= 8) return 'A';
+  if (performanceScore >= 5) return 'B';
+  if (performanceScore >= 2) return 'C';
   return 'D';
 }
