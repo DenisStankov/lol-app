@@ -10,6 +10,9 @@ console.log("API KEY LOOKS VALID:", process.env.RIOT_API_KEY && !process.env.RIO
 // Uncomment the RIOT_API_KEY constant for actual implementation
 const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-your-api-key-here';
 
+// At the top of the file
+let generatedStatsCache: any = null;
+
 // Interfaces for champion data from Data Dragon
 interface ChampionImage {
   full: string;
@@ -948,6 +951,8 @@ export async function GET(request: NextRequest) {
         })) : 'No role stats',
     });
     
+    // After generating stats (before returning):
+    generatedStatsCache = response;
     return NextResponse.json(response);
   } catch (error) {
     console.error('[API] Fatal error in champion-stats API:', error);
