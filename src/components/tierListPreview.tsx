@@ -123,10 +123,10 @@ export default function TierList() {
 
   if (loading) {
     return (
-      <div className="p-6 bg-zinc-950 rounded-xl min-h-[400px] flex items-center justify-center">
+      <div className="p-6 bg-bg-main rounded-xl min-h-[400px] flex items-center justify-center">
         <div className="flex flex-col items-center">
-          <Loader2 className="w-8 h-8 text-[#C89B3C] animate-spin" />
-          <p className="mt-4 text-zinc-400">Loading tier list...</p>
+          <Loader2 className="w-8 h-8 text-accent animate-spin" />
+          <p className="mt-4 text-text-secondary">Loading tier list...</p>
         </div>
       </div>
     )
@@ -134,20 +134,20 @@ export default function TierList() {
   
   if (error) {
     return (
-      <div className="p-6 bg-zinc-950 rounded-xl">
+      <div className="p-6 bg-bg-main rounded-xl">
         <div className="text-red-400">{error}</div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 bg-zinc-950 rounded-xl space-y-4">
+    <div className="p-6 bg-bg-main rounded-xl space-y-4">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-zinc-100">Champion Tier List</h2>
-          <p className="text-zinc-400 text-sm mt-1">Current meta rankings by tier</p>
+          <h2 className="text-2xl font-bold text-text-main">Champion Tier List</h2>
+          <p className="text-text-secondary text-sm mt-1">Current meta rankings by tier</p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm">
+        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-sm">
           <Trophy className="w-4 h-4" />
           <span>Patch {patchVersion}</span>
         </div>
@@ -156,23 +156,23 @@ export default function TierList() {
       {/* Filters */}
       <div className="flex gap-4 mb-4">
         <div className="flex-1">
-          <label className="text-xs text-zinc-500">Role</label>
-          <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} className="w-full p-2 bg-zinc-900 text-zinc-100 rounded">
+          <label className="text-xs text-text-secondary">Role</label>
+          <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} className="w-full p-2 bg-bg-card text-text-main rounded">
             {roles.map(role => (
               <option key={role.value} value={role.value}>{role.label}</option>
             ))}
           </select>
         </div>
         <div className="flex-1">
-          <label className="text-xs text-zinc-500">Sort By</label>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="w-full p-2 bg-zinc-900 text-zinc-100 rounded">
+          <label className="text-xs text-text-secondary">Sort By</label>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="w-full p-2 bg-bg-card text-text-main rounded">
             {sortOptions.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
         </div>
         <div className="flex items-end">
-          <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="p-2 bg-zinc-900 text-zinc-100 rounded">
+          <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="p-2 bg-bg-card text-text-main rounded hover:bg-bg-card-hover transition-colors">
             {sortOrder === 'desc' ? 'Descending' : 'Ascending'}
           </button>
         </div>
@@ -181,7 +181,7 @@ export default function TierList() {
       {/* Champions List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredChampions.map(champion => (
-          <Card key={champion.id} className="bg-zinc-800/50 p-4 rounded-lg">
+          <Card key={champion.id} className="bg-bg-card p-4 rounded-lg">
             <div className="flex items-center gap-4">
               <div className="relative w-16 h-16 rounded-md overflow-hidden">
                 <Image
@@ -193,8 +193,8 @@ export default function TierList() {
                 />
               </div>
               <div>
-                <h4 className="text-lg font-bold text-zinc-100">{champion.name}</h4>
-                <div className="flex gap-2 text-sm text-zinc-400">
+                <h4 className="text-lg font-bold text-text-main">{champion.name}</h4>
+                <div className="flex gap-2 text-sm text-text-secondary">
                   <span>Win Rate: {champion.winRate}%</span>
                   <span>Pick Rate: {champion.pickRate}%</span>
                   <span>Ban Rate: {champion.banRate}%</span>

@@ -66,7 +66,7 @@ export default function ProfileIcon({
   return (
     <div className={`relative ${className}`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-800 animate-pulse">
+        <div className="absolute inset-0 flex items-center justify-center bg-bg-card animate-pulse">
           <span className="sr-only">Loading...</span>
         </div>
       )}
@@ -96,7 +96,7 @@ export default function ProfileIcon({
       />
       
       {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-zinc-800 text-zinc-400 text-xs font-bold">
+        <div className="absolute inset-0 flex items-center justify-center bg-bg-card text-text-secondary text-xs font-bold">
           {typeof iconId === 'string' || typeof iconId === 'number' ? iconId : '?'}
         </div>
       )}

@@ -10,7 +10,7 @@ interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Avatar({ className, ...props }: AvatarProps) {
   return (
     <div
-      className={`relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ${className || ""}`}
+      className={`relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full border border-border ${className || ""}`}
       {...props}
     />
   )
@@ -41,7 +41,7 @@ interface AvatarFallbackProps extends React.HTMLAttributes<HTMLDivElement> {
 export function AvatarFallback({ className, ...props }: AvatarFallbackProps) {
   return (
     <div
-      className={`flex h-full w-full items-center justify-center rounded-full bg-gray-200 text-gray-700 ${className || ""}`}
+      className={`flex h-full w-full items-center justify-center rounded-full bg-bg-card text-text-secondary ${className || ""}`}
       {...props}
     />
   )

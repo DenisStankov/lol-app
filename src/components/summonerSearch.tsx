@@ -131,28 +131,28 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
   };
 
   return (
-    <Card className="border-[#C89B3C]/20 bg-zinc-900/50 backdrop-blur-sm shadow-lg">
+    <Card className="border-accent/20 bg-bg-main/50 backdrop-blur-sm shadow-lg">
       <CardContent className="p-4">
         <div className="flex flex-col md:flex-row items-center gap-3">
           {/* Input Field - Improved styling */}
           <div className="relative w-full md:w-4/5">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#C89B3C]" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-accent" />
             <Input
               placeholder="Name or Name#TAG..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={handleInputFocus}
               onBlur={() => setTimeout(() => setShowResults(false), 200)}
-              className="pl-12 pr-4 py-2.5 h-10 w-full bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-white placeholder:text-[#C89B3C]/60 focus:ring-[#C89B3C] focus:border-[#C89B3C]/70 text-base rounded-xl font-medium tracking-wide shadow-inner"
+              className="pl-12 pr-4 py-2.5 h-10 w-full bg-bg-card border-2 border-accent/30 text-text-main placeholder:text-accent/60 focus:ring-accent focus:border-accent/70 text-base rounded-xl font-medium tracking-wide shadow-inner"
             />
           </div>
 
           {/* Region Select Dropdown - Improved styling */}
           <Select value={region} onValueChange={setRegion}>
-            <SelectTrigger className="w-full md:w-24 h-10 bg-zinc-800/90 border-2 border-[#C89B3C]/30 text-[#C89B3C] text-base font-medium rounded-xl hover:bg-zinc-700/80 hover:border-[#C89B3C]/50 transition-all">
+            <SelectTrigger className="w-full md:w-24 h-10 bg-bg-card border-2 border-accent/30 text-accent text-base font-medium rounded-xl hover:bg-bg-card-hover hover:border-accent/50 transition-all">
               <SelectValue placeholder="EUW" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-800 border-[#C89B3C]/30 rounded-lg">
+            <SelectContent className="bg-bg-card border-accent/30 rounded-lg">
               <SelectItem value="euw1" className="text-base">EUW</SelectItem>
               <SelectItem value="na1" className="text-base">NA</SelectItem>
               <SelectItem value="kr" className="text-base">KR</SelectItem>
@@ -170,23 +170,23 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
         {/* Search Results Dropdown */}
         {showResults && query.length >= 3 && (
-          <div className="fixed inset-x-4 md:absolute md:inset-x-0 z-50 mt-2 max-h-96 overflow-y-auto bg-zinc-900 border-2 border-[#C89B3C]/30 rounded-xl shadow-2xl">
+          <div className="fixed inset-x-4 md:absolute md:inset-x-0 z-50 mt-2 max-h-96 overflow-y-auto bg-bg-main border-2 border-accent/30 rounded-xl shadow-2xl">
             {/* Loading indicator */}
             {loading && (
               <div className="p-6 text-center">
-                <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-[#C89B3C] rounded-full" aria-label="loading"></div>
-                <p className="text-zinc-300 mt-3 text-lg font-medium">Searching summoners...</p>
+                <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-accent rounded-full" aria-label="loading"></div>
+                <p className="text-text-main mt-3 text-lg font-medium">Searching summoners...</p>
               </div>
             )}
 
             {/* Search results */}
             {!loading && results.length > 0 && (
               <div className="p-3">
-                <p className="px-4 py-2 text-sm text-[#C89B3C]/80 uppercase font-semibold">Search Results</p>
+                <p className="px-4 py-2 text-sm text-accent/80 uppercase font-semibold">Search Results</p>
                 {results.map((summoner) => (
                   <div 
                     key={summoner.puuid} 
-                    className="flex items-center gap-4 p-4 cursor-pointer hover:bg-[#C89B3C]/20 rounded-lg transition-colors"
+                    className="flex items-center gap-4 p-4 cursor-pointer hover:bg-accent/20 rounded-lg transition-colors"
                     onClick={() => handleSelect(summoner)}
                   >
                     <div className="relative">
@@ -195,17 +195,17 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                         alt="Profile Icon" 
                         width={48} 
                         height={48} 
-                        className="rounded-full border-2 border-[#C89B3C]/40"
+                        className="rounded-full border-2 border-accent/40"
                       />
-                      <div className="absolute -bottom-1 -right-1 bg-zinc-800 text-xs font-bold px-1.5 py-0.5 rounded border border-[#C89B3C]/30 text-[#C89B3C]">
+                      <div className="absolute -bottom-1 -right-1 bg-bg-card text-xs font-bold px-1.5 py-0.5 rounded border border-accent/30 text-accent">
                         {region.toUpperCase().replace(/[0-9]/g, '')}
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="font-semibold text-white text-lg">{summoner.summonerName}</div>
-                      <div className="text-sm text-zinc-400">#{summoner.tagLine}</div>
+                      <div className="font-semibold text-text-main text-lg">{summoner.summonerName}</div>
+                      <div className="text-sm text-text-secondary">#{summoner.tagLine}</div>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-[#C89B3C]/70" />
+                    <ChevronRight className="h-5 w-5 text-accent/70" />
                   </div>
                 ))}
               </div>
@@ -213,8 +213,8 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
             {/* No results */}
             {!loading && query.length >= 3 && results.length === 0 && (
-              <div className="p-6 text-center text-zinc-300">
-                <User className="h-10 w-10 mx-auto mb-3 text-zinc-500" />
+              <div className="p-6 text-center text-text-main">
+                <User className="h-10 w-10 mx-auto mb-3 text-text-secondary" />
                 <p className="text-lg font-medium">No summoners found</p>
                 <p className="text-sm mt-2">Try a different name or region</p>
               </div>
@@ -224,8 +224,8 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
         
         {/* Recent searches - Now permanently displayed below search bar */}
         {showRecentSearches && recentSearches.length > 0 && (
-          <div className="mt-4 border-t border-[#C89B3C]/20 pt-4">
-            <p className="px-2 text-sm text-[#C89B3C]/80 uppercase font-semibold flex items-center mb-2">
+          <div className="mt-4 border-t border-accent/20 pt-4">
+            <p className="px-2 text-sm text-accent/80 uppercase font-semibold flex items-center mb-2">
               <History className="h-4 w-4 mr-1.5" />
               Recent Searches
             </p>
@@ -233,7 +233,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
               {recentSearches.map((summoner) => (
                 <div 
                   key={summoner.puuid} 
-                  className="flex items-center gap-3 p-2 cursor-pointer hover:bg-[#C89B3C]/20 rounded-lg transition-colors"
+                  className="flex items-center gap-3 p-2 cursor-pointer hover:bg-accent/20 rounded-lg transition-colors"
                   onClick={() => handleSelect(summoner, summoner.region)}
                 >
                   <div className="relative flex-shrink-0">
@@ -242,22 +242,20 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                       alt="Profile Icon" 
                       width={36} 
                       height={36} 
-                      className="rounded-full border-2 border-[#C89B3C]/40"
+                      className="rounded-full border-2 border-accent/40"
                     />
-                    <div className="absolute -bottom-1 -right-1 bg-zinc-800 text-xs font-bold px-1 py-0 rounded border border-[#C89B3C]/30 text-[#C89B3C]">
+                    <div className="absolute -bottom-1 -right-1 bg-bg-card text-xs font-bold px-1 py-0 rounded border border-accent/30 text-accent">
                       {summoner.region.toUpperCase().replace(/[0-9]/g, '')}
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-white text-base truncate">{summoner.summonerName}</div>
-                    <div className="flex items-center text-xs text-zinc-400">
-                      <span className="truncate">#{summoner.tagLine}</span>
-                      <span className="mx-1 text-zinc-600 flex-shrink-0">•</span>
-                      <Clock className="h-3 w-3 mr-0.5 text-zinc-500 flex-shrink-0" />
-                      <span className="flex-shrink-0">{formatTimeAgo(summoner.lastSearched)}</span>
+                    <div className="font-medium text-text-main truncate">{summoner.summonerName}</div>
+                    <div className="text-sm text-text-secondary flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {formatTimeAgo(summoner.lastSearched)}
                     </div>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-[#C89B3C]/70 flex-shrink-0" />
+                  <ChevronRight className="h-4 w-4 text-accent/70" />
                 </div>
               ))}
             </div>

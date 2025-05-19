@@ -59,9 +59,7 @@ interface DropdownMenuContentProps {
 export function DropdownMenuContent({ children, className, align = "center" }: DropdownMenuContentProps) {
   const { open, setOpen } = useDropdownMenu()
   
-  // Handle clicking outside - moved above the conditional return
   React.useEffect(() => {
-    // Only add the event listener if the menu is open
     if (!open) return;
     
     const handleOutsideClick = (event: MouseEvent) => {
@@ -86,7 +84,7 @@ export function DropdownMenuContent({ children, className, align = "center" }: D
 
   return (
     <div
-      className={`absolute z-50 mt-1 min-w-[12rem] overflow-hidden rounded-md border bg-white shadow-lg ${alignmentClasses[align]} ${className}`}
+      className={`absolute z-50 mt-1 min-w-[12rem] overflow-hidden rounded-md border border-border bg-bg-card text-text-main shadow-lg backdrop-blur-sm ${alignmentClasses[align]} ${className}`}
       role="menu"
     >
       {children}
@@ -100,7 +98,6 @@ interface DropdownMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
   asChild?: boolean
 }
 
-// Add a more specific type for handling component props
 interface WithOptionalOnClick {
   onClick?: (e: React.MouseEvent) => void;
   [key: string]: unknown;
@@ -110,7 +107,6 @@ export function DropdownMenuItem({ children, className, asChild, ...props }: Dro
   const { setOpen } = useDropdownMenu()
   
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Don't close if asChild is true (we're wrapping another interactive element)
     if (!asChild) {
       setOpen(false)
     }
@@ -119,16 +115,13 @@ export function DropdownMenuItem({ children, className, asChild, ...props }: Dro
     }
   }
 
-  // If asChild is true, clone the first child and add props
   if (asChild && React.Children.count(children) === 1) {
     const child = React.Children.only(children) as React.ReactElement;
     
-    // Add type assertion for child.props
     const childProps = {
       ...props,
-      className: `px-3 py-2 text-sm cursor-pointer ${className || ""}`,
+      className: `px-3 py-2 text-sm text-text-main cursor-pointer hover:bg-bg-card-hover ${className || ""}`,
       onClick: (e: React.MouseEvent) => {
-        // Use the specific type instead of any
         const childOnClick = (child.props as WithOptionalOnClick).onClick;
         if (typeof childOnClick === 'function') {
           childOnClick(e);
@@ -142,7 +135,7 @@ export function DropdownMenuItem({ children, className, asChild, ...props }: Dro
 
   return (
     <div
-      className={`px-3 py-2 text-sm cursor-pointer hover:bg-gray-100 ${className || ""}`}
+      className={`px-3 py-2 text-sm text-text-main cursor-pointer hover:bg-bg-card-hover ${className || ""}`}
       role="menuitem"
       onClick={handleClick}
       {...props}
@@ -153,5 +146,5 @@ export function DropdownMenuItem({ children, className, asChild, ...props }: Dro
 }
 
 export function DropdownMenuSeparator({ className }: { className?: string }) {
-  return <div className={`my-1 h-px ${className || "bg-gray-200"}`} />
+  return <div className={`my-1 h-px ${className || "bg-border"}`} />
 } 

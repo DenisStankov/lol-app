@@ -198,13 +198,13 @@ export default function Navigation() {
   }
 
   return (
-    <nav className="bg-zinc-900/90 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-800/50 shadow-lg shadow-black/10">
+    <nav className="bg-bg-main/90 backdrop-blur-xl sticky top-0 z-50 border-b border-border shadow-lg shadow-black/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link href="/" className="flex items-center gap-2 group">
-                <span className="font-bold text-[#C89B3C] text-xl tracking-tight group-hover:text-[#D5B45C] transition-colors">LoLytics</span>
+                <span className="font-bold text-accent text-xl tracking-tight group-hover:text-accent-hover transition-colors">LoLytics</span>
               </Link>
             </div>
             <div className="hidden md:block">
@@ -217,11 +217,11 @@ export default function Navigation() {
                       href={item.href}
                       className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
-                          ? "bg-[#C89B3C]/20 text-[#C89B3C] ring-1 ring-[#C89B3C]/30"
-                          : "text-zinc-300 hover:bg-zinc-800/80 hover:text-white"
+                          ? "bg-accent/20 text-accent ring-1 ring-accent/30"
+                          : "text-text-secondary hover:bg-bg-card-hover hover:text-text-main"
                       } transition-all duration-200 ease-in-out`}
                     >
-                      <span className={isActive ? "text-[#C89B3C]" : "text-zinc-400"}>
+                      <span className={isActive ? "text-accent" : "text-text-secondary"}>
                         {item.icon}
                       </span>
                       {item.name}
@@ -237,8 +237,8 @@ export default function Navigation() {
             {!isLoading &&
               (user ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-zinc-800/80 hover:bg-zinc-700 border border-zinc-700 hover:border-[#C89B3C]/50 transition-all duration-200">
-                    <Avatar className="h-7 w-7 border-2 border-[#C89B3C]/70 ring-2 ring-zinc-800">
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-bg-card hover:bg-bg-card-hover border border-border hover:border-accent/50 transition-all duration-200">
+                    <Avatar className="h-7 w-7 border-2 border-accent/70 ring-2 ring-bg-main">
                       {user?.profileIconId ? (
                         <div className="w-full h-full">
                           <ProfileIcon 
@@ -250,50 +250,37 @@ export default function Navigation() {
                           />
                         </div>
                       ) : (
-                        <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
+                        <AvatarFallback className="bg-bg-card text-text-secondary">
                           {getInitials(getDisplayName())}
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <span className="text-zinc-200 font-medium text-sm">{getDisplayName()}</span>
-                    <ChevronDown className="h-4 w-4 text-zinc-400" />
+                    <span className="text-sm text-text-main">{getDisplayName()}</span>
+                    <ChevronDown className="h-4 w-4 text-text-secondary" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-zinc-900 border border-zinc-800 text-zinc-200 animate-in fade-in-50 slide-in-from-top-5 duration-200">
-                    <div className="px-2 py-2.5 border-b border-zinc-800 bg-gradient-to-r from-zinc-900 to-zinc-900/80">
-                      <p className="text-xs font-medium text-zinc-400">Signed in as</p>
-                      <p className="text-sm font-semibold text-[#C89B3C]">{getDisplayName()}</p>
-                    </div>
-                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800 hover:text-[#C89B3C] transition-colors">
-                      <User className="w-4 h-4 text-zinc-400" />
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem className="text-text-main">
+                      <User className="mr-2 h-4 w-4" />
                       <span>Profile</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800 hover:text-[#C89B3C] transition-colors">
-                      <BarChart2 className="w-4 h-4 text-zinc-400" />
-                      <span>My Stats</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="flex items-center gap-2 hover:bg-zinc-800 focus:bg-zinc-800 hover:text-[#C89B3C] transition-colors">
-                      <Settings className="w-4 h-4 text-zinc-400" />
+                    <DropdownMenuItem className="text-text-main">
+                      <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-zinc-800" />
-                    <DropdownMenuItem
-                      className="flex items-center gap-2 text-[#E84057] hover:bg-zinc-800 focus:bg-zinc-800 transition-colors"
-                      asChild
-                    >
-                      <a href={getLogoutUrl()}>
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </a>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-red-400">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <a href={getLogoutUrl()} className="w-full">Log out</a>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
                 <a
                   href={getAuthUrl()}
-                  className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-[#C89B3C] to-[#785A28] text-zinc-900 hover:from-[#D5B45C] hover:to-[#8E6B32] transition-colors shadow-md hover:shadow-lg hover:shadow-[#C89B3C]/10 transform hover:-translate-y-0.5 transition-all duration-200"
+                  className="flex items-center gap-2 px-4 py-2 rounded-md bg-accent hover:bg-accent-hover text-bg-main text-sm font-medium transition-colors"
                 >
-                  <Shield className="w-4 h-4" />
-                  <span>Login with Riot</span>
+                  <Shield className="h-4 w-4" />
+                  Sign in with Riot
                 </a>
               ))}
           </div>
@@ -301,8 +288,9 @@ export default function Navigation() {
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
+              type="button"
+              className="inline-flex items-center justify-center p-2 rounded-md text-text-secondary hover:text-text-main hover:bg-bg-card-hover focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="bg-zinc-800 inline-flex items-center justify-center p-2 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-[#C89B3C]/30 transition-all"
             >
               <span className="sr-only">Open main menu</span>
               {mobileMenuOpen ? (
@@ -317,8 +305,8 @@ export default function Navigation() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden animate-in slide-in-from-top-5 duration-200">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-zinc-900 border-b border-zinc-800">
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -327,83 +315,89 @@ export default function Navigation() {
                   href={item.href}
                   className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium ${
                     isActive
-                      ? "bg-[#C89B3C]/20 text-[#C89B3C] ring-1 ring-[#C89B3C]/30"
-                      : "text-zinc-300 hover:bg-zinc-800 hover:text-white"
-                  } transition-all`}
+                      ? "bg-accent/20 text-accent ring-1 ring-accent/30"
+                      : "text-text-secondary hover:bg-bg-card-hover hover:text-text-main"
+                  } transition-all duration-200 ease-in-out`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <span className={isActive ? "text-[#C89B3C]" : "text-zinc-400"}>
+                  <span className={isActive ? "text-accent" : "text-text-secondary"}>
                     {item.icon}
                   </span>
                   {item.name}
                 </Link>
               );
             })}
-
-            {/* Mobile auth buttons */}
+          </div>
+          <div className="pt-4 pb-3 border-t border-border">
             {!isLoading &&
               (user ? (
-                <div className="mt-3 pt-3 border-t border-zinc-700">
-                  <div className="flex items-center gap-2 px-3 py-2">
-                    <Avatar className="h-8 w-8 border-2 border-[#C89B3C]/70 ring-2 ring-zinc-800">
+                <div className="space-y-1">
+                  <div className="flex items-center px-4">
+                    <Avatar className="h-10 w-10 border-2 border-accent/70 ring-2 ring-bg-main">
                       {user?.profileIconId ? (
                         <div className="w-full h-full">
                           <ProfileIcon 
                             iconId={user.profileIconId}
                             alt={getDisplayName()}
-                            width={32}
-                            height={32}
+                            width={40}
+                            height={40}
                             className="w-full h-full"
                           />
                         </div>
                       ) : (
-                        <AvatarFallback className="bg-[#0A1428] text-[#C89B3C] text-xs font-bold">
+                        <AvatarFallback className="bg-bg-card text-text-secondary">
                           {getInitials(getDisplayName())}
                         </AvatarFallback>
                       )}
                     </Avatar>
-                    <span className="text-zinc-200 font-medium">{getDisplayName()}</span>
+                    <div className="ml-3">
+                      <div className="text-base font-medium text-text-main">{getDisplayName()}</div>
+                    </div>
                   </div>
-                  <Link
-                    href="/profile"
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800 hover:text-[#C89B3C] transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <User className="w-4 h-4 text-zinc-400" />
-                    <span>Profile</span>
-                  </Link>
-                  <Link
-                    href="/my-stats"
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800 hover:text-[#C89B3C] transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <BarChart2 className="w-4 h-4 text-zinc-400" />
-                    <span>My Stats</span>
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:bg-zinc-800 hover:text-[#C89B3C] transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Settings className="w-4 h-4 text-zinc-400" />
-                    <span>Settings</span>
-                  </Link>
-                  <a
-                    href={getLogoutUrl()}
-                    className="flex items-center gap-2 px-3 py-2 mt-2 rounded-md text-base font-medium text-[#E84057] hover:bg-zinc-800 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Logout</span>
-                  </a>
+                  <div className="mt-3 space-y-1">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-base font-medium text-text-secondary hover:bg-bg-card-hover hover:text-text-main"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>Profile</span>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/settings"
+                      className="block px-4 py-2 text-base font-medium text-text-secondary hover:bg-bg-card-hover hover:text-text-main"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        <span>Settings</span>
+                      </div>
+                    </Link>
+                    <a
+                      href={getLogoutUrl()}
+                      className="block px-4 py-2 text-base font-medium text-red-400 hover:bg-bg-card-hover"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <LogOut className="h-4 w-4" />
+                        <span>Log out</span>
+                      </div>
+                    </a>
+                  </div>
                 </div>
               ) : (
-                <a
-                  href={getAuthUrl()}
-                  className="flex items-center justify-center gap-2 mx-2 mt-3 px-4 py-2.5 rounded-md text-base font-medium bg-gradient-to-r from-[#C89B3C] to-[#785A28] text-zinc-900 hover:from-[#D5B45C] hover:to-[#8E6B32] shadow-md"
-                >
-                  <Shield className="w-5 h-5" />
-                  <span>Login with Riot</span>
-                </a>
+                <div className="px-4">
+                  <a
+                    href={getAuthUrl()}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-md bg-accent hover:bg-accent-hover text-bg-main text-sm font-medium transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Shield className="h-4 w-4" />
+                    Sign in with Riot
+                  </a>
+                </div>
               ))}
           </div>
         </div>

@@ -6,6 +6,7 @@ import { Card } from "@/components/card"
 import Image from "next/image"
 import axios from "axios"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 interface Champion {
   id: string
@@ -244,10 +245,9 @@ const ROLE_MAPPINGS = {
 
 export default function TopChampions() {
   const [champions, setChampions] = useState<Champion[]>([])
-  const [patchVersion, setPatchVersion] = useState("")
+  const [selectedPosition, setSelectedPosition] = useState("TOP")
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [selectedPosition, setSelectedPosition] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -257,107 +257,42 @@ export default function TopChampions() {
         // Fetch current patch version
         const patchResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
         const currentPatch = patchResponse.data[0]
-        setPatchVersion(currentPatch)
         
         // Fetch champion data
         const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`)
         const champData = response.data.data
         
-        // Get champion stats from your backend API
-        let champStats: Record<string, { 
-          winRate: number, 
-          pickRate: number, 
-          banRate: number, 
-          tier?: string,
-          roles?: Record<string, {
-            winRate: number, 
-            pickRate: number, 
-            banRate: number,
-            tier?: string
-          }>
-        }> = {};
-        
-        try {
-          const statsResponse = await axios.get('/api/champion-stats')
-          champStats = statsResponse.data || {}
-        } catch (statsError) {
-          console.warn('Could not fetch champion stats, using fallback data', statsError)
-          // Continue with empty stats - the component will use fallback values
-        }
+        // Get champion win rates from your backend API
+        const statsResponse = await axios.get('/api/champion-stats')
+        const champStats = statsResponse.data || {}
         
         // Transform the data into the format we need
-        const transformedChampions = (Object.values(champData) as RiotChampionData[]).map((champ: RiotChampionData) => {
+        const allChampions = (Object.values(champData) as RiotChampionData[]).map((champ: RiotChampionData) => {
           const stats = champStats[champ.key] || {
-            winRate: 49 + Math.random() * 6, // Fallback random win rate between 49-55%
-            pickRate: 5 + Math.random() * 15, // Fallback random pick rate between 5-20%
-            banRate: 2 + Math.random() * 12, // Fallback random ban rate between 2-14%
+            winRate: 50,
+            pickRate: 10,
+            banRate: 5
           }
           
-          // Determine champion's primary position based on champion-specific mapping, stats, or tags
-          let primaryPosition = "";
-          let tier = "";
+          const primaryRole = ROLE_MAPPINGS.SPECIFIC_CHAMPIONS[champ.id] || 'MIDDLE'
           
-          // First check the specific champion mapping
-          if (ROLE_MAPPINGS.SPECIFIC_CHAMPIONS[champ.id]) {
-            primaryPosition = ROLE_MAPPINGS.SPECIFIC_CHAMPIONS[champ.id];
-          }
-          
-          // If no specific mapping, check role-specific stats from the API
-          if (!primaryPosition && stats.roles) {
-            let highestPickRate = 0;
-            Object.entries(stats.roles).forEach(([role, roleStats]) => {
-              if (roleStats.pickRate > highestPickRate) {
-                highestPickRate = roleStats.pickRate;
-                primaryPosition = role;
-                tier = roleStats.tier || "";
-              }
-            });
-          }
-          
-          // If still no position, use fallback based on champion tags
-          if (!primaryPosition) {
-            for (const [position, tags] of Object.entries(ROLE_MAPPINGS)) {
-              if (position !== "SPECIFIC_CHAMPIONS" && Array.isArray(tags) && champ.tags.some(tag => tags.includes(tag))) {
-                primaryPosition = position;
-                break;
-              }
-            }
-          }
-          
-          // Last resort default
-          if (!primaryPosition) {
-            primaryPosition = "TOP"; // Default fallback
-          }
-          
-          // Determine champion tier if not already set
-          if (!tier) {
-            if (stats.winRate >= 54) tier = "S+";
-            else if (stats.winRate >= 52) tier = "S";
-            else if (stats.winRate >= 50) tier = "A";
-            else if (stats.winRate >= 48) tier = "B";
-            else if (stats.winRate >= 45) tier = "C";
-            else tier = "D";
-          }
-          
-          const winRateChange = (Math.random() * 2 - 1).toFixed(1);
-
           return {
             id: champ.id,
             name: champ.name,
-            role: champ.tags[0] || "Unknown",
+            role: primaryRole,
             winRate: parseFloat(stats.winRate.toFixed(1)),
             pickRate: parseFloat(stats.pickRate.toFixed(1)),
             banRate: parseFloat(stats.banRate.toFixed(1)),
-            trend: parseFloat(winRateChange) >= 0 ? "up" : "down",
-            winRateChange: winRateChange,
-            difficulty: getDifficulty(champ.info?.difficulty || 0),
+            trend: stats.trend || 'stable',
+            winRateChange: stats.winRateChange || '0%',
+            difficulty: getDifficulty(champ.info.difficulty),
             image: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${champ.id}.png`,
-            primaryPosition,
-            tier
+            primaryPosition: primaryRole,
+            tier: stats.tier || 'B'
           }
         })
-        
-        setChampions(transformedChampions)
+
+        setChampions(allChampions)
       } catch (err) {
         console.error("Error fetching champion data:", err)
         setError("Failed to load champion data")
@@ -368,138 +303,116 @@ export default function TopChampions() {
     
     fetchData()
   }, [])
-  
-  // Helper function to determine difficulty
+
   const getDifficulty = (difficultyValue: number): string => {
     if (difficultyValue <= 3) return "Easy"
-    if (difficultyValue <= 7) return "Moderate"
-    return "High"
+    if (difficultyValue <= 7) return "Medium"
+    return "Hard"
   }
 
-  // Get top champions for a specific position
   const getTopChampionsByPosition = (position: string) => {
     return champions
-      .filter(champion => champion.primaryPosition === position)
+      .filter(champ => champ.primaryPosition === position)
       .sort((a, b) => b.winRate - a.winRate)
-      .slice(0, 1); // Only one champion per role
+      .slice(0, 5)
   }
 
   if (loading) {
     return (
-      <Card className="relative overflow-hidden bg-zinc-950 border-zinc-800/50 backdrop-blur-sm h-full flex items-center justify-center">
-        <div className="flex flex-col items-center p-12">
-          <Loader2 className="w-10 h-10 text-[#E5B954] animate-spin" />
-          <p className="mt-6 text-zinc-400">Loading champion data...</p>
+      <div className="p-6 bg-bg-main rounded-xl min-h-[400px] flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <Loader2 className="w-8 h-8 text-accent animate-spin" />
+          <p className="mt-4 text-text-secondary">Loading champions...</p>
         </div>
-      </Card>
+      </div>
     )
   }
   
   if (error) {
     return (
-      <Card className="relative overflow-hidden bg-zinc-950 border-zinc-800/50 backdrop-blur-sm h-full flex items-center justify-center p-8">
-        <div className="text-red-400 text-center">
-          <div className="text-xl mb-2">😞</div>
-          {error}
-        </div>
-      </Card>
+      <div className="p-6 bg-bg-main rounded-xl">
+        <div className="text-red-400">{error}</div>
+      </div>
     )
   }
 
   return (
-    <Card className="relative overflow-hidden bg-zinc-950 border-zinc-800/50 backdrop-blur-sm h-full">
-      <div className="relative p-6 h-full">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-zinc-100">
-            {patchVersion} Tierlist & Builds <ChevronRight className="inline-block h-5 w-5" />
-          </h2>
+    <div className="p-6 bg-bg-main rounded-xl space-y-4">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-text-main">Top Champions</h2>
+          <p className="text-text-secondary text-sm mt-1">Best performing champions by role</p>
         </div>
-
-        {/* Role tabs */}
-        <div className="flex border-b border-zinc-800 mb-6 overflow-x-auto scrollbar-hide">
-          {POSITIONS.map((position) => (
-            <button
-              key={position.key}
-              className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium border-b-2 ${
-                selectedPosition === position.key || (selectedPosition === null && position.key === POSITIONS[0].key)
-                  ? "border-[#E5B954] text-[#E5B954]" 
-                  : "border-transparent text-zinc-400 hover:text-zinc-300 hover:border-zinc-700"
-              } transition-all duration-200`}
-              onClick={() => setSelectedPosition(position.key)}
-            >
-              <span className="text-current">{position.icon}</span>
-              {position.label}
-            </button>
-          ))}
-        </div>
-
-        {/* DPM.LOL style table layout */}
-        <div className="space-y-0">
-          <table className="w-full border-separate border-spacing-y-0">
-            <thead>
-              <tr className="text-left text-zinc-400">
-                <th className="pb-2 pl-2 font-medium">Champion</th>
-                <th className="pb-2 font-medium text-center">Tier</th>
-                <th className="pb-2 font-medium text-center">Winrate</th>
-                <th className="pb-2 font-medium text-center">Pickrate</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(selectedPosition ? [selectedPosition] : POSITIONS.map(p => p.key)).flatMap(position => 
-                getTopChampionsByPosition(position).map((champion) => (
-                  <tr 
-                    key={champion.id}
-                    className="border-b border-zinc-800/50 hover:bg-zinc-900/30"
-                  >
-                    <td className="py-3">
-                      <Link href={`/champion/${champion.id}`} className="flex items-center gap-3 pl-2">
-                        <div className="h-12 w-12 rounded overflow-hidden flex-shrink-0">
-                          <Image
-                            src={champion.image}
-                            alt={champion.name}
-                            width={48}
-                            height={48}
-                            className="object-cover"
-                          />
-                        </div>
-                        <span className="font-medium text-zinc-100">{champion.name}</span>
-                      </Link>
-                    </td>
-                    <td className="py-3 text-center">
-                      <span 
-                        className="px-2 font-bold text-[#E5B954] text-xl"
-                      >
-                        {champion.tier || "B"}
-                        {(champion.tier || "").includes('+') && <Star className="inline ml-1 w-3 h-3" />}
-                      </span>
-                    </td>
-                    <td className="py-3 text-center">
-                      <div className="flex flex-col items-center">
-                        <span className="text-zinc-100">{champion.winRate}%</span>
-                        <span className={parseFloat(champion.winRateChange.toString()) >= 0 ? "text-green-500 text-xs" : "text-red-500 text-xs"}>
-                          {parseFloat(champion.winRateChange.toString()) >= 0 ? "+" : ""}
-                          {champion.winRateChange}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 text-center">
-                      <span className="text-zinc-100">{champion.pickRate}%</span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        <Link
-          href="/tier-list"
-          className="flex items-center justify-center gap-1 text-sm text-[#E5B954] hover:text-[#F0C874] transition-colors mt-8 py-2 rounded-md border border-zinc-800 hover:border-[#E5B954]/30 bg-zinc-900/40 hover:bg-zinc-900/60"
-        >
-          View complete champion tier list
-          <ChevronRight className="w-4 h-4" />
-        </Link>
       </div>
-    </Card>
+
+      {/* Position Selector */}
+      <div className="flex gap-2 mb-6">
+        {POSITIONS.map((position) => (
+          <button
+            key={position.key}
+            onClick={() => setSelectedPosition(position.key)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors",
+              selectedPosition === position.key
+                ? "bg-accent/20 text-accent"
+                : "bg-bg-card text-text-secondary hover:bg-bg-card-hover"
+            )}
+          >
+            {position.icon}
+            <span>{position.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Champions List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {getTopChampionsByPosition(selectedPosition).map((champion) => (
+          <Card key={champion.id} className="bg-bg-card p-4 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="relative w-16 h-16 rounded-md overflow-hidden">
+                <Image
+                  src={champion.image.replace('splash', 'champion').replace('_0.jpg', '.png') || "/placeholder.svg"}
+                  alt={champion.name}
+                  width={64}
+                  height={64}
+                  className="object-cover"
+                />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-bold text-text-main">{champion.name}</h4>
+                  <span className={cn(
+                    "px-2 py-0.5 text-xs rounded-full",
+                    champion.tier === 'S' ? "bg-accent/20 text-accent" :
+                    champion.tier === 'A' ? "bg-green-500/20 text-green-500" :
+                    champion.tier === 'B' ? "bg-blue-500/20 text-blue-500" :
+                    "bg-text-secondary/20 text-text-secondary"
+                  )}>
+                    {champion.tier} Tier
+                  </span>
+                </div>
+                <div className="flex gap-2 text-sm text-text-secondary">
+                  <span>Win Rate: {champion.winRate}%</span>
+                  <span>Pick Rate: {champion.pickRate}%</span>
+                  <span>Ban Rate: {champion.banRate}%</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={cn(
+                    "text-xs",
+                    champion.trend === 'up' ? "text-green-500" :
+                    champion.trend === 'down' ? "text-red-500" :
+                    "text-text-secondary"
+                  )}>
+                    {champion.winRateChange}
+                  </span>
+                  <span className="text-xs text-text-secondary">•</span>
+                  <span className="text-xs text-text-secondary">{champion.difficulty}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </div>
   )
 }

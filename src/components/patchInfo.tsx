@@ -51,24 +51,24 @@ export default function PatchInfo() {
   }, [])
 
   return (
-    <Card className="relative overflow-hidden bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm h-full flex flex-col">
+    <Card className="relative overflow-hidden bg-bg-main/50 border-border/50 backdrop-blur-sm h-full flex flex-col">
       {/* Background gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#C89B3C]/10 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent" />
 
       <div className="relative p-6 space-y-6 flex-1 flex flex-col">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <ArrowUpCircle className="w-5 h-5 text-[#C89B3C]" />
-            <h2 className="text-xl font-bold text-zinc-100">Current Patch</h2>
+            <ArrowUpCircle className="w-5 h-5 text-accent" />
+            <h2 className="text-xl font-bold text-text-main">Current Patch</h2>
           </div>
-          <p className="text-sm text-zinc-400">Latest game updates and changes</p>
+          <p className="text-sm text-text-secondary">Latest game updates and changes</p>
         </div>
 
         {/* Version Display */}
         <div className="flex items-center justify-center py-6 flex-grow">
           {isLoading ? (
-            <Loader2 className="w-8 h-8 text-[#C89B3C] animate-spin" />
+            <Loader2 className="w-8 h-8 text-accent animate-spin" />
           ) : error ? (
             <div className="flex items-center gap-2 text-red-400">
               <AlertCircle className="w-5 h-5" />
@@ -77,37 +77,37 @@ export default function PatchInfo() {
           ) : (
             <div className="text-center">
               <div className="relative">
-                <span className="text-5xl font-bold text-[#C89B3C] tracking-tight
+                <span className="text-5xl font-bold text-accent tracking-tight
                   [text-shadow:0_0_20px_rgba(200,155,60,0.2)]
                   animate-pulse">
                   {patchVersion}
                 </span>
                 {/* Glowing dot */}
-                <span className="absolute -right-3 -top-1 w-2 h-2 rounded-full bg-[#C89B3C] 
+                <span className="absolute -right-3 -top-1 w-2 h-2 rounded-full bg-accent 
                   shadow-[0_0_10px_rgba(200,155,60,0.5)] animate-pulse" />
               </div>
-              <p className="mt-2 text-sm text-zinc-400">Live Now</p>
+              <p className="mt-2 text-sm text-text-secondary">Live Now</p>
             </div>
           )}
         </div>
 
         {/* Recent Changes */}
         <div className="space-y-3 mt-auto">
-          <h3 className="text-sm font-medium text-zinc-400">Recent Changes</h3>
+          <h3 className="text-sm font-medium text-text-secondary">Recent Changes</h3>
           <div className="space-y-2">
             {recentChanges.map((note, index) => (
               <div
                 key={index}
                 className="group flex items-center gap-3 p-2 rounded-lg 
-                  bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+                  bg-bg-card hover:bg-bg-card-hover transition-colors"
               >
-                <FileText className="w-4 h-4 text-[#C89B3C] opacity-75 group-hover:opacity-100 transition-opacity" />
+                <FileText className="w-4 h-4 text-accent opacity-75 group-hover:opacity-100 transition-opacity" />
                 <div className="flex-1">
-                  <p className="text-sm text-zinc-300 group-hover:text-zinc-100 transition-colors">
+                  <p className="text-sm text-text-secondary group-hover:text-text-main transition-colors">
                     {note.title}
                   </p>
                 </div>
-                <span className="px-2 py-0.5 text-xs rounded-full bg-[#C89B3C]/10 text-[#C89B3C]">
+                <span className="px-2 py-0.5 text-xs rounded-full bg-accent/10 text-accent">
                   {note.type}
                 </span>
               </div>
@@ -118,7 +118,7 @@ export default function PatchInfo() {
 
       {/* Bottom gradient border */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r 
-        from-transparent via-[#C89B3C]/50 to-transparent" />
+        from-transparent via-accent/50 to-transparent" />
     </Card>
   )
 }
