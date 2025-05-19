@@ -213,11 +213,11 @@ export default function TierList() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E1015] text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
       <Navigation />
       <div className="container mx-auto py-8 px-4">
         <div className="flex flex-col items-center mb-8">
-          <div className="inline-flex items-center px-4 py-1.5 bg-[#1A1A1A] rounded-full mb-4">
+          <div className="inline-flex items-center px-4 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mb-4 shadow-lg">
             <svg
               width="16"
               height="16"
@@ -228,19 +228,19 @@ export default function TierList() {
             >
               <path
                 d="M8 0L10.2 4.8L15.2 5.6L11.6 9.2L12.4 14.4L8 12L3.6 14.4L4.4 9.2L0.8 5.6L5.8 4.8L8 0Z"
-                fill="#C89B3C"
+                fill="#60a5fa"
               />
             </svg>
-            <span className="text-sm text-[#C89B3C]">Live Stats & Analytics</span>
+            <span className="text-sm text-blue-300">Live Stats & Analytics</span>
           </div>
-          <h1 className="text-4xl font-bold text-[#C89B3C] mb-4">Champion Tier List</h1>
-          <p className="text-gray-400 text-center max-w-2xl mb-4">
+          <h1 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">Champion Tier List</h1>
+          <p className="text-slate-400 text-center max-w-2xl mb-4">
             Track champion performance, analyze meta picks, and stay updated with the latest patch information.
           </p>
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="bg-[#111111] border border-[#222222] rounded-lg p-4 mb-6 sticky top-0 z-10 shadow-md">
+        <div className="bg-white/5 border border-white/10 rounded-lg p-4 mb-6 sticky top-0 z-10 shadow-lg backdrop-blur-sm">
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
             {/* Role Filter */}
             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
@@ -339,7 +339,7 @@ export default function TierList() {
         </div>
 
         {/* Champion Table */}
-        <div className="bg-[#111111] border border-[#222222] rounded-lg overflow-hidden shadow-lg">
+        <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden shadow-lg backdrop-blur-sm">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-[#0A0A0A] sticky top-0 z-10">
@@ -511,6 +511,13 @@ export default function TierList() {
           </div>
         </div>
       </div>
+      <footer className="border-t border-white/10 mt-16 bg-black/20">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
+          <p className="text-center text-slate-400 text-sm">
+            LoLytics isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }

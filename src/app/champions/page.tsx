@@ -129,12 +129,12 @@ export default function ChampionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
       <Navigation />
       
       {/* Version badge for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-zinc-800 text-[#C89B3C] px-3 py-1 rounded-full text-xs font-mono z-50">
+        <div className="fixed bottom-4 right-4 bg-white/5 text-blue-400 px-3 py-1 rounded-full text-xs font-mono z-50 border border-white/10 shadow-lg">
           Data Dragon v{latestVersion}
         </div>
       )}
@@ -150,15 +150,15 @@ export default function ChampionsPage() {
               backgroundPosition: "center 20%"
             }}
           ></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
           
           <div className="absolute bottom-0 left-0 right-0 z-20 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-            <span className="text-sm font-semibold text-[#C89B3C]/80 uppercase tracking-wider mb-1 block">Featured Champion</span>
+            <span className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-1 block">Featured Champion</span>
             <h1 className="text-5xl md:text-6xl font-bold text-white text-shadow-lg">{featured.name}</h1>
             <p className="text-lg text-white/70 max-w-md mt-2">{featured.title}</p>
             <Link 
               href={`/champion/${featured.id}`}
-              className="mt-4 inline-block px-6 py-2.5 bg-gradient-to-r from-[#C89B3C] to-[#785A28] hover:from-[#D5B45C] hover:to-[#8E6B32] text-zinc-900 font-semibold rounded shadow transition-all duration-300"
+              className="mt-4 inline-block px-6 py-2.5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded shadow transition-all duration-300"
             >
               View Champion Details
             </Link>
@@ -167,22 +167,22 @@ export default function ChampionsPage() {
       )}
       
       {/* Main Content Header */}
-      <div className="bg-gradient-to-r from-[#091428]/90 to-[#0A1428]/90 border-b border-[#C89B3C]/30">
+      <div className="bg-gradient-to-r from-slate-950/90 to-purple-950/90 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-[#C89B3C]">Champion Roster</h1>
-          <p className="mt-2 text-zinc-400">Explore the full lineup of League of Legends champions</p>
+          <h1 className="text-3xl font-bold text-white">Champion Roster</h1>
+          <p className="mt-2 text-slate-400">Explore the full lineup of League of Legends champions</p>
         </div>
       </div>
       
       {/* Filters */}
-      <div className="sticky top-16 z-30 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/50">
+      <div className="sticky top-16 z-30 bg-white/5 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             {/* Search */}
             <div className="w-full md:w-auto relative flex-1 max-w-md">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-500" />
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input 
-                className="pl-10 bg-zinc-900 border-zinc-700 focus:border-[#C89B3C] text-zinc-200"
+                className="pl-10 bg-white/5 border-white/10 focus:border-blue-400 text-white"
                 placeholder="Search champions or roles..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -190,13 +190,13 @@ export default function ChampionsPage() {
             </div>
             
             {/* Sort options */}
-            <div className="flex items-center gap-2 text-sm text-zinc-400">
+            <div className="flex items-center gap-2 text-sm text-slate-400">
               <span>Sort by:</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSort("name")}
-                className={`px-2 py-1 ${sortBy === "name" ? "text-[#C89B3C]" : "text-zinc-400"}`}
+                className={`px-2 py-1 ${sortBy === "name" ? "text-blue-400" : "text-slate-400"}`}
               >
                 Name
                 {sortBy === "name" && (
@@ -207,7 +207,7 @@ export default function ChampionsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSort("role")}
-                className={`px-2 py-1 ${sortBy === "role" ? "text-[#C89B3C]" : "text-zinc-400"}`}
+                className={`px-2 py-1 ${sortBy === "role" ? "text-blue-400" : "text-slate-400"}`}
               >
                 Role
                 {sortBy === "role" && (
@@ -226,13 +226,13 @@ export default function ChampionsPage() {
                   className={`px-3 py-1 text-sm ${
                     (role === "All" && !filter) || filter === role
                       ? role === "All" 
-                        ? "bg-[#C89B3C]/20 text-[#C89B3C] border-[#C89B3C]/50"
-                        : `bg-${roleColors[role]}/20 text-${roleColors[role]} border-${roleColors[role]}/50`
-                      : "bg-zinc-900 text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+                        ? "bg-white/10 text-blue-400 border-white/20"
+                        : `bg-${roleColors[role]}/10 text-${roleColors[role]} border-${roleColors[role]}/20`
+                      : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"
                   }`}
                   style={
                     (role !== "All" && filter === role) 
-                      ? { backgroundColor: `${roleColors[role]}20`, color: roleColors[role], borderColor: `${roleColors[role]}80` }
+                      ? { backgroundColor: `${roleColors[role]}10`, color: roleColors[role], borderColor: `${roleColors[role]}20` }
                       : undefined
                   }
                 >
