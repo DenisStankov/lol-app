@@ -963,6 +963,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Add seeded random function at the top
+function seededRandom(seed) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  }
+  return () => {
+    h += h << 13; h ^= h >>> 7;
+    h += h << 3; h ^= h >>> 17;
+    h += h << 5;
+    return ((h >>> 0) % 10000) / 10000;
+  };
+}
+
 // Enhanced stats generation with more realistic data based on actual meta trends
 async function generateEnhancedStats(champions: any, version: string, rank: string, region: string) {
   console.log(`[API] Generating enhanced stats for patch ${version}, rank ${rank}, region ${region}`);
@@ -1056,35 +1070,25 @@ async function generateEnhancedStats(champions: any, version: string, rank: stri
   
   for (const [id, data] of Object.entries(champions)) {
     championsProcessed++;
-    // Generate roles based on champion tags
     const possibleRoles = getRolesFromTags(data.tags, data.info);
-    
-    // Ensure we have at least one role
     if (possibleRoles.length === 0) {
       possibleRoles.push('TOP');
     }
-    
-    // Determine difficulty
     const difficulty = getDifficulty(data.info);
-    
-    // Generate stats for each role
     const roles: Record<string, any> = {};
     for (const roleRaw of possibleRoles) {
       const role = String(roleRaw);
-      
-      // Get tier from meta data or calculate a default
+      const rand = seededRandom(id + role + version + rank + region);
       let tier: TierType = 'C';
       if (metaTiers[role] && metaTiers[role][id]) {
         tier = metaTiers[role][id];
       } else {
-        // Default tier calculation as fallback
         const score = (
           data.info.attack * 0.2 + 
           data.info.defense * 0.2 + 
           data.info.magic * 0.2 + 
           (10 - data.info.difficulty) * 0.4
         );
-        
         if (score > 8) tier = 'S+';
         else if (score > 7) tier = 'S';
         else if (score > 6) tier = 'A';
@@ -1092,22 +1096,12 @@ async function generateEnhancedStats(champions: any, version: string, rank: stri
         else if (score > 4) tier = 'C';
         else tier = 'D';
       }
-      
-      // Get base values from tiers
-      const pickRate = popularityTiers[tier];
-      const banRate = banRateTiers[tier];
-      
-      // Add slight random variation to win rate based on tier and difficulty
+      const pickRate = popularityTiers[tier] + rand() * 0.5;
+      const banRate = banRateTiers[tier] + rand() * 0.5;
       const baseWinRate = winRateAdjustments[tier][difficulty];
-      const winRate = baseWinRate + (Math.random() * 2 - 1); // Add ±1% random variation
-      
-      // Generate realistic game count based on pick rate
+      const winRate = baseWinRate + (rand() * 2 - 1);
       const totalGames = Math.floor(10000 + (pickRate * 2000));
-      
-      // Add win rate trend data
-      const winRateDelta = (Math.random() * 4 - 2).toFixed(2); // ±2% random trend
-      
-      // Set detailed stats for the role
+      const winRateDelta = (rand() * 4 - 2).toFixed(2);
       roles[role] = {
         winRate: parseFloat(winRate.toFixed(2)),
         pickRate: parseFloat(pickRate.toFixed(2)),
@@ -1115,20 +1109,15 @@ async function generateEnhancedStats(champions: any, version: string, rank: stri
         totalGames: totalGames,
         tier: tier,
         winRateDelta: parseFloat(winRateDelta),
-        // Add KDA data
         kda: {
-          kills: parseFloat((tier === 'S+' || tier === 'S' ? 6 + Math.random() * 2 : 4 + Math.random() * 2).toFixed(1)),
-          deaths: parseFloat((3 + Math.random() * 2).toFixed(1)),
-          assists: parseFloat((tier === 'S+' || tier === 'S' ? 7 + Math.random() * 3 : 5 + Math.random() * 3).toFixed(1))
+          kills: parseFloat((tier === 'S+' || tier === 'S' ? 6 + rand() * 2 : 4 + rand() * 2).toFixed(1)),
+          deaths: parseFloat((3 + rand() * 2).toFixed(1)),
+          assists: parseFloat((tier === 'S+' || tier === 'S' ? 7 + rand() * 3 : 5 + rand() * 3).toFixed(1))
         }
       };
     }
-    
-    // Determine damage type, and range
     const damageType = getDamageType(data.tags, data.info);
     const range = data.stats?.attackrange > 150 ? "Ranged" : "Melee";
-    
-    // Set champion data with proper image structure
     response[id] = {
       id: String(id),
       name: String(data.name),
@@ -1143,11 +1132,8 @@ async function generateEnhancedStats(champions: any, version: string, rank: stri
       difficulty: String(difficulty),
       damageType: String(damageType),
       range: String(range),
-      // Add a default role based on the first role in possibleRoles
       role: String(possibleRoles[0] || 'TOP')
     };
-    
-    // Log progress periodically
     if (championsProcessed % 50 === 0 || championsProcessed === Object.keys(champions).length) {
       console.log(`[API] Generated stats for ${championsProcessed}/${Object.keys(champions).length} champions`);
     }
