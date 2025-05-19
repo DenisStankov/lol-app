@@ -3,21 +3,73 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Main colors */
+  --color-bg-main: #020617;
+  --color-bg-purple: #2e1065;
+  --color-bg-card: rgba(255, 255, 255, 0.05);
+  --color-bg-card-hover: rgba(255, 255, 255, 0.1);
+  
+  /* Text colors */
+  --color-text-main: #fff;
+  --color-text-secondary: #94a3b8;
+  
+  /* Accent colors */
+  --color-badge-blue: #93c5fd;
+  --color-icon-blue: #60a5fa;
+  --color-gradient-purple: #a855f7;
+  --color-gradient-blue: #3b82f6;
+  
+  /* Status colors */
+  --color-win-bg: rgba(16, 185, 129, 0.1);
+  --color-win-text: #34d399;
+  --color-loss-bg: rgba(239, 68, 68, 0.1);
+  --color-loss-text: #f87171;
+  
+  /* UI colors */
+  --color-footer-bg: rgba(0, 0, 0, 0.2);
+  --color-border: rgba(255, 255, 255, 0.1);
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--color-text-main);
+  background: var(--color-bg-main);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Utility classes */
+.glass-card {
+  background: var(--color-bg-card);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+}
+
+.glass-card:hover {
+  background: var(--color-bg-card-hover);
+}
+
+.gradient-bg {
+  background: linear-gradient(to bottom right, var(--color-bg-main), var(--color-bg-purple), var(--color-bg-main));
+}
+
+.gradient-border {
+  background: linear-gradient(to right, var(--color-gradient-purple), var(--color-gradient-blue));
+}
+
+/* Status classes */
+.win-bg {
+  background: var(--color-win-bg);
+}
+
+.win-text {
+  color: var(--color-win-text);
+}
+
+.loss-bg {
+  background: var(--color-loss-bg);
+}
+
+.loss-text {
+  color: var(--color-loss-text);
 }
 
 /* Add custom animations for tier list */
