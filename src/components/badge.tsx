@@ -1,24 +1,24 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "../../lib/utils"
+import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2",
   {
     variants: {
       variant: {
         default:
-          "bg-gradient-accent text-text-main border-transparent hover:opacity-90",
+          "border-transparent bg-gradient-to-r from-purple-500 to-blue-500 text-white",
         secondary:
-          "bg-bg-card text-text-secondary border-border hover:bg-bg-card-hover",
-        success:
-          "bg-win-bg text-win-text border-transparent hover:bg-win-bg/90",
+          "border-transparent bg-white/5 text-slate-400",
         destructive:
-          "bg-loss-bg text-loss-text border-transparent hover:bg-loss-bg/90",
+          "border-transparent bg-red-500/10 text-red-400",
         outline:
-          "bg-bg-card text-text-main border-border hover:bg-bg-card-hover",
+          "border-white/10 bg-white/5 text-slate-400",
+        success:
+          "border-transparent bg-emerald-500/10 text-emerald-400",
         premium:
-          "bg-gradient-to-r from-amber-500 to-yellow-500 text-text-main border-transparent hover:opacity-90",
+          "border-transparent bg-gradient-to-r from-purple-500 to-blue-500 text-white",
       },
     },
     defaultVariants: {
