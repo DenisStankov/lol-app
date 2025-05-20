@@ -126,7 +126,7 @@ export default function GlassyLeaderboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
-      <Navigation />
+      <Navigation searchValue={search} onSearchChange={setSearch} />
       {/* Decorative Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>

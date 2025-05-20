@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, LogOut, User, ChevronDown, Settings, BarChart2, Shield, Home, Trophy, Activity, Crown } from "lucide-react"
+import { Menu, X, LogOut, User, ChevronDown, Settings, BarChart2, Shield, Home, Trophy, Activity, Crown, Search } from "lucide-react"
 import { getLogoutUrl } from "@/lib/auth-utils"
 import { getAuthUrl } from "@/lib/auth-config"
 import {
@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import axios from "axios"
 import ProfileIcon from "@/components/ProfileIcon"
+import { Input } from "@/components/ui/input"
 
 interface UserInfo {
   sub: string
@@ -25,7 +26,12 @@ interface UserInfo {
   summonerName?: string  // Added summonerName for League of Legends name
 }
 
-export default function Navigation() {
+interface NavigationProps {
+  searchValue?: string
+  onSearchChange?: (value: string) => void
+}
+
+export default function Navigation({ searchValue, onSearchChange }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [user, setUser] = useState<UserInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -153,7 +159,6 @@ export default function Navigation() {
     { name: "Champions", href: "/champions", icon: <Trophy className="w-4 h-4" /> },
     { name: "Tier List", href: "/tier-list", icon: <Crown className="w-4 h-4" /> },
     { name: "Leaderboards", href: "/leaderboards", icon: <Activity className="w-4 h-4" /> },
-    { name: "Stats", href: "/stats", icon: <BarChart2 className="w-4 h-4" /> },
   ]
 
   // Get initials for avatar fallback
@@ -228,6 +233,18 @@ export default function Navigation() {
                     </Link>
                   );
                 })}
+                {/* Search bar for /leaderboards, desktop only */}
+                {pathname === "/leaderboards" && (
+                  <div className="ml-6 flex items-center relative max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
+                    <Input
+                      placeholder="Search summoner..."
+                      className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20"
+                      value={searchValue}
+                      onChange={e => onSearchChange?.(e.target.value)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -399,6 +416,21 @@ export default function Navigation() {
                   </a>
                 </div>
               ))}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile search bar for /leaderboards */}
+      {pathname === "/leaderboards" && (
+        <div className="md:hidden px-4 pb-2">
+          <div className="flex items-center relative max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
+            <Input
+              placeholder="Search summoner..."
+              className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20"
+              value={searchValue}
+              onChange={e => onSearchChange?.(e.target.value)}
+            />
           </div>
         </div>
       )}
