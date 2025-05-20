@@ -353,13 +353,13 @@ export default function ChampionDetailsPage() {
   
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
         <Navigation />
         <div className="flex items-center justify-center h-[calc(100vh-64px)]">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-[#C89B3C]/30 border-t-[#C89B3C] rounded-full animate-spin mx-auto mb-4"></div>
-            <h2 className="text-2xl font-bold text-[#C89B3C]">Loading Champion Data</h2>
-            <p className="text-zinc-400 mt-2">Fetching the latest information...</p>
+            <div className="w-16 h-16 border-4 border-blue-400/30 border-t-blue-400 rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-blue-400">Loading Champion Data</h2>
+            <p className="text-slate-400 mt-2">Fetching the latest information...</p>
           </div>
         </div>
       </div>
@@ -368,15 +368,15 @@ export default function ChampionDetailsPage() {
 
   if (error || !championData) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center bg-red-900/20 border border-red-800/50 rounded-lg p-8 max-w-xl mx-auto">
             <h2 className="text-3xl font-bold text-red-400">Error Loading Champion</h2>
-            <p className="mt-4 text-zinc-300">{error || "Failed to load champion data"}</p>
+            <p className="mt-4 text-slate-300">{error || "Failed to load champion data"}</p>
             <Link 
               href="/champions" 
-              className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-md text-white transition-colors"
+              className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-md text-white transition-colors"
             >
               <ArrowLeft size={16} />
               Back to Champions
@@ -388,7 +388,7 @@ export default function ChampionDetailsPage() {
   }
   
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
       <Navigation />
       
       {/* Hero Section - Champion Banner */}
@@ -407,7 +407,7 @@ export default function ChampionDetailsPage() {
             <div className="mb-6">
               <Link 
                 href="/champions" 
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#1E2328]/80 hover:bg-[#1E2328] rounded-md text-zinc-300 text-sm transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-md text-slate-400 text-sm transition-colors"
               >
                 <ArrowLeft size={14} />
                 Back to Champions
@@ -415,7 +415,7 @@ export default function ChampionDetailsPage() {
             </div>
             <div className="flex flex-col md:flex-row items-end gap-6">
               {/* Champion Portrait */}
-              <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-xl overflow-hidden border-2 border-[#C89B3C] shadow-lg shadow-black/50 transform translate-y-4">
+              <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-xl overflow-hidden border-2 border-blue-400 shadow-lg shadow-black/50 transform translate-y-4">
                 <Image 
                   src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/champion/${championData.id}.png`}
                   alt={championData.name}
@@ -431,19 +431,19 @@ export default function ChampionDetailsPage() {
               <div className="flex-1 z-10">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
                   <div>
-                    <div className="text-[#C89B3C] text-sm mb-1 font-medium">{championData.title}</div>
+                    <div className="text-blue-400 text-sm mb-1 font-medium">{championData.title}</div>
                     <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-1">{championData.name}</h1>
                     <div className="flex items-center gap-2 mt-2">
                       {championData.tags.map((tag) => (
                         <span 
                           key={tag} 
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#1E2328]/80 text-[#F0E6D2] border border-[#2d3640]"
+                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/10 text-white border border-white/20"
                         >
                           {tag}
                         </span>
                       ))}
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#0A1428]/90 text-[#C89B3C] border border-[#C89B3C]/30">
-                        <span className="inline-block w-1 h-1 rounded-full bg-[#C89B3C] mr-1.5"></span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/90 text-blue-400 border border-blue-400/30">
+                        <span className="inline-block w-1 h-1 rounded-full bg-blue-400 mr-1.5"></span>
                         {metaData?.winRate || "53.2%"} WR
                       </span>
                     </div>
@@ -452,13 +452,13 @@ export default function ChampionDetailsPage() {
                   <div className="flex flex-wrap items-center gap-3 md:mt-0 mt-4">
                     <div className="flex gap-1">
                       {[...Array(Math.floor(championData.info.difficulty / 2))].map((_, i) => (
-                        <div key={i} className="w-1.5 h-6 bg-yellow-500 rounded-full"></div>
+                        <div key={i} className="w-1.5 h-6 bg-blue-400 rounded-full"></div>
                       ))}
                       {[...Array(5 - Math.floor(championData.info.difficulty / 2))].map((_, i) => (
-                        <div key={i} className="w-1.5 h-6 bg-[#2d3640] rounded-full"></div>
+                        <div key={i} className="w-1.5 h-6 bg-white/10 rounded-full"></div>
                       ))}
                     </div>
-                    <div className="text-sm font-medium text-[#F0E6D2] px-2 py-1 rounded bg-[#1E2328]/70 border border-[#2d3640]">
+                    <div className="text-sm font-medium text-white px-2 py-1 rounded bg-white/10 border border-white/20">
                       {championData.info.difficulty <= 3 
                         ? 'Easy' 
                         : championData.info.difficulty <= 6
@@ -474,47 +474,47 @@ export default function ChampionDetailsPage() {
       </div>
       
       {/* Champion Stats Summary */}
-      <div className="bg-zinc-950 border-t border-b border-zinc-800">
+      <div className="bg-white/5 border-t border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            <div className="bg-zinc-900 p-3 rounded border border-zinc-800">
-              <div className="flex items-center text-xs text-zinc-400 mb-1">
+            <div className="bg-white/10 p-3 rounded border border-white/10">
+              <div className="flex items-center text-xs text-slate-400 mb-1">
                 <Heart size={12} className="text-red-400 mr-1" /> Health
               </div>
               <div className="text-sm font-semibold">{championData.stats.hp}</div>
-              <div className="text-xs text-zinc-500">+{championData.stats.hpperlevel} per level</div>
+              <div className="text-xs text-slate-500">+{championData.stats.hpperlevel} per level</div>
             </div>
             
-            <div className="bg-zinc-900 p-3 rounded border border-zinc-800">
-              <div className="flex items-center text-xs text-zinc-400 mb-1">
+            <div className="bg-white/10 p-3 rounded border border-white/10">
+              <div className="flex items-center text-xs text-slate-400 mb-1">
                 <Droplet size={12} className="text-blue-400 mr-1" /> {championData.partype}
               </div>
               <div className="text-sm font-semibold">{championData.stats.mp}</div>
-              <div className="text-xs text-zinc-500">+{championData.stats.mpperlevel} per level</div>
+              <div className="text-xs text-slate-500">+{championData.stats.mpperlevel} per level</div>
             </div>
             
-            <div className="bg-zinc-900 p-3 rounded border border-zinc-800">
-              <div className="flex items-center text-xs text-zinc-400 mb-1">
+            <div className="bg-white/10 p-3 rounded border border-white/10">
+              <div className="flex items-center text-xs text-slate-400 mb-1">
                 <Sword size={12} className="text-amber-400 mr-1" /> Attack
               </div>
               <div className="text-sm font-semibold">{championData.stats.attackdamage}</div>
-              <div className="text-xs text-zinc-500">+{championData.stats.attackdamageperlevel} per level</div>
+              <div className="text-xs text-slate-500">+{championData.stats.attackdamageperlevel} per level</div>
             </div>
             
-            <div className="bg-zinc-900 p-3 rounded border border-zinc-800">
-              <div className="flex items-center text-xs text-zinc-400 mb-1">
+            <div className="bg-white/10 p-3 rounded border border-white/10">
+              <div className="flex items-center text-xs text-slate-400 mb-1">
                 <Activity size={12} className="text-green-400 mr-1" /> Speed
               </div>
               <div className="text-sm font-semibold">{championData.stats.movespeed}</div>
-              <div className="text-xs text-zinc-500">Base value</div>
+              <div className="text-xs text-slate-500">Base value</div>
             </div>
             
-            <div className="hidden lg:block bg-zinc-900 p-3 rounded border border-zinc-800">
-              <div className="flex items-center text-xs text-zinc-400 mb-1">
+            <div className="hidden lg:block bg-white/10 p-3 rounded border border-white/10">
+              <div className="flex items-center text-xs text-slate-400 mb-1">
                 <Shield size={12} className="text-gray-400 mr-1" /> Armor
               </div>
               <div className="text-sm font-semibold">{championData.stats.armor}</div>
-              <div className="text-xs text-zinc-500">+{championData.stats.armorperlevel} per level</div>
+              <div className="text-xs text-slate-500">+{championData.stats.armorperlevel} per level</div>
             </div>
           </div>
         </div>
@@ -526,14 +526,14 @@ export default function ChampionDetailsPage() {
           {/* Left Column - Build & Runes */}
           <div className="lg:col-span-2 space-y-6">
             {/* Build Selection Tabs */}
-            <div className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg">
-              <div className="flex border-b border-zinc-800">
+            <div className="bg-white/10 rounded-lg overflow-hidden border border-white/10 shadow-lg">
+              <div className="flex border-b border-white/10">
                 <button 
                   onClick={() => setSelectedTab('build')}
                   className={`flex-1 py-3 text-center text-sm font-medium ${
                     selectedTab === 'build' 
-                      ? 'bg-zinc-800 text-yellow-600 border-b-2 border-yellow-600' 
-                      : 'text-zinc-400 hover:bg-zinc-800/50'
+                      ? 'bg-white/20 text-blue-600 border-b-2 border-blue-600' 
+                      : 'text-slate-400 hover:bg-white/10'
                   }`}
                 >
                   Recommended Build
@@ -542,8 +542,8 @@ export default function ChampionDetailsPage() {
                   onClick={() => setSelectedTab('runes')}
                   className={`flex-1 py-3 text-center text-sm font-medium ${
                     selectedTab === 'runes' 
-                      ? 'bg-zinc-800 text-yellow-600 border-b-2 border-yellow-600' 
-                      : 'text-zinc-400 hover:bg-zinc-800/50'
+                      ? 'bg-white/20 text-blue-600 border-b-2 border-blue-600' 
+                      : 'text-slate-400 hover:bg-white/10'
                   }`}
                 >
                   Runes
@@ -552,8 +552,8 @@ export default function ChampionDetailsPage() {
                   onClick={() => setSelectedTab('counters')}
                   className={`flex-1 py-3 text-center text-sm font-medium ${
                     selectedTab === 'counters' 
-                      ? 'bg-zinc-800 text-yellow-600 border-b-2 border-yellow-600' 
-                      : 'text-zinc-400 hover:bg-zinc-800/50'
+                      ? 'bg-white/20 text-blue-600 border-b-2 border-blue-600' 
+                      : 'text-slate-400 hover:bg-white/10'
                   }`}
                 >
                   Counters
@@ -565,7 +565,7 @@ export default function ChampionDetailsPage() {
                 <div className="p-4">
                   {/* Build Metadata */}
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-yellow-600">Recommended Build</h3>
+                    <h3 className="text-lg font-bold text-blue-600">Recommended Build</h3>
                     <div className="flex items-center">
                       <div className="text-xs px-2 py-1 bg-green-900/20 rounded border border-green-900/40 text-green-400">
                         {metaData?.roleSpecificData?.build?.winRate || "54.7%"} Win Rate
@@ -577,8 +577,8 @@ export default function ChampionDetailsPage() {
                             onClick={() => setSelectedRuneBuild(num - 1)}
                             className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
                               selectedRuneBuild === num - 1
-                                ? 'bg-yellow-600 text-zinc-900'
-                                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                ? 'bg-blue-600 text-slate-900'
+                                : 'bg-white/10 text-slate-400 hover:bg-white/20'
                             }`}
                           >
                             {num}
@@ -590,9 +590,9 @@ export default function ChampionDetailsPage() {
                   
                   {/* Debug info - only in development */}
                   {process.env.NODE_ENV === 'development' && (
-                    <div className="mb-4 p-2 bg-zinc-800 rounded text-xs">
+                    <div className="mb-4 p-2 bg-white/10 rounded text-xs">
                       <details>
-                        <summary className="cursor-pointer text-yellow-500">Build Debug Info</summary>
+                        <summary className="cursor-pointer text-blue-500">Build Debug Info</summary>
                         <pre className="mt-2 overflow-auto max-h-60">
                           {JSON.stringify({
                             champion: champId,
@@ -608,9 +608,9 @@ export default function ChampionDetailsPage() {
 
                   {/* Starter Items */}
                   <div className="mb-6">
-                    <div className="text-sm font-medium text-zinc-200 mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-slate-200 mb-3 flex items-center justify-between">
                       <span>Starter Items</span>
-                      <span className="text-xs text-zinc-400">Early game</span>
+                      <span className="text-xs text-slate-400">Early game</span>
                     </div>
                     <div className="flex flex-wrap gap-3">
                       {metaData?.roleSpecificData?.build?.starter?.map((item, index) => (
@@ -618,7 +618,7 @@ export default function ChampionDetailsPage() {
                           key={index} 
                           className="relative group"
                         >
-                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-yellow-600/50 transition-colors">
+                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-white/10 bg-white/10 group-hover:border-blue-600/50 transition-colors">
                             <Image
                               src={item.image || "/images/items/starter-item.png"}
                               alt={item.name}
@@ -627,14 +627,14 @@ export default function ChampionDetailsPage() {
                               unoptimized
                             />
                             {item.cost && (
-                              <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
+                              <div className="absolute bottom-0 right-0 bg-white/10 px-1 text-[10px] text-slate-400 border-t border-l border-white/20 rounded-tl-md">
                                 {item.cost}g
                               </div>
                             )}
                           </div>
-                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 rounded border border-zinc-700 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
-                            <div className="font-medium text-zinc-200">{item.name}</div>
-                            {item.condition && <div className="text-xs text-zinc-400 mt-1">{item.condition}</div>}
+                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white/10 rounded border border-white/20 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
+                            <div className="font-medium text-slate-200">{item.name}</div>
+                            {item.condition && <div className="text-xs text-slate-400 mt-1">{item.condition}</div>}
                           </div>
                         </div>
                       ))}
@@ -643,9 +643,9 @@ export default function ChampionDetailsPage() {
 
                   {/* Core Items */}
                   <div className="mb-6">
-                    <div className="text-sm font-medium text-zinc-200 mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-slate-200 mb-3 flex items-center justify-between">
                       <span>Core Build</span>
-                      <span className="text-xs text-zinc-400">Build in this order</span>
+                      <span className="text-xs text-slate-400">Build in this order</span>
                     </div>
                     <div className="flex flex-wrap gap-3">
                       {metaData?.roleSpecificData?.build?.core?.map((item, index) => (
@@ -653,7 +653,7 @@ export default function ChampionDetailsPage() {
                           key={index} 
                           className="relative group"
                         >
-                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-yellow-600/50 transition-colors">
+                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-white/10 bg-white/10 group-hover:border-blue-600/50 transition-colors">
                             <Image
                               src={item.image || "/images/items/core-item.png"}
                               alt={item.name}
@@ -662,19 +662,19 @@ export default function ChampionDetailsPage() {
                               unoptimized
                             />
                             {item.cost && (
-                              <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
+                              <div className="absolute bottom-0 right-0 bg-white/10 px-1 text-[10px] text-slate-400 border-t border-l border-white/20 rounded-tl-md">
                                 {item.cost}g
                               </div>
                             )}
                             {item.order && (
-                              <div className="absolute top-0 left-0 w-5 h-5 bg-yellow-600 rounded-br-md flex items-center justify-center text-xs font-bold text-zinc-900 shadow-md">
+                              <div className="absolute top-0 left-0 w-5 h-5 bg-blue-600 rounded-br-md flex items-center justify-center text-xs font-bold text-slate-900 shadow-md">
                                 {item.order}
                               </div>
                             )}
                           </div>
-                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 rounded border border-zinc-700 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
-                            <div className="font-medium text-zinc-200">{item.name}</div>
-                            {item.condition && <div className="text-xs text-zinc-400 mt-1">{item.condition}</div>}
+                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white/10 rounded border border-white/20 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
+                            <div className="font-medium text-slate-200">{item.name}</div>
+                            {item.condition && <div className="text-xs text-slate-400 mt-1">{item.condition}</div>}
                           </div>
                         </div>
                       ))}
@@ -683,9 +683,9 @@ export default function ChampionDetailsPage() {
 
                   {/* Boots Options */}
                   <div className="mb-6">
-                    <div className="text-sm font-medium text-zinc-200 mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-slate-200 mb-3 flex items-center justify-between">
                       <span>Boots Options</span>
-                      <span className="text-xs text-zinc-400">Choose based on matchup</span>
+                      <span className="text-xs text-slate-400">Choose based on matchup</span>
                     </div>
                     <div className="flex flex-wrap gap-3">
                       {metaData?.roleSpecificData?.build?.boots?.map((boot, index) => (
@@ -693,7 +693,7 @@ export default function ChampionDetailsPage() {
                           key={index} 
                           className="relative group"
                         >
-                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-yellow-600/50 transition-colors">
+                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-white/10 bg-white/10 group-hover:border-blue-600/50 transition-colors">
                             <Image
                               src={boot.image || "/images/items/boots.png"}
                               alt={boot.name}
@@ -705,8 +705,8 @@ export default function ChampionDetailsPage() {
                               {boot.pickRate}%
                             </div>
                           </div>
-                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 rounded border border-zinc-700 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
-                            <div className="font-medium text-zinc-200">{boot.name}</div>
+                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white/10 rounded border border-white/20 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
+                            <div className="font-medium text-slate-200">{boot.name}</div>
                             <div className="text-xs text-green-400 mt-1">Pick Rate: {boot.pickRate}%</div>
                           </div>
                         </div>
@@ -716,9 +716,9 @@ export default function ChampionDetailsPage() {
 
                   {/* Situational Items */}
                   <div>
-                    <div className="text-sm font-medium text-zinc-200 mb-3 flex items-center justify-between">
+                    <div className="text-sm font-medium text-slate-200 mb-3 flex items-center justify-between">
                       <span>Situational Items</span>
-                      <span className="text-xs text-zinc-400">Consider these based on enemy team</span>
+                      <span className="text-xs text-slate-400">Consider these based on enemy team</span>
                     </div>
                     <div className="flex flex-wrap gap-3">
                       {metaData?.roleSpecificData?.build?.situational?.map((item, index) => (
@@ -726,7 +726,7 @@ export default function ChampionDetailsPage() {
                           key={index} 
                           className="relative group"
                         >
-                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-zinc-800 bg-zinc-900 group-hover:border-yellow-600/50 transition-colors">
+                          <div className="relative w-14 h-14 rounded-md overflow-hidden border border-white/10 bg-white/10 group-hover:border-blue-600/50 transition-colors">
                             <Image
                               src={item.image || "/images/items/situational-item.png"}
                               alt={item.name}
@@ -735,14 +735,14 @@ export default function ChampionDetailsPage() {
                               unoptimized
                             />
                             {item.cost && (
-                              <div className="absolute bottom-0 right-0 bg-zinc-800 px-1 text-[10px] text-zinc-400 border-t border-l border-zinc-700 rounded-tl-md">
+                              <div className="absolute bottom-0 right-0 bg-white/10 px-1 text-[10px] text-slate-400 border-t border-l border-white/20 rounded-tl-md">
                                 {item.cost}g
                               </div>
                             )}
                           </div>
-                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-zinc-800 rounded border border-zinc-700 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
-                            <div className="font-medium text-zinc-200">{item.name}</div>
-                            {item.condition && <div className="text-xs text-zinc-400 mt-1">{item.condition}</div>}
+                          <div className="opacity-0 group-hover:opacity-100 absolute z-10 bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white/10 rounded border border-white/20 shadow-lg p-2 text-sm pointer-events-none transition-opacity">
+                            <div className="font-medium text-slate-200">{item.name}</div>
+                            {item.condition && <div className="text-xs text-slate-400 mt-1">{item.condition}</div>}
                           </div>
                         </div>
                       ))}
@@ -755,9 +755,9 @@ export default function ChampionDetailsPage() {
               {selectedTab === 'runes' && (
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-yellow-600">Recommended Runes</h3>
+                    <h3 className="text-lg font-bold text-blue-600">Recommended Runes</h3>
                     <div className="flex items-center">
-                      <div className="text-xs px-2 py-1 bg-blue-900/20 rounded border border-blue-900/40 text-blue-400">
+                      <div className="text-xs px-2 py-1 bg-purple-900/20 rounded border border-purple-900/40 text-purple-400">
                         {metaData?.roleSpecificData?.runes?.winRate || "55.2%"} Win Rate
                       </div>
                     </div>
@@ -765,9 +765,9 @@ export default function ChampionDetailsPage() {
                   
                   {/* Debug info - only in development */}
                   {process.env.NODE_ENV === 'development' && (
-                    <div className="mb-4 p-2 bg-zinc-800 rounded text-xs">
+                    <div className="mb-4 p-2 bg-white/10 rounded text-xs">
                       <details>
-                        <summary className="cursor-pointer text-yellow-500">Debug Info</summary>
+                        <summary className="cursor-pointer text-blue-500">Debug Info</summary>
                         <pre className="mt-2 overflow-auto max-h-60">
                           {JSON.stringify({
                             champion: champId,
@@ -786,15 +786,15 @@ export default function ChampionDetailsPage() {
                     {/* Primary Rune Path */}
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-xs text-zinc-400 border border-zinc-700">P</div>
-                        <h4 className="text-zinc-200 font-medium">{metaData?.roleSpecificData?.runes?.primary?.name || "Precision"}</h4>
+                        <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs text-slate-400 border border-white/20">P</div>
+                        <h4 className="text-slate-200 font-medium">{metaData?.roleSpecificData?.runes?.primary?.name || "Precision"}</h4>
                       </div>
                       
                       {/* Keystone */}
                       <div className="mb-4">
-                        <div className="text-xs text-zinc-400 mb-2">Keystone</div>
+                        <div className="text-xs text-slate-400 mb-2">Keystone</div>
                         <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-12 rounded-md overflow-hidden border-2 border-zinc-700">
+                          <div className="relative w-12 h-12 rounded-md overflow-hidden border-2 border-white/20">
                             <Image
                               src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/PressTheAttack/PressTheAttack.png`}
                               alt="Keystone"
@@ -804,7 +804,7 @@ export default function ChampionDetailsPage() {
                             />
                           </div>
                           <div>
-                            <div className="text-sm font-medium text-zinc-200">{metaData?.roleSpecificData?.runes?.primary?.keystone || "Press the Attack"}</div>
+                            <div className="text-sm font-medium text-slate-200">{metaData?.roleSpecificData?.runes?.primary?.keystone || "Press the Attack"}</div>
                           </div>
                         </div>
                       </div>
@@ -812,7 +812,7 @@ export default function ChampionDetailsPage() {
                       {/* Row 1-3 */}
                       <div className="space-y-3">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
+                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-white/20">
                             <Image
                               src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Overheal.png`}
                               alt="Row 1 Rune"
@@ -821,13 +821,13 @@ export default function ChampionDetailsPage() {
                               unoptimized
                             />
                           </div>
-                          <div className="text-xs text-zinc-200">
+                          <div className="text-xs text-slate-200">
                             {metaData?.roleSpecificData?.runes?.primary?.row1 || "Overheal"}
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
+                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-white/20">
                             <Image
                               src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendAlacrity/LegendAlacrity.png`}
                               alt="Row 2 Rune"
@@ -836,13 +836,13 @@ export default function ChampionDetailsPage() {
                               unoptimized
                             />
                           </div>
-                          <div className="text-xs text-zinc-200">
+                          <div className="text-xs text-slate-200">
                             {metaData?.roleSpecificData?.runes?.primary?.row2 || "Legend: Alacrity"}
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
+                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-white/20">
                             <Image
                               src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/CoupDeGrace/CoupDeGrace.png`}
                               alt="Row 3 Rune"
@@ -851,7 +851,7 @@ export default function ChampionDetailsPage() {
                               unoptimized
                             />
                           </div>
-                          <div className="text-xs text-zinc-200">
+                          <div className="text-xs text-slate-200">
                             {metaData?.roleSpecificData?.runes?.primary?.row3 || "Coup de Grace"}
                           </div>
                         </div>
@@ -861,14 +861,14 @@ export default function ChampionDetailsPage() {
                     {/* Secondary Rune Path */}
                     <div>
                       <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-xs text-zinc-400 border border-zinc-700">S</div>
-                        <h4 className="text-zinc-200 font-medium">{metaData?.roleSpecificData?.runes?.secondary?.name || "Domination"}</h4>
+                        <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs text-slate-400 border border-white/20">S</div>
+                        <h4 className="text-slate-200 font-medium">{metaData?.roleSpecificData?.runes?.secondary?.name || "Domination"}</h4>
                       </div>
                       
                       {/* Row 1-2 */}
                       <div className="space-y-3 mb-6">
                         <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
+                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-white/20">
                             <Image
                               src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/TasteOfBlood/TasteOfBlood.png`}
                               alt="Secondary Row 1"
@@ -877,13 +877,13 @@ export default function ChampionDetailsPage() {
                               unoptimized
                             />
                           </div>
-                          <div className="text-xs text-zinc-200">
+                          <div className="text-xs text-slate-200">
                             {metaData?.roleSpecificData?.runes?.secondary?.row1 || "Taste of Blood"}
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-700">
+                          <div className="relative w-10 h-10 rounded-md overflow-hidden border border-white/20">
                             <Image
                               src={`https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Domination/RelentlessHunter/RelentlessHunter.png`}
                               alt="Secondary Row 2"
@@ -892,7 +892,7 @@ export default function ChampionDetailsPage() {
                               unoptimized
                             />
                           </div>
-                          <div className="text-xs text-zinc-200">
+                          <div className="text-xs text-slate-200">
                             {metaData?.roleSpecificData?.runes?.secondary?.row2 || "Relentless Hunter"}
                           </div>
                         </div>
@@ -900,10 +900,10 @@ export default function ChampionDetailsPage() {
                       
                       {/* Stat Shards */}
                       <div>
-                        <div className="text-xs text-zinc-400 mb-2">Stat Shards</div>
+                        <div className="text-xs text-slate-400 mb-2">Stat Shards</div>
                         <div className="flex items-center gap-3">
                           {(metaData?.roleSpecificData?.runes?.shards || ["Adaptive Force", "Adaptive Force", "Armor"]).map((shard, index) => (
-                            <div key={index} className="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200">
+                            <div key={index} className="bg-white/10 border border-white/20 rounded px-2 py-1 text-xs text-slate-200">
                               {shard}
                             </div>
                           ))}
@@ -917,13 +917,13 @@ export default function ChampionDetailsPage() {
               {/* Counters Tab Content */}
               {selectedTab === 'counters' && (
                 <div className="p-4">
-                  <h3 className="text-lg font-bold text-yellow-600 mb-4">Champion Counters</h3>
+                  <h3 className="text-lg font-bold text-blue-600 mb-4">Champion Counters</h3>
                   
                   {/* Debug info - only in development */}
                   {process.env.NODE_ENV === 'development' && (
-                    <div className="mb-4 p-2 bg-zinc-800 rounded text-xs">
+                    <div className="mb-4 p-2 bg-white/10 rounded text-xs">
                       <details>
-                        <summary className="cursor-pointer text-yellow-500">Counters Debug Info</summary>
+                        <summary className="cursor-pointer text-blue-500">Counters Debug Info</summary>
                         <pre className="mt-2 overflow-auto max-h-60">
                           {JSON.stringify({
                             champion: champId,
@@ -938,9 +938,9 @@ export default function ChampionDetailsPage() {
                     {metaData?.roleSpecificData?.counters?.map((counter, index) => (
                       <div 
                         key={index} 
-                        className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden hover:border-yellow-600/50 transition-colors"
+                        className="bg-white/10 border border-white/10 rounded-lg overflow-hidden hover:border-blue-600/50 transition-colors"
                       >
-                        <div className="relative h-24 bg-cover bg-center border-b border-zinc-800">
+                        <div className="relative h-24 bg-cover bg-center border-b border-white/10">
                           <Image
                             src={counter.image}
                             alt={counter.name}
@@ -948,14 +948,14 @@ export default function ChampionDetailsPage() {
                             className="object-cover"
                             unoptimized
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-zinc-800 via-transparent to-transparent"></div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-white/10 via-transparent to-transparent"></div>
                           <div className="absolute bottom-0 left-0 right-0 p-2">
-                            <div className="font-medium text-sm text-zinc-200">{counter.name}</div>
+                            <div className="font-medium text-sm text-slate-200">{counter.name}</div>
                           </div>
                         </div>
                         <div className="p-2 flex items-center justify-between">
-                          <div className="text-xs text-zinc-400">Counter Score</div>
-                          <div className="text-xs font-medium text-yellow-400">
+                          <div className="text-xs text-slate-400">Counter Score</div>
+                          <div className="text-xs font-medium text-blue-400">
                             {counter.winRate}
                           </div>
                         </div>
@@ -969,18 +969,18 @@ export default function ChampionDetailsPage() {
           
           {/* Right Column - Champion Abilities */}
           <div className="space-y-6">
-            <div className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg">
-              <div className="bg-gradient-to-r from-zinc-900 to-zinc-900/80 px-4 py-3 border-b border-zinc-800">
-                <h3 className="text-lg font-bold text-yellow-600">Abilities</h3>
+            <div className="bg-white/10 rounded-lg overflow-hidden border border-white/10 shadow-lg">
+              <div className="bg-gradient-to-r from-white/10 to-white/10/80 px-4 py-3 border-b border-white/10">
+                <h3 className="text-lg font-bold text-blue-600">Abilities</h3>
               </div>
               <div className="p-4">
                 {/* Ability Navigation */}
-                <div className="flex mb-4 border-b border-zinc-800">
+                <div className="flex mb-4 border-b border-white/10">
                   <button 
                     onClick={() => setSelectedAbility('passive')}
-                    className={`flex-1 flex flex-col items-center p-2 ${selectedAbility === 'passive' ? 'border-b-2 border-yellow-600' : ''}`}
+                    className={`flex-1 flex flex-col items-center p-2 ${selectedAbility === 'passive' ? 'border-b-2 border-blue-600' : ''}`}
                   >
-                    <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-800">
+                    <div className="relative w-10 h-10 rounded-md overflow-hidden border border-white/10">
                       <Image 
                         src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/passive/${championData.passive.image.full}`}
                         alt="Passive"
@@ -989,15 +989,15 @@ export default function ChampionDetailsPage() {
                         unoptimized
                       />
                     </div>
-                    <div className="mt-1 text-xs text-zinc-400">P</div>
+                    <div className="mt-1 text-xs text-slate-400">P</div>
                   </button>
                   {championData.spells.map((spell, index) => (
                     <button 
                       key={index}
                       onClick={() => setSelectedAbility(['q', 'w', 'e', 'r'][index])}
-                      className={`flex-1 flex flex-col items-center p-2 ${selectedAbility === ['q', 'w', 'e', 'r'][index] ? 'border-b-2 border-yellow-600' : ''}`}
+                      className={`flex-1 flex flex-col items-center p-2 ${selectedAbility === ['q', 'w', 'e', 'r'][index] ? 'border-b-2 border-blue-600' : ''}`}
                     >
-                      <div className="relative w-10 h-10 rounded-md overflow-hidden border border-zinc-800">
+                      <div className="relative w-10 h-10 rounded-md overflow-hidden border border-white/10">
                         <Image 
                           src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/spell/${spell.image.full}`}
                           alt={spell.name}
@@ -1006,7 +1006,7 @@ export default function ChampionDetailsPage() {
                           unoptimized
                         />
                       </div>
-                      <div className="mt-1 text-xs text-zinc-400">{['Q', 'W', 'E', 'R'][index]}</div>
+                      <div className="mt-1 text-xs text-slate-400">{['Q', 'W', 'E', 'R'][index]}</div>
                     </button>
                   ))}
                 </div>
@@ -1015,8 +1015,8 @@ export default function ChampionDetailsPage() {
                 <div className="pt-2">
                   {selectedAbility === 'passive' && (
                     <div>
-                      <div className="flex items-center gap-3 mb-3 pb-3 border-b border-zinc-800">
-                        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-yellow-600 shadow-md shadow-yellow-600/10">
+                      <div className="flex items-center gap-3 mb-3 pb-3 border-b border-white/10">
+                        <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-blue-600 shadow-md shadow-blue-600/10">
                           <Image
                             src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/passive/${championData.passive.image.full}`}
                             alt={championData.passive.name}
@@ -1028,12 +1028,12 @@ export default function ChampionDetailsPage() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between flex-wrap gap-y-2">
-                            <h4 className="text-base font-semibold text-yellow-600">{championData.passive.name}</h4>
+                            <h4 className="text-base font-semibold text-blue-600">{championData.passive.name}</h4>
                           </div>
-                          <p className="text-xs text-zinc-400 mt-0.5 italic">Innate ability</p>
+                          <p className="text-xs text-slate-400 mt-0.5 italic">Innate ability</p>
                         </div>
                       </div>
-                      <div className="text-sm text-zinc-200 leading-relaxed">
+                      <div className="text-sm text-slate-200 leading-relaxed">
                         {formatDescription(championData.passive.description)}
                       </div>
                     </div>
@@ -1047,8 +1047,8 @@ export default function ChampionDetailsPage() {
                         
                         return (
                           <div key={spell.id}>
-                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-zinc-800">
-                              <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-yellow-600 shadow-md shadow-yellow-600/10">
+                            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-white/10">
+                              <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-blue-600 shadow-md shadow-blue-600/10">
                                 <Image
                                   src={`https://ddragon.leagueoflegends.com/cdn/${championData.version}/img/spell/${spell.image.full}`}
                                   alt={spell.name}
@@ -1060,10 +1060,10 @@ export default function ChampionDetailsPage() {
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center justify-between flex-wrap gap-y-2">
-                                  <h4 className="text-base font-semibold text-yellow-600">{spell.name}</h4>
+                                  <h4 className="text-base font-semibold text-blue-600">{spell.name}</h4>
                                   <div className="flex gap-2 text-xs">
                                     {spell.cooldownBurn && (
-                                      <div className="px-2 py-0.5 bg-blue-900/30 border border-blue-900/40 rounded text-blue-400 flex items-center gap-1">
+                                      <div className="px-2 py-0.5 bg-purple-900/30 border border-purple-900/40 rounded text-purple-400 flex items-center gap-1">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                                         </svg>
@@ -1088,13 +1088,13 @@ export default function ChampionDetailsPage() {
                                     )}
                                   </div>
                                 </div>
-                                <p className="text-xs text-zinc-400 mt-0.5 italic">
+                                <p className="text-xs text-slate-400 mt-0.5 italic">
                                   Ability {selectedAbility.toUpperCase()}
                                 </p>
                               </div>
                             </div>
                             <div className="space-y-4">
-                              <div className="text-sm text-zinc-200 leading-relaxed">
+                              <div className="text-sm text-slate-200 leading-relaxed">
                                 {formatDescription(spell.description)}
                               </div>
                             </div>
@@ -1108,17 +1108,17 @@ export default function ChampionDetailsPage() {
             </div>
 
             {/* Ability Upgrade Order */}
-            <div className="bg-zinc-900 rounded-lg overflow-hidden border border-zinc-800 shadow-lg mt-6">
-              <div className="bg-gradient-to-r from-zinc-900 to-zinc-900/80 px-4 py-3 border-b border-zinc-800">
-                <h3 className="text-lg font-bold text-yellow-600">Ability Upgrade Order</h3>
+            <div className="bg-white/10 rounded-lg overflow-hidden border border-white/10 shadow-lg mt-6">
+              <div className="bg-gradient-to-r from-white/10 to-white/10/80 px-4 py-3 border-b border-white/10">
+                <h3 className="text-lg font-bold text-blue-600">Ability Upgrade Order</h3>
               </div>
               <div className="p-4">
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-3">
-                    <div className="text-sm font-medium text-zinc-200">Max Order</div>
+                    <div className="text-sm font-medium text-slate-200">Max Order</div>
                     {metaData?.roleSpecificData?.skills?.winRate && (
-                      <div className="text-xs px-2 py-1 bg-zinc-800 rounded border border-zinc-700">
-                        <span className="text-zinc-400">Win Rate:</span> <span className="text-yellow-400 font-medium">{metaData.roleSpecificData.skills.winRate}</span>
+                      <div className="text-xs px-2 py-1 bg-white/10 rounded border border-white/20">
+                        <span className="text-slate-400">Win Rate:</span> <span className="text-blue-400 font-medium">{metaData.roleSpecificData.skills.winRate}</span>
                       </div>
                     )}
                   </div>
@@ -1132,12 +1132,12 @@ export default function ChampionDetailsPage() {
 
                   <div className="flex gap-3">
                     {(metaData?.roleSpecificData?.skillOrder?.maxPriority || ['Q', 'W', 'E', 'R']).map((ability, index) => (
-                      <div key={ability} className={`relative w-10 h-10 rounded overflow-hidden border ${index === 0 ? 'border-yellow-600 ring-1 ring-yellow-600/30' : 'border-zinc-700'}`}>
-                        <div className={`absolute inset-0 flex items-center justify-center ${index === 0 ? 'bg-zinc-800' : 'bg-zinc-800/50'}`}>
-                          <span className={`text-lg font-bold ${index === 0 ? 'text-yellow-600' : 'text-zinc-400'}`}>{ability}</span>
+                      <div key={ability} className={`relative w-10 h-10 rounded overflow-hidden border ${index === 0 ? 'border-blue-600 ring-1 ring-blue-600/30' : 'border-white/10'}`}>
+                        <div className={`absolute inset-0 flex items-center justify-center ${index === 0 ? 'bg-white' : 'bg-white/10'}`}>
+                          <span className={`text-lg font-bold ${index === 0 ? 'text-blue-600' : 'text-slate-400'}`}>{ability}</span>
                         </div>
                         {index < 3 && (
-                          <div className="absolute -top-2 -right-2 w-5 h-5 bg-zinc-900 rounded-full border border-zinc-700 flex items-center justify-center text-xs">
+                          <div className="absolute -top-2 -right-2 w-5 h-5 bg-white/10 rounded-full border border-white/20 flex items-center justify-center text-xs">
                             {index + 1}
                           </div>
                         )}
@@ -1147,14 +1147,14 @@ export default function ChampionDetailsPage() {
                 </div>
                 
                 <div>
-                  <div className="text-sm font-medium text-zinc-200 mb-3">Level Sequence</div>
-                  <div className="bg-zinc-900/50 border border-zinc-800 rounded-md p-3 overflow-x-auto">
+                  <div className="text-sm font-medium text-slate-200 mb-3">Level Sequence</div>
+                  <div className="bg-white/10 border border-white/20 rounded-md p-3 overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr>
-                          <th className="text-left text-xs text-zinc-500 pb-2">Lvl</th>
+                          <th className="text-left text-xs text-slate-500 pb-2">Lvl</th>
                           {[...Array(18)].map((_, i) => (
-                            <th key={i} className="w-7 text-center text-xs text-zinc-500 pb-2">{i + 1}</th>
+                            <th key={i} className="w-7 text-center text-xs text-slate-500 pb-2">{i + 1}</th>
                           ))}
                         </tr>
                       </thead>
@@ -1173,26 +1173,26 @@ export default function ChampionDetailsPage() {
                           }
                           
                           return (
-                            <tr key={ability} className="border-t border-zinc-800/50">
+                            <tr key={ability} className="border-t border-white/10/50">
                               <td className="py-2 pr-3 text-sm font-medium">
                                 <span className={`inline-block px-2 py-1 rounded ${
-                                  ability === 'Q' ? 'bg-blue-900/20 text-blue-400' : 
+                                  ability === 'Q' ? 'bg-purple-900/20 text-purple-400' : 
                                   ability === 'W' ? 'bg-purple-900/20 text-purple-400' : 
-                                  ability === 'E' ? 'bg-green-900/20 text-green-400' : 
-                                  'bg-yellow-900/20 text-yellow-400'
+                                  ability === 'E' ? 'bg-purple-900/20 text-purple-400' : 
+                                  'bg-purple-900/20 text-purple-400'
                                 }`}>{ability}</span>
                               </td>
                               {pattern.map((point, i) => (
                                 <td key={i} className="text-center py-2">
                                   {point ? (
                                     <span className={`inline-block w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-                                      ability === 'Q' ? 'bg-blue-900/30 text-blue-400 border border-blue-800' : 
+                                      ability === 'Q' ? 'bg-purple-900/30 text-purple-400 border border-purple-800' : 
                                       ability === 'W' ? 'bg-purple-900/30 text-purple-400 border border-purple-800' : 
-                                      ability === 'E' ? 'bg-green-900/30 text-green-400 border border-green-800' : 
-                                      'bg-yellow-900/30 text-yellow-400 border border-yellow-800'
+                                      ability === 'E' ? 'bg-purple-900/30 text-purple-400 border border-purple-800' : 
+                                      'bg-purple-900/30 text-purple-400 border border-purple-800'
                                     }`}>•</span>
                                   ) : (
-                                    <span className="inline-block w-5 h-5 rounded-full border border-zinc-800"></span>
+                                    <span className="inline-block w-5 h-5 rounded-full border border-white/10"></span>
                                   )}
                                 </td>
                               ))}
@@ -1202,14 +1202,14 @@ export default function ChampionDetailsPage() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="mt-3 text-xs text-zinc-500">
+                  <div className="mt-3 text-xs text-slate-500">
                     This is the recommended skill order for optimal performance
                   </div>
                 </div>
                 <div className="flex justify-between items-center mb-3 mt-4">
                   {metaData?.roleSpecificData?.skills?.winRate && (
-                    <div className="text-xs px-2 py-1 bg-zinc-800 rounded border border-zinc-700">
-                      <span className="text-zinc-400">Sample Build:</span> <span className="text-green-400 font-medium">{metaData.roleSpecificData.skills.games || 0} games</span>
+                    <div className="text-xs px-2 py-1 bg-white/10 rounded border border-white/20">
+                      <span className="text-slate-400">Sample Build:</span> <span className="text-green-400 font-medium">{metaData.roleSpecificData.skills.games || 0} games</span>
                     </div>
                   )}
                 </div>
@@ -1219,8 +1219,8 @@ export default function ChampionDetailsPage() {
         </div>
       </div>
       
-      <footer className="bg-zinc-900 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-4 text-center text-zinc-500 text-sm">
+      <footer className="bg-white/10 py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
           <p>This app is not endorsed by Riot Games and does not reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.</p>
           <p className="mt-2">League of Legends and Riot Games are trademarks or registered trademarks of Riot Games, Inc.</p>
         </div>

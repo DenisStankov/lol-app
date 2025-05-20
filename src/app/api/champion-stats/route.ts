@@ -1094,7 +1094,7 @@ async function generateEnhancedStats(champions: any, version: string, rank: stri
         else if (score > 6) tier = 'A';
         else if (score > 5) tier = 'B';
         else if (score > 4) tier = 'C';
-        else tier = 'D';
+      else tier = 'D';
       }
       const pickRate = popularityTiers[tier] + rand() * 0.5;
       const banRate = banRateTiers[tier] + rand() * 0.5;

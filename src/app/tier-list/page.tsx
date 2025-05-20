@@ -34,7 +34,7 @@ type SortDirection = "asc" | "desc"
 interface Champion {
   id: string
   name: string
-  icon: string
+    icon: string
   primaryRole: Role
   secondaryRole?: Role
   primaryRolePercentage: number
@@ -263,11 +263,11 @@ export default function TierList() {
                   />
                 </button>
               ))}
-            </div>
+          </div>
 
             {/* Division Filter with Rank Icon */}
             <div className="w-full md:w-48 relative">
-              <button
+                  <button
                 className="w-full bg-[#0F0F0F] border border-[#333333] rounded-md py-2 px-3 text-white flex items-center justify-between"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
@@ -278,9 +278,9 @@ export default function TierList() {
                       alt={selectedDivision}
                       className="h-full w-full object-cover"
                     />
-                  </div>
+              </div>
                   <span>{selectedDivision}</span>
-                </div>
+            </div>
                 <svg
                   width="12"
                   height="12"
@@ -302,7 +302,7 @@ export default function TierList() {
               {isDropdownOpen && (
                 <div className="absolute z-20 mt-1 w-full bg-[#0F0F0F] border border-[#333333] rounded-md shadow-lg py-1">
                   {Object.entries(rankMap).map(([division, rankName]) => (
-                    <button
+                  <button
                       key={division}
                       className="w-full px-3 py-2 text-left hover:bg-[#1A1A1A] flex items-center gap-2"
                       onClick={() => {
@@ -318,9 +318,9 @@ export default function TierList() {
                         />
                       </div>
                       <span>{division}</span>
-                    </button>
-                  ))}
-                </div>
+                  </button>
+                ))}
+              </div>
               )}
             </div>
 
@@ -386,8 +386,8 @@ export default function TierList() {
                           <ArrowUp className="ml-1 h-4 w-4" />
                         ) : (
                           <ArrowDown className="ml-1 h-4 w-4" />
-                        ))}
-                    </div>
+                    ))}
+                  </div>
                   </TableHead>
                   <TableHead className="w-24 text-right text-[#C89B3C]">Games</TableHead>
                 </TableRow>
@@ -399,7 +399,7 @@ export default function TierList() {
                       <div className="flex flex-col items-center justify-center h-full">
                         <div className="w-12 h-12 rounded-full border-2 border-[#C89B3C] border-t-transparent animate-spin mb-4"></div>
                         <p className="text-gray-400">Loading champion data...</p>
-                      </div>
+                </div>
                     </TableCell>
                   </TableRow>
                 ) : sortedChampions.length === 0 ? (
@@ -407,15 +407,15 @@ export default function TierList() {
                     <TableCell colSpan={7} className="h-96 text-center">
                       <div className="flex flex-col items-center justify-center h-full">
                         <p className="text-gray-400 mb-2">No champions found</p>
-                        <button
-                          onClick={() => {
+            <button
+              onClick={() => {
                             setSearchQuery("")
                             setSelectedRole("all")
                           }}
                           className="text-[#C89B3C] hover:underline"
                         >
                           Clear filters
-                        </button>
+            </button>
                       </div>
                     </TableCell>
                   </TableRow>
