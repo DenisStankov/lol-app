@@ -69,6 +69,12 @@ export default function GlassyLeaderboard() {
         return res.json()
       })
       .then((data) => {
+        if (!Array.isArray(data)) {
+          setError(data?.error || "Could not load leaderboard. Try again later.")
+          setLeaderboard([])
+          setLoading(false)
+          return
+        }
         setLeaderboard(data)
         setLoading(false)
       })
@@ -84,10 +90,12 @@ export default function GlassyLeaderboard() {
     return () => clearTimeout(timer)
   }, [sortField, sortDirection, selectedRegion, leaderboard])
 
-  // Filter by search
-  const filteredData = leaderboard.filter((player) =>
-    player.summonerName.toLowerCase().includes(search.toLowerCase())
-  )
+  // Filter by search, but only for valid player objects
+  const filteredData = leaderboard
+    .filter((player) => player && typeof player.summonerName === "string")
+    .filter((player) =>
+      player.summonerName.toLowerCase().includes(search.toLowerCase())
+    )
 
   // Sort data
   const sortedData = [...filteredData].sort((a, b) => {
