@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent } from "@/components/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ArrowDown, ArrowUp, Crown, Medal, Search, Shield, Sparkles, Swords, Trophy } from "lucide-react"
 import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/badge"
 
 const regions = [
   { code: "ALL", name: "All Regions", flag: "/placeholder-tepo6.png" },
