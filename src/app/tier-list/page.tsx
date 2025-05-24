@@ -79,7 +79,24 @@ export default function TierList() {
   const [loading, setLoading] = useState(true)
   const [animateRows, setAnimateRows] = useState(false)
 
+  // Add state for patch version
+  const [patchVersion, setPatchVersion] = useState<string>("")
+
   const router = useRouter()
+
+  // Fetch current patch version on mount
+  useEffect(() => {
+    const fetchPatch = async () => {
+      try {
+        const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json")
+        const data = await response.json()
+        setPatchVersion(data[0])
+      } catch (err) {
+        setPatchVersion("14.14.1") // fallback
+      }
+    }
+    fetchPatch()
+  }, [])
 
   // Handle sort click
   const handleSort = (field: SortField) => {
@@ -118,7 +135,7 @@ export default function TierList() {
           let iconUrl = ""
           if (champ.image && typeof champ.image === "object") {
             iconUrl =
-              champ.image.icon || `https://ddragon.leagueoflegends.com/cdn/14.14.1/img/champion/${champ.image.full}`
+              champ.image.icon || (patchVersion ? `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champ.image.full}` : "")
           }
           return {
             id: String(id),
@@ -142,7 +159,7 @@ export default function TierList() {
       }
     }
     fetchChampions()
-  }, [selectedDivision])
+  }, [selectedDivision, patchVersion])
 
   // Filter champions based on selected filters
   const filteredChampions = champions.filter((champion) => {
@@ -219,6 +236,25 @@ export default function TierList() {
     return `/images/ranks/Rank=${rankName}.png`
   }
 
+  // Fix dropdown: close on outside click and add keyboard accessibility
+  useEffect(() => {
+    if (!isDropdownOpen) return
+    function handleClick(e: MouseEvent) {
+      if (!(e.target as HTMLElement).closest(".rank-dropdown")) {
+        setIsDropdownOpen(false)
+      }
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setIsDropdownOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    document.addEventListener("keydown", handleKey)
+    return () => {
+      document.removeEventListener("mousedown", handleClick)
+      document.removeEventListener("keydown", handleKey)
+    }
+  }, [isDropdownOpen])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
       {/* Decorative Elements */}
@@ -234,7 +270,7 @@ export default function TierList() {
         <div className="flex flex-col items-center mb-12">
           <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 border-0 px-4 py-1 mb-4 shadow-lg shadow-blue-500/20">
             <Sparkles className="h-4 w-4 mr-2" />
-            <span className="text-sm">Patch 14.14.1 Analysis</span>
+            <span className="text-sm">Patch {patchVersion || "..."} Analysis</span>
           </Badge>
           <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 mb-3">
             Champion Tier List
@@ -348,8 +384,10 @@ export default function TierList() {
               {/* Division Filter with Rank Icon */}
               <div className="w-full md:w-48 relative">
                 <button
-                  className="w-full bg-white/5 border border-white/10 rounded-md py-2.5 px-4 text-white flex items-center justify-between hover:bg-white/10 transition-colors duration-300"
+                  className="rank-dropdown w-full bg-white/5 border border-white/10 rounded-md py-2.5 px-4 text-white flex items-center justify-between hover:bg-white/10 transition-colors duration-300"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  aria-haspopup="listbox"
+                  aria-expanded={isDropdownOpen}
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5">
@@ -367,7 +405,7 @@ export default function TierList() {
                 </button>
 
                 {isDropdownOpen && (
-                  <div className="absolute z-20 mt-1 w-full bg-slate-900 border border-white/10 rounded-md shadow-lg py-1 backdrop-blur-sm">
+                  <div className="rank-dropdown absolute z-20 mt-1 w-full bg-slate-900 border border-white/10 rounded-md shadow-lg py-1 backdrop-blur-sm" role="listbox" tabIndex={-1}>
                     {Object.entries(rankMap).map(([division, rankName]) => (
                       <button
                         key={division}
