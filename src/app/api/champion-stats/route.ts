@@ -338,7 +338,7 @@ function normalizeRoleName(role: string): string {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function fetchChampionStats(rank: string = 'ALL', region: string = 'global'): Promise<Record<string, ChampionStats>> {
   try {
-    console.log(`Fetching champion stats for rank=${rank}, region=${region}`);
+    console.log(`[champion-stats] Fetching champion stats for rank=${rank}, region=${region}`);
     
     // Map display region to API region
     const apiRegion = displayRegionToApiRegion[region.toLowerCase()] || 'na1';
@@ -346,22 +346,26 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     const apiDivision = rank === 'CHALLENGER' || rank === 'GRANDMASTER' || rank === 'MASTER' ? 'I' : 'I';
     
     // Step 1: Get the current patch version from Data Dragon
-    const latestVersion = await getCurrentPatch();
-    console.log(`Using patch version: ${latestVersion}`);
+    const versions = await fetchVersions();
+    const latestVersion = versions[0];
+    console.log(`[champion-stats] Using patch version: ${latestVersion}`);
     
     // Step 2: Fetch champion data from Data Dragon
     const champResponse = await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`);
-    if (!champResponse.ok) throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
+    if (!champResponse.ok) {
+      console.error('[champion-stats] Champion data fetch failed:', champResponse.statusText);
+      throw new Error(`Champion data fetch failed: ${champResponse.statusText}`);
+    }
     const champData: ChampionDataResponse = await champResponse.json();
 
-    console.log(`Fetched champion data for ${Object.keys(champData.data).length} champions`);
+    console.log(`[champion-stats] Fetched champion data for ${Object.keys(champData.data).length} champions`);
     
     // Step 3: Get match IDs for real data (if using Riot API)
     let matchIds: string[] = [];
     if (RIOT_API_KEY && !RIOT_API_KEY.includes('your-api-key-here')) {
       try {
         matchIds = await getMatchIds(apiRegion, apiRank, apiDivision, 50);
-        console.log(`Fetched ${matchIds.length} match IDs from Riot API`);
+        console.log(`[champion-stats] Fetched ${matchIds.length} match IDs from Riot API`);
       } catch (error) {
         console.error('Error fetching match IDs:', error);
         console.log('Falling back to simulated data due to match ID fetch error');
@@ -595,11 +599,12 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     console.log(`Processed ${processedMatches} matches for champion stats`);
     return result;
   } catch (error) {
-    console.error('Error in fetchChampionStats:', error);
+    console.error('[champion-stats] Error in fetchChampionStats:', error);
     
     // Fall back to simulated data on error
-    console.log('Falling back to simulated data due to error');
-    const patch = await getCurrentPatch();
+    console.log('[champion-stats] Falling back to simulated data due to error');
+    const versions = await fetchVersions();
+    const patch = versions[0] || '14.13.1';
     return generateSimulatedStats(patch);
   }
 }
@@ -881,10 +886,10 @@ async function getMatchData(matchId: string, region: string): Promise<any> {
 }
 
 // API route handler
-export async function GET(request: NextRequest) {
+export async function GET(req) {
   try {
     // Extract query parameters
-    const searchParams = request.nextUrl.searchParams;
+    const searchParams = req.nextUrl.searchParams;
     const patch = searchParams.get('patch') || 'latest';
     const rank = searchParams.get('rank') || 'ALL';
     const region = searchParams.get('region') || 'global';
@@ -916,7 +921,7 @@ export async function GET(request: NextRequest) {
             })) : 'No role stats',
         });
         
-        return NextResponse.json(realData);
+        return new Response(JSON.stringify(realData), { status: 200 });
       } catch (error) {
         console.error('[API] Error fetching real data:', error);
         console.log('[API] Falling back to simulated data due to error');
@@ -953,13 +958,10 @@ export async function GET(request: NextRequest) {
     
     // After generating stats (before returning):
     generatedStatsCache = response;
-    return NextResponse.json(response);
+    return new Response(JSON.stringify(response), { status: 200 });
   } catch (error) {
-    console.error('[API] Fatal error in champion-stats API:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch champion stats', details: String(error) },
-      { status: 500 }
-    );
+    console.error('[champion-stats] API error:', error);
+    return new Response(JSON.stringify({ error: error.message || 'Unknown error', stack: process.env.NODE_ENV === 'development' ? error.stack : undefined }), { status: 500 });
   }
 }
 
@@ -1149,8 +1151,9 @@ async function fetchVersions() {
     const response = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
     return response.data;
   } catch (error) {
-    console.error('Error fetching versions:', error);
-    return ['14.14.1', '14.13.1', '14.12.1']; // Fallback versions
+    console.error('[champion-stats] Error fetching versions from Data Dragon:', error);
+    // Fallback versions
+    return ['14.13.1', '14.12.1', '14.11.1'];
   }
 }
 
