@@ -11,13 +11,58 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
+import axios from "axios"
+import ProfileIcon from "@/components/ProfileIcon"
+
+interface Summoner {
+  summonerName: string;
+  tagLine: string;
+  puuid: string;
+  profileIconId: number;
+  region?: string;
+}
 
 export default function Home() {
   const currentYear = new Date().getFullYear()
   const router = useRouter();
   const [summonerName, setSummonerName] = useState("");
   const [region, setRegion] = useState("euw1");
+  const [results, setResults] = useState<Summoner[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+
+  const fetchSummoners = useCallback(async () => {
+    if (summonerName.length < 3) {
+      setResults([]);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(summonerName)}&region=${region}`);
+      setResults([res.data]); // Store results
+      setShowResults(true);
+    } catch (err) {
+      console.error("❌ Search Error:", err);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [summonerName, region]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (summonerName.length >= 3) fetchSummoners();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [summonerName, fetchSummoners]);
+
+  const handleSelect = (summoner: Summoner) => {
+    const formattedName = `${summoner.summonerName}-${summoner.tagLine}`;
+    router.push(`/summoner/${region}/${formattedName}`);
+  };
 
   const handleSearch = () => {
     if (!summonerName.trim()) return;
@@ -91,8 +136,50 @@ export default function Home() {
                           placeholder="Search summoner name..."
                           value={summonerName}
                           onChange={e => setSummonerName(e.target.value)}
+                          onFocus={() => setShowResults(true)}
+                          onBlur={() => setTimeout(() => setShowResults(false), 200)}
                           className="pl-12 h-14 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20 text-lg"
                         />
+                        {showResults && summonerName.length >= 3 && (
+                          <div className="absolute inset-x-0 z-50 mt-2 max-h-96 overflow-y-auto bg-white/10 border border-white/20 rounded-xl shadow-2xl">
+                            {loading ? (
+                              <div className="p-6 text-center">
+                                <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-blue-400 rounded-full" aria-label="loading"></div>
+                                <p className="text-white mt-3 text-lg font-medium">Searching summoners...</p>
+                              </div>
+                            ) : results.length > 0 ? (
+                              <div className="p-3">
+                                <p className="px-4 py-2 text-sm text-blue-400/80 uppercase font-semibold">Search Results</p>
+                                {results.map((summoner) => (
+                                  <div 
+                                    key={summoner.puuid} 
+                                    className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/20 rounded-lg transition-colors"
+                                    onClick={() => handleSelect(summoner)}
+                                  >
+                                    <div className="relative">
+                                      <ProfileIcon 
+                                        iconId={summoner.profileIconId}
+                                        alt="Profile Icon" 
+                                        width={48} 
+                                        height={48} 
+                                        className="rounded-full border-2 border-blue-400/40"
+                                      />
+                                      <div className="absolute -bottom-1 -right-1 bg-white/10 text-xs font-bold px-1.5 py-0.5 rounded border border-blue-400/30 text-blue-400">
+                                        {region.toUpperCase().replace(/[0-9]/g, '')}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <p className="text-white font-medium">{summoner.summonerName}</p>
+                                      <p className="text-slate-400 text-sm">{summoner.tagLine}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="p-6 text-center text-white">No summoners found</div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <Select value={region} onValueChange={setRegion}>
                         <SelectTrigger className="w-full md:w-32 h-14 bg-white/5 border-white/20 text-blue-400 text-lg font-medium rounded-xl hover:bg-white/10 hover:border-blue-400/40 transition-all">
