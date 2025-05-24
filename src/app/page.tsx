@@ -13,15 +13,6 @@ import Image from "next/image"
 export default function Home() {
   const currentYear = new Date().getFullYear()
 
-  // Mock data for top champions
-  const topChampions = [
-    { name: "Jinx", tier: "S+", winRate: 52.3, pickRate: 18.7, role: "ADC", trend: "up" },
-    { name: "Graves", tier: "S+", winRate: 51.8, pickRate: 15.2, role: "Jungle", trend: "up" },
-    { name: "Viktor", tier: "S", winRate: 50.9, pickRate: 12.4, role: "Mid", trend: "down" },
-    { name: "Jinx", tier: "S", winRate: 50.1, pickRate: 11.8, role: "ADC", trend: "up" },
-    { name: "Camille", tier: "A", winRate: 49.7, pickRate: 9.3, role: "Top", trend: "up" },
-  ]
-
   const getTierColor = (tier: string) => {
     switch (tier) {
       case "S+":
@@ -235,87 +226,7 @@ export default function Home() {
 
             {/* Enhanced Top Champions */}
             <div className="lg:col-span-8">
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="relative">
-                  <Card className="bg-white/10 border-white/20 backdrop-blur-md">
-                    <CardHeader className="pb-4">
-                      <CardTitle className="flex items-center gap-3 text-xl">
-                        <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                          <Crown className="h-4 w-4 text-purple-400" />
-                        </div>
-                        Top Champions This Patch
-                        <Badge className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 text-emerald-400 border border-emerald-500/30">
-                          Platinum+
-                        </Badge>
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {topChampions.map((champion, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors group cursor-pointer"
-                          >
-                            <div className="flex items-center gap-4 flex-1">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-lg font-bold">
-                                {index + 1}
-                              </div>
-                              <div className="w-12 h-12 rounded-full bg-slate-700 overflow-hidden">
-                                <Image
-                                  src="/placeholder.svg?height=48&width=48"
-                                  alt={champion.name}
-                                  width={48}
-                                  height={48}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div>
-                                <div className="font-semibold text-white group-hover:text-blue-300 transition-colors">
-                                  {champion.name}
-                                </div>
-                                <div className="text-sm text-slate-400">{champion.role}</div>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-6">
-                              <div className="text-center">
-                                <div
-                                  className={`px-3 py-1 rounded-full text-sm font-bold ${getTierColor(champion.tier)}`}
-                                >
-                                  {champion.tier}
-                                </div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-white font-semibold">{champion.winRate}%</div>
-                                <div className="text-xs text-slate-400">Win Rate</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-white font-semibold">{champion.pickRate}%</div>
-                                <div className="text-xs text-slate-400">Pick Rate</div>
-                              </div>
-                              <div className="text-center">
-                                {champion.trend === "up" ? (
-                                  <ArrowUp className="h-5 w-5 text-green-400 mx-auto" />
-                                ) : (
-                                  <ArrowDown className="h-5 w-5 text-red-400 mx-auto" />
-                                )}
-                                <div className="text-xs text-slate-400">Trend</div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-
-                      <div className="mt-6 pt-4 border-t border-white/10">
-                        <Button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white border-0">
-                          View Full Tier List
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              <TopChampions />
             </div>
           </div>
         </div>
