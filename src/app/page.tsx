@@ -287,62 +287,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Enhanced Patch Info */}
             <div className="lg:col-span-4">
-              <div className="h-full">
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="relative h-full">
-                    <Card className="h-full bg-white/10 border-white/20 backdrop-blur-md">
-                      <CardHeader className="pb-4">
-                        <CardTitle className="flex items-center gap-3 text-xl">
-                          <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <Star className="h-4 w-4 text-blue-400" />
-                          </div>
-                          Patch 14.14.1
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Release Date</span>
-                            <span className="text-white font-medium">July 17, 2024</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Champions Updated</span>
-                            <span className="text-white font-medium">12</span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-400">Items Changed</span>
-                            <span className="text-white font-medium">8</span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <h4 className="text-lg font-semibold text-white">Key Changes</h4>
-                          <div className="space-y-2">
-                            {[
-                              { type: "buff", champion: "Jinx", change: "Base AD increased" },
-                              { type: "nerf", champion: "Graves", change: "Q damage reduced" },
-                              { type: "buff", champion: "Viktor", change: "Mana costs lowered" },
-                            ].map((change, index) => (
-                              <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${change.type === "buff" ? "bg-green-400" : "bg-red-400"}`}
-                                />
-                                <span className="text-white font-medium">{change.champion}</span>
-                                <span className="text-slate-400 text-sm">{change.change}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
-                          View Full Patch Notes
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </div>
+              <PatchInfo />
             </div>
 
             {/* Enhanced Top Champions */}
