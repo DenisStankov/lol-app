@@ -140,38 +140,36 @@ export default function Home() {
                           onBlur={() => setTimeout(() => setShowResults(false), 200)}
                           className="pl-12 h-14 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20 text-lg"
                         />
+                        {/* Remove quick search buttons and improve dropdown styling */}
+                        {/* Search Results Dropdown */}
                         {showResults && summonerName.length >= 3 && (
-                          <div className="absolute inset-x-0 z-50 mt-2 max-h-96 overflow-y-auto bg-white/10 border border-white/20 rounded-xl shadow-2xl">
+                          <div className="absolute left-0 right-0 z-50 mt-2 max-h-80 overflow-y-auto bg-[#181A2A] border border-blue-400/30 rounded-xl shadow-2xl p-2">
                             {loading ? (
                               <div className="p-6 text-center">
                                 <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-blue-400 rounded-full" aria-label="loading"></div>
                                 <p className="text-white mt-3 text-lg font-medium">Searching summoners...</p>
                               </div>
                             ) : results.length > 0 ? (
-                              <div className="p-3">
-                                <p className="px-4 py-2 text-sm text-blue-400/80 uppercase font-semibold">Search Results</p>
+                              <div>
+                                <p className="px-4 py-2 text-xs text-blue-400/80 uppercase font-semibold tracking-wider">Search Results</p>
                                 {results.map((summoner) => (
                                   <div 
                                     key={summoner.puuid} 
-                                    className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/20 rounded-lg transition-colors"
+                                    className="flex items-center gap-4 p-3 cursor-pointer hover:bg-blue-400/10 rounded-lg transition-colors"
                                     onClick={() => handleSelect(summoner)}
                                   >
-                                    <div className="relative">
-                                      <ProfileIcon 
-                                        iconId={summoner.profileIconId}
-                                        alt="Profile Icon" 
-                                        width={48} 
-                                        height={48} 
-                                        className="rounded-full border-2 border-blue-400/40"
-                                      />
-                                      <div className="absolute -bottom-1 -right-1 bg-white/10 text-xs font-bold px-1.5 py-0.5 rounded border border-blue-400/30 text-blue-400">
-                                        {region.toUpperCase().replace(/[0-9]/g, '')}
-                                      </div>
+                                    <ProfileIcon 
+                                      iconId={summoner.profileIconId}
+                                      alt="Profile Icon" 
+                                      width={40} 
+                                      height={40} 
+                                      className="rounded-full border border-blue-400/40"
+                                    />
+                                    <div className="flex flex-col">
+                                      <span className="text-white font-semibold leading-tight">{summoner.summonerName}</span>
+                                      <span className="text-slate-400 text-xs leading-tight">#{summoner.tagLine}</span>
                                     </div>
-                                    <div>
-                                      <p className="text-white font-medium">{summoner.summonerName}</p>
-                                      <p className="text-slate-400 text-sm">{summoner.tagLine}</p>
-                                    </div>
+                                    <span className="ml-auto px-2 py-0.5 text-xs rounded bg-blue-400/10 text-blue-400 font-medium">{region.toUpperCase().replace(/[0-9]/g, '')}</span>
                                   </div>
                                 ))}
                               </div>
@@ -202,17 +200,6 @@ export default function Home() {
                       <Button onClick={handleSearch} className="h-14 px-8 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 font-medium">
                         Search
                       </Button>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {["Faker", "Caps", "Bjergsen", "Rekkles"].map((name) => (
-                        <button
-                          key={name}
-                          className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-sm text-slate-300 hover:text-white transition-colors"
-                          onClick={() => setSummonerName(name)}
-                        >
-                          {name}
-                        </button>
-                      ))}
                     </div>
                   </CardContent>
                 </Card>
