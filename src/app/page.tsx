@@ -83,7 +83,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen text-white overflow-hidden">
+    <div className="min-h-screen text-white">
       {/* Navigation Bar */}
       <Navigation />
 
@@ -143,7 +143,7 @@ export default function Home() {
                         {/* Remove quick search buttons and improve dropdown styling */}
                         {/* Search Results Dropdown */}
                         {showResults && summonerName.length >= 3 && (
-                          <div className="absolute left-0 right-0 z-50 mt-2 max-h-80 overflow-y-auto bg-[#181A2A] border border-blue-400/30 rounded-xl shadow-2xl p-2">
+                          <div className="fixed left-1/2 top-[160px] w-full max-w-2xl -translate-x-1/2 z-[9999] mt-2 max-h-80 overflow-y-auto bg-[#181A2A] border border-blue-400/30 rounded-xl shadow-2xl p-2">
                             {loading ? (
                               <div className="p-6 text-center">
                                 <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-blue-400 rounded-full" aria-label="loading"></div>
