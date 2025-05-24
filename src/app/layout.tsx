@@ -55,28 +55,6 @@ export default function RootLayout({
           </div>
         </div>
         {children}
-        <style jsx global>{`
-          @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-          }
-          @keyframes float-delayed {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-30px) rotate(-180deg); }
-          }
-          @keyframes float-slow {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-15px) rotate(90deg); }
-          }
-          @keyframes twinkle {
-            0%, 100% { opacity: 0; transform: scale(0.5); }
-            50% { opacity: 1; transform: scale(1); }
-          }
-          .animate-float { animation: float 6s ease-in-out infinite; }
-          .animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
-          .animate-float-slow { animation: float-slow 10s ease-in-out infinite; }
-          .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
-        `}</style>
       </body>
     </html>
   );
