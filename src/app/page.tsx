@@ -9,9 +9,20 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function Home() {
   const currentYear = new Date().getFullYear()
+  const router = useRouter();
+  const [summonerName, setSummonerName] = useState("");
+  const [region, setRegion] = useState("euw1");
+
+  const handleSearch = () => {
+    if (!summonerName.trim()) return;
+    router.push(`/summoner/${region}/${encodeURIComponent(summonerName.trim())}`);
+  };
 
   const getTierColor = (tier: string) => {
     switch (tier) {
@@ -73,15 +84,35 @@ export default function Home() {
               <div className="relative">
                 <Card className="bg-white/10 border-white/20 backdrop-blur-md overflow-hidden">
                   <CardContent className="p-6">
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-col md:flex-row">
                       <div className="relative flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
                         <Input
                           placeholder="Search summoner name..."
+                          value={summonerName}
+                          onChange={e => setSummonerName(e.target.value)}
                           className="pl-12 h-14 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20 text-lg"
                         />
                       </div>
-                      <Button className="h-14 px-8 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 font-medium">
+                      <Select value={region} onValueChange={setRegion}>
+                        <SelectTrigger className="w-full md:w-32 h-14 bg-white/5 border-white/20 text-blue-400 text-lg font-medium rounded-xl hover:bg-white/10 hover:border-blue-400/40 transition-all">
+                          <SelectValue placeholder="Region" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white/10 border-white/20 rounded-lg">
+                          <SelectItem value="euw1" className="text-base">EUW</SelectItem>
+                          <SelectItem value="na1" className="text-base">NA</SelectItem>
+                          <SelectItem value="kr" className="text-base">KR</SelectItem>
+                          <SelectItem value="eun1" className="text-base">EUNE</SelectItem>
+                          <SelectItem value="br1" className="text-base">BR</SelectItem>
+                          <SelectItem value="jp1" className="text-base">JP</SelectItem>
+                          <SelectItem value="la1" className="text-base">LAN</SelectItem>
+                          <SelectItem value="la2" className="text-base">LAS</SelectItem>
+                          <SelectItem value="oc1" className="text-base">OCE</SelectItem>
+                          <SelectItem value="tr1" className="text-base">TR</SelectItem>
+                          <SelectItem value="ru" className="text-base">RU</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button onClick={handleSearch} className="h-14 px-8 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0 font-medium">
                         Search
                       </Button>
                     </div>
@@ -90,6 +121,7 @@ export default function Home() {
                         <button
                           key={name}
                           className="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-sm text-slate-300 hover:text-white transition-colors"
+                          onClick={() => setSummonerName(name)}
                         >
                           {name}
                         </button>
