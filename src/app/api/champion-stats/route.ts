@@ -1375,6 +1375,13 @@ async function getMatchIds(apiRegion, apiRank, apiDivision, count = 50) {
   const regionalRouting = regionToRoutingValue[platformRouting] || 'americas';
   const queue = 'RANKED_SOLO_5x5';
 
+  // Only allow Challenger, Grandmaster, Master for league endpoints
+  const validLeagues = ['CHALLENGER', 'GRANDMASTER', 'MASTER'];
+  if (!validLeagues.includes(apiRank)) {
+    console.warn(`[champion-stats] Rank ${apiRank} is not supported for league endpoint. Only CHALLENGER, GRANDMASTER, or MASTER are allowed. Returning no match IDs and using simulated data.`);
+    return [];
+  }
+
   // 1. Get Challenger/GM/Master league entries
   let leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/${apiRank.toLowerCase()}leagues/by-queue/${queue}`;
   if (apiRank === 'CHALLENGER') leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/${queue}`;
