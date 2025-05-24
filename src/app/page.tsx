@@ -52,7 +52,9 @@ function PatchCard() {
       </CardHeader>
       <CardContent className="space-y-6">
         <a
-          href={`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchVersion.replace(/\./g, '-')}-notes/`}
+          href={/^\d{2}\.\d{2,3}$/.test(patchVersion)
+            ? `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchVersion.replace(/\./g, '-')}-notes/`
+            : "https://www.leagueoflegends.com/en-us/news/tags/patch-notes/"}
           target="_blank"
           rel="noopener noreferrer"
           className="block"
