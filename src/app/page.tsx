@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/select"
 import { useRouter } from "next/navigation"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { createPortal } from "react-dom"
 import axios from "axios"
 import ProfileIcon from "@/components/ProfileIcon"
 
@@ -31,6 +32,8 @@ export default function Home() {
   const [results, setResults] = useState<Summoner[]>([]);
   const [loading, setLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState({ left: 0, top: 0, width: 0 });
 
   const fetchSummoners = useCallback(async () => {
     if (summonerName.length < 3) {
@@ -58,6 +61,17 @@ export default function Home() {
     }, 500);
     return () => clearTimeout(timer);
   }, [summonerName, fetchSummoners]);
+
+  useEffect(() => {
+    if (showResults && inputRef.current) {
+      const rect = inputRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        left: rect.left,
+        top: rect.bottom + window.scrollY,
+        width: rect.width,
+      });
+    }
+  }, [showResults, summonerName]);
 
   const handleSelect = (summoner: Summoner) => {
     const formattedName = `${summoner.summonerName}-${summoner.tagLine}`;
@@ -133,6 +147,7 @@ export default function Home() {
                       <div className="relative flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-blue-400" />
                         <Input
+                          ref={inputRef}
                           placeholder="Search summoner name..."
                           value={summonerName}
                           onChange={e => setSummonerName(e.target.value)}
@@ -140,10 +155,9 @@ export default function Home() {
                           onBlur={() => setTimeout(() => setShowResults(false), 200)}
                           className="pl-12 h-14 bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20 text-lg"
                         />
-                        {/* Remove quick search buttons and improve dropdown styling */}
-                        {/* Search Results Dropdown */}
-                        {showResults && summonerName.length >= 3 && (
-                          <div className="fixed left-1/2 top-[160px] w-full max-w-2xl -translate-x-1/2 z-[9999] mt-2 max-h-80 overflow-y-auto bg-[#181A2A] border border-blue-400/30 rounded-xl shadow-2xl p-2">
+                        {/* Search Results Dropdown rendered in a portal */}
+                        {showResults && summonerName.length >= 3 && typeof window !== 'undefined' && createPortal(
+                          <div style={{ position: 'absolute', left: dropdownStyle.left, top: dropdownStyle.top, width: dropdownStyle.width, zIndex: 9999 }} className="max-h-80 overflow-y-auto bg-[#181A2A] border border-blue-400/30 rounded-xl shadow-2xl p-2">
                             {loading ? (
                               <div className="p-6 text-center">
                                 <div className="animate-spin inline-block w-8 h-8 border-[3px] border-current border-t-transparent text-blue-400 rounded-full" aria-label="loading"></div>
@@ -176,7 +190,8 @@ export default function Home() {
                             ) : (
                               <div className="p-6 text-center text-white">No summoners found</div>
                             )}
-                          </div>
+                          </div>,
+                          document.body
                         )}
                       </div>
                       <Select value={region} onValueChange={setRegion}>
