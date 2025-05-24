@@ -40,6 +40,8 @@ function PatchCard() {
     fetchPatch();
   }, []);
 
+  const patchNotesVersion = patchVersion.replace(/(\d+\.\d+)\.1$/, '$1');
+
   return (
     <Card className="h-full bg-white/10 border-white/20 backdrop-blur-md">
       <CardHeader className="pb-4">
@@ -52,8 +54,8 @@ function PatchCard() {
       </CardHeader>
       <CardContent className="space-y-6">
         <a
-          href={/^\d{2}\.\d{2,3}$/.test(patchVersion)
-            ? `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchVersion.replace(/\./g, '-')}-notes/`
+          href={/^\d{2}\.\d{2,3}(\.1)?$/.test(patchVersion)
+            ? `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion.replace(/\./g, '-')}-notes/`
             : "https://www.leagueoflegends.com/en-us/news/tags/patch-notes/"}
           target="_blank"
           rel="noopener noreferrer"
