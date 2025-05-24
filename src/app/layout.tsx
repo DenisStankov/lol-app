@@ -33,7 +33,50 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Enhanced Animated Background - Global */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-20 right-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-float-delayed"></div>
+          <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl animate-float-slow"></div>
+          {/* Particle Effects */}
+          <div className="absolute inset-0">
+            {[...Array(20)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-blue-400/20 rounded-full animate-twinkle"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 3}s`,
+                  animationDuration: `${2 + Math.random() * 2}s`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
         {children}
+        <style jsx global>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+          }
+          @keyframes float-delayed {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(-180deg); }
+          }
+          @keyframes float-slow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(90deg); }
+          }
+          @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1); }
+          }
+          .animate-float { animation: float 6s ease-in-out infinite; }
+          .animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
+          .animate-float-slow { animation: float-slow 10s ease-in-out infinite; }
+          .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
+        `}</style>
       </body>
     </html>
   );

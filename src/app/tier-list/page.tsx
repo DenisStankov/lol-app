@@ -259,9 +259,24 @@ export default function TierList() {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
       {/* Decorative Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-float-delayed"></div>
+        <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl animate-float-slow"></div>
+        {/* Particle Effects */}
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-blue-400/20 rounded-full animate-twinkle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationDuration: `${2 + Math.random() * 2}s`,
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       <Navigation />
@@ -278,6 +293,119 @@ export default function TierList() {
           <p className="text-slate-400 text-center max-w-2xl mb-6">
             Track champion performance, analyze meta picks, and stay updated with the latest patch information.
           </p>
+
+          {/* Filter Bar moved here */}
+          <Card className="bg-white/5 border-white/10 backdrop-blur-sm mb-8 overflow-hidden w-full max-w-3xl">
+            <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-white/10 px-6 py-4">
+              <h3 className="text-lg font-medium flex items-center gap-2">
+                <Filter className="h-5 w-5 text-blue-400" />
+                Filter Options
+              </h3>
+            </div>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                {/* Role Filter */}
+                <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0">
+                  {(["all", "top", "jungle", "mid", "adc", "support"] as Role[]).map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => setSelectedRole(role)}
+                      className={cn(
+                        "flex flex-col items-center justify-center rounded-full w-14 h-14 transition-all duration-300",
+                        selectedRole === role
+                          ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-400/50 shadow-lg shadow-blue-500/10"
+                          : "bg-white/5 border border-white/10 hover:border-blue-400/30 hover:bg-white/10",
+                      )}
+                      aria-label={`Filter by ${role} role`}
+                    >
+                      <div className="relative">
+                        {selectedRole === role && (
+                          <div className="absolute -inset-3 bg-blue-500/20 rounded-full blur-sm"></div>
+                        )}
+                        <Image
+                          src={getRoleIcon(role) || "/placeholder.svg"}
+                          alt={`${role} role`}
+                          width={28}
+                          height={28}
+                          className={cn(
+                            "w-7 h-7",
+                            selectedRole === role ? "brightness-125" : "opacity-75 hover:opacity-100",
+                          )}
+                        />
+                      </div>
+                      <span className={cn("text-xs mt-1", selectedRole === role ? "text-blue-400" : "text-slate-400")}>
+                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Division Filter with Rank Icon */}
+                <div className="w-full md:w-48 relative">
+                  <button
+                    className="rank-dropdown w-full bg-white/5 border border-white/10 rounded-md py-2.5 px-4 text-white flex items-center justify-between hover:bg-white/10 transition-colors duration-300"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    aria-haspopup="listbox"
+                    aria-expanded={isDropdownOpen}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5">
+                        <Image
+                          src={getRankIcon(selectedDivision) || "/placeholder.svg"}
+                          alt={selectedDivision}
+                          width={32}
+                          height={32}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <span className="font-medium">{rankMap[selectedDivision]}+</span>
+                    </div>
+                    <ArrowDown className="h-4 w-4 text-slate-400" />
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="rank-dropdown absolute z-20 mt-1 w-full bg-slate-900 border border-white/10 rounded-md shadow-lg py-1 backdrop-blur-sm" role="listbox" tabIndex={-1}>
+                      {Object.entries(rankMap).map(([division, rankName]) => (
+                        <button
+                          key={division}
+                          className="w-full px-4 py-2.5 text-left hover:bg-white/5 flex items-center gap-3 transition-colors"
+                          onClick={() => {
+                            setSelectedDivision(division as Division)
+                            setIsDropdownOpen(false)
+                          }}
+                        >
+                          <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5">
+                            <Image
+                              src={`/images/ranks/Rank=${rankName}.png`}
+                              alt={rankName}
+                              width={32}
+                              height={32}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <span className={selectedDivision === division ? "text-blue-400" : "text-white"}>
+                            {rankName}+
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative w-full md:w-64 ml-auto">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Search champions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 py-2.5 bg-white/5 border border-white/10 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-300"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Stats Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-8">
@@ -334,119 +462,6 @@ export default function TierList() {
             </Card>
           </div>
         </div>
-
-        {/* Search and Filter Bar */}
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm mb-8 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-white/10 px-6 py-4">
-            <h3 className="text-lg font-medium flex items-center gap-2">
-              <Filter className="h-5 w-5 text-blue-400" />
-              Filter Options
-            </h3>
-          </div>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-              {/* Role Filter */}
-              <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0">
-                {(["all", "top", "jungle", "mid", "adc", "support"] as Role[]).map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => setSelectedRole(role)}
-                    className={cn(
-                      "flex flex-col items-center justify-center rounded-full w-14 h-14 transition-all duration-300",
-                      selectedRole === role
-                        ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-400/50 shadow-lg shadow-blue-500/10"
-                        : "bg-white/5 border border-white/10 hover:border-blue-400/30 hover:bg-white/10",
-                    )}
-                    aria-label={`Filter by ${role} role`}
-                  >
-                    <div className="relative">
-                      {selectedRole === role && (
-                        <div className="absolute -inset-3 bg-blue-500/20 rounded-full blur-sm"></div>
-                      )}
-                      <Image
-                        src={getRoleIcon(role) || "/placeholder.svg"}
-                        alt={`${role} role`}
-                        width={28}
-                        height={28}
-                        className={cn(
-                          "w-7 h-7",
-                          selectedRole === role ? "brightness-125" : "opacity-75 hover:opacity-100",
-                        )}
-                      />
-                    </div>
-                    <span className={cn("text-xs mt-1", selectedRole === role ? "text-blue-400" : "text-slate-400")}>
-                      {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Division Filter with Rank Icon */}
-              <div className="w-full md:w-48 relative">
-                <button
-                  className="rank-dropdown w-full bg-white/5 border border-white/10 rounded-md py-2.5 px-4 text-white flex items-center justify-between hover:bg-white/10 transition-colors duration-300"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  aria-haspopup="listbox"
-                  aria-expanded={isDropdownOpen}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5">
-                      <Image
-                        src={getRankIcon(selectedDivision) || "/placeholder.svg"}
-                        alt={selectedDivision}
-                        width={32}
-                        height={32}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <span className="font-medium">{rankMap[selectedDivision]}+</span>
-                  </div>
-                  <ArrowDown className="h-4 w-4 text-slate-400" />
-                </button>
-
-                {isDropdownOpen && (
-                  <div className="rank-dropdown absolute z-20 mt-1 w-full bg-slate-900 border border-white/10 rounded-md shadow-lg py-1 backdrop-blur-sm" role="listbox" tabIndex={-1}>
-                    {Object.entries(rankMap).map(([division, rankName]) => (
-                      <button
-                        key={division}
-                        className="w-full px-4 py-2.5 text-left hover:bg-white/5 flex items-center gap-3 transition-colors"
-                        onClick={() => {
-                          setSelectedDivision(division as Division)
-                          setIsDropdownOpen(false)
-                        }}
-                      >
-                        <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5">
-                          <Image
-                            src={`/images/ranks/Rank=${rankName}.png`}
-                            alt={rankName}
-                            width={32}
-                            height={32}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <span className={selectedDivision === division ? "text-blue-400" : "text-white"}>
-                          {rankName}+
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative w-full md:w-64 ml-auto">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Search champions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 py-2.5 bg-white/5 border border-white/10 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-300"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Champion Table */}
         <Card className="bg-white/5 border-white/10 backdrop-blur-sm overflow-hidden">
@@ -758,19 +773,31 @@ export default function TierList() {
       </footer>
 
       <style jsx global>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        @keyframes float-delayed {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-30px) rotate(-180deg); }
+        }
+        @keyframes float-slow {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(90deg); }
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 0; transform: scale(0.5); }
+          50% { opacity: 1; transform: scale(1); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
+        .animate-float-slow { animation: float-slow 10s ease-in-out infinite; }
+        .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
         @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(5px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(5px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
+        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
       `}</style>
     </div>
   )
