@@ -1368,3 +1368,63 @@ function calculateSimulatedTier(winRate: number, pickRate: number, banRate: numb
   if (performanceScore >= 2) return 'C';
   return 'D';
 }
+
+// Fetch Challenger/GM/Master summoner IDs and their recent match IDs from Riot API
+async function getMatchIds(apiRegion, apiRank, apiDivision, count = 50) {
+  const platformRouting = apiRegion; // e.g., 'kr', 'na1', etc.
+  const regionalRouting = regionToRoutingValue[platformRouting] || 'americas';
+  const queue = 'RANKED_SOLO_5x5';
+
+  // 1. Get Challenger/GM/Master league entries
+  let leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/${apiRank.toLowerCase()}leagues/by-queue/${queue}`;
+  if (apiRank === 'CHALLENGER') leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/${queue}`;
+  if (apiRank === 'GRANDMASTER') leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/grandmasterleagues/by-queue/${queue}`;
+  if (apiRank === 'MASTER') leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/masterleagues/by-queue/${queue}`;
+
+  let summonerIds = [];
+  try {
+    const leagueRes = await axios.get(leagueUrl, {
+      headers: { 'X-Riot-Token': RIOT_API_KEY }
+    });
+    const entries = leagueRes.data.entries || [];
+    summonerIds = entries.slice(0, 10).map(e => e.summonerId); // Limit to 10 for rate limits
+  } catch (err) {
+    console.error('[champion-stats] Error fetching league entries:', err?.response?.data || err);
+    return [];
+  }
+
+  // 2. Get PUUIDs for these summoners
+  let puuids = [];
+  for (const summonerId of summonerIds) {
+    try {
+      const summonerUrl = `https://${platformRouting}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`;
+      const summonerRes = await axios.get(summonerUrl, {
+        headers: { 'X-Riot-Token': RIOT_API_KEY }
+      });
+      puuids.push(summonerRes.data.puuid);
+    } catch (err) {
+      console.error('[champion-stats] Error fetching summoner PUUID:', err?.response?.data || err);
+    }
+  }
+
+  // 3. Get recent match IDs for each PUUID
+  let matchIds = [];
+  for (const puuid of puuids) {
+    try {
+      const matchesUrl = `https://${regionalRouting}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&start=0&count=5`;
+      const matchesRes = await axios.get(matchesUrl, {
+        headers: { 'X-Riot-Token': RIOT_API_KEY }
+      });
+      for (const matchId of matchesRes.data) {
+        if (!matchIds.includes(matchId)) matchIds.push(matchId);
+        if (matchIds.length >= count) break;
+      }
+    } catch (err) {
+      console.error('[champion-stats] Error fetching match IDs for puuid:', err?.response?.data || err);
+    }
+    if (matchIds.length >= count) break;
+  }
+
+  console.log(`[champion-stats] Collected ${matchIds.length} unique match IDs from Riot API`);
+  return matchIds;
+}
