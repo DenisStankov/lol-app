@@ -26,6 +26,11 @@ interface Summoner {
 
 function PatchCard() {
   const [patchVersion, setPatchVersion] = useState("...");
+  const [patchTitle, setPatchTitle] = useState("");
+  const [patchSummary, setPatchSummary] = useState("");
+  const [patchUrl, setPatchUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchPatch() {
@@ -37,7 +42,22 @@ function PatchCard() {
         setPatchVersion("Unknown");
       }
     }
+    async function fetchPatchSummary() {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/patch-summary");
+        const data = await res.json();
+        setPatchTitle(data.title);
+        setPatchSummary(data.summary);
+        setPatchUrl(data.url);
+      } catch (err) {
+        setError("Failed to load patch summary");
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchPatch();
+    fetchPatchSummary();
   }, []);
 
   // Convert Data Dragon version to year-based patch (e.g., 15.10.1 -> 25.10)
@@ -62,8 +82,18 @@ function PatchCard() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {loading ? (
+          <div className="text-slate-400 text-center">Loading patch summary...</div>
+        ) : error ? (
+          <div className="text-red-400 text-center">{error}</div>
+        ) : (
+          <>
+            <div className="text-lg font-semibold text-white mb-2">{patchTitle}</div>
+            <div className="text-slate-300 text-sm mb-4">{patchSummary}</div>
+          </>
+        )}
         <a
-          href={`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion.replace(/\./g, '-')}-notes/`}
+          href={patchUrl || `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion.replace(/\./g, '-')}-notes/`}
           target="_blank"
           rel="noopener noreferrer"
           className="block"
