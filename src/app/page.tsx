@@ -40,7 +40,16 @@ function PatchCard() {
     fetchPatch();
   }, []);
 
-  const patchNotesVersion = patchVersion.replace(/(\d+\.\d+)\.1$/, '$1');
+  // Convert Data Dragon version to year-based patch (e.g., 15.10.1 -> 25.10)
+  let displayPatch = patchVersion;
+  let patchNotesVersion = patchVersion;
+  const match = patchVersion.match(/^(\d+)\.(\d+)\.\d+$/);
+  if (match) {
+    const year = parseInt(match[1], 10) + 10;
+    const patch = match[2];
+    displayPatch = `${year}.${patch}`;
+    patchNotesVersion = `${year}.${patch}`;
+  }
 
   return (
     <Card className="h-full bg-white/10 border-white/20 backdrop-blur-md">
@@ -49,14 +58,12 @@ function PatchCard() {
           <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
             <Star className="h-4 w-4 text-blue-400" />
           </div>
-          Patch {patchVersion}
+          Patch {displayPatch}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <a
-          href={/^\d{2}\.\d{2,3}(\.1)?$/.test(patchVersion)
-            ? `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion.replace(/\./g, '-')}-notes/`
-            : "https://www.leagueoflegends.com/en-us/news/tags/patch-notes/"}
+          href={`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion.replace(/\./g, '-')}-notes/`}
           target="_blank"
           rel="noopener noreferrer"
           className="block"
