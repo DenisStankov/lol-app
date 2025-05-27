@@ -45,8 +45,19 @@ export async function GET() {
     // Extract the title
     const title = $('h1').first().text().trim();
 
-    // Improved summary extraction: get all <p> tags before the first <h2> in .article__content
+    // Log the tag names, attributes, and text of all direct children of .article__content
     const articleContent = $('.article__content');
+    articleContent.children().each((_, el) => {
+      const node = $(el).get(0);
+      if (!node) return;
+      console.log({
+        tag: node.tagName,
+        attrs: $(el).attr(),
+        text: $(el).text().trim()
+      });
+    });
+
+    // Improved summary extraction: get all <p> tags before the first <h2> in .article__content
     let summary = '';
     let beforeH2 = true;
     articleContent.children().each((_, el) => {
