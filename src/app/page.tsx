@@ -24,69 +24,86 @@ interface Summoner {
   region?: string;
 }
 
-function PatchCard({ version }: { version: string }) {
-  const [summary, setSummary] = useState<{ title: string; summary: string } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
+function PatchCard() {
+  const [patchVersion, setPatchVersion] = useState("...");
+  const [patchTitle, setPatchTitle] = useState("");
+  const [patchSummary, setPatchSummary] = useState("");
+  const [patchUrl, setPatchUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchSummary = async () => {
+    async function fetchPatch() {
       try {
-        setIsLoading(true);
-        setError(false);
-        const response = await fetch('/api/patch-summary');
-        if (!response.ok) {
-          throw new Error('Failed to fetch patch summary');
-        }
-        const data = await response.json();
-        setSummary(data);
+        const res = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+        const data = await res.json();
+        setPatchVersion(data[0]);
       } catch (err) {
-        console.error('Error fetching patch summary:', err);
-        setError(true);
-      } finally {
-        setIsLoading(false);
+        setPatchVersion("Unknown");
       }
-    };
-
-    fetchSummary();
+    }
+    async function fetchPatchSummary() {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/patch-summary");
+        const data = await res.json();
+        setPatchTitle(data.title);
+        setPatchSummary(data.summary);
+        setPatchUrl(data.url);
+      } catch (err) {
+        setError("Failed to load patch summary");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPatch();
+    fetchPatchSummary();
   }, []);
 
-  // Convert version to YY.PP format for display
-  const displayVersion = version.split('.').slice(0, 2).join('.');
-  
-  // Convert version to YY.PP format for patch notes link
-  const patchNotesVersion = version.split('.').slice(0, 2).join('.');
+  // Convert Data Dragon version to year-based patch (e.g., 15.10.1 -> 25.10)
+  let displayPatch = patchVersion;
+  let patchNotesVersion = patchVersion;
+  const match = patchVersion.match(/^(\d+)\.(\d+)\.\d+$/);
+  if (match) {
+    const year = parseInt(match[1], 10) + 10;
+    const patch = match[2];
+    displayPatch = `${year}.${patch}`;
+    patchNotesVersion = `${year}.${patch}`;
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Patch {displayVersion}</h3>
+    <Card className="h-full bg-white/10 border-white/20 backdrop-blur-md">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-3 text-xl">
+          <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+            <Star className="h-4 w-4 text-blue-400" />
+          </div>
+          Patch {displayPatch}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {loading ? (
+          <div className="text-slate-400 text-center">Loading patch summary...</div>
+        ) : error ? (
+          <div className="text-red-400 text-center">{error}</div>
+        ) : (
+          <>
+            <div className="text-lg font-semibold text-white mb-2">{patchTitle}</div>
+            <div className="text-slate-300 text-sm mb-4">{patchSummary}</div>
+          </>
+        )}
         <a
-          href={`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion}-notes/`}
+          href={patchUrl || `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion.replace(/\./g, '-')}-notes/`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+          className="block"
         >
-          View Patch Notes →
+          <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
+            View Full Patch Notes
+          </Button>
         </a>
-      </div>
-      
-      {isLoading ? (
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-        </div>
-      ) : error ? (
-        <div className="text-sm text-gray-500">
-          <p>Click the link above to view the latest patch notes.</p>
-        </div>
-      ) : summary ? (
-        <div className="space-y-2">
-          <h4 className="font-medium text-gray-900">{summary.title}</h4>
-          <p className="text-sm text-gray-500">{summary.summary}</p>
-        </div>
-      ) : null}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -353,7 +370,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Enhanced Patch Info */}
             <div className="lg:col-span-4">
-              <PatchCard version="15.10.1" />
+              <PatchCard />
             </div>
 
             {/* Enhanced Top Champions */}
