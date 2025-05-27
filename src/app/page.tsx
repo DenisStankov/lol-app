@@ -36,34 +36,16 @@ function PatchCard() {
     async function fetchPatchData() {
       try {
         setLoading(true);
-        // Fetch latest version
-        const versionRes = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
-        const versions = await versionRes.json();
-        const latestVersion = versions[0];
-        setPatchVersion(latestVersion);
-
-        // Fetch champion data for the latest version
-        const championRes = await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`);
-        const championData = await championRes.json();
-        
-        // Get list of champions that were updated in this patch
-        const updatedChampions = Object.values(championData.data)
-          .filter((champion: any) => champion.version === latestVersion)
-          .map((champion: any) => champion.name);
-
-        // Create dynamic summary based on updated champions
-        if (updatedChampions.length > 0) {
-          setPatchTitle(`Patch ${latestVersion} Champion Updates`);
-          setPatchSummary(`This patch includes updates for ${updatedChampions.length} champions: ${updatedChampions.join(', ')}`);
-        } else {
-          setPatchTitle(`Patch ${latestVersion}`);
-          setPatchSummary("Check the official patch notes for detailed changes and updates.");
+        const response = await fetch('/api/patch-notes');
+        if (!response.ok) {
+          throw new Error('Failed to fetch patch notes');
         }
-
-        // Set the patch notes URL
-        const [major, minor] = latestVersion.split('.');
-        const year = parseInt(major) + 10;
-        setPatchUrl(`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${year}-${minor}-notes/`);
+        const data = await response.json();
+        
+        setPatchVersion(data.version);
+        setPatchTitle(data.title);
+        setPatchSummary(data.summary);
+        setPatchUrl(data.url);
       } catch (err) {
         console.error('Error fetching patch data:', err);
         setError("Failed to load patch information");
@@ -108,7 +90,7 @@ function PatchCard() {
           </>
         )}
         <a
-          href={patchUrl || `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion.replace(/\./g, '-')}-notes/`}
+          href={patchUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="block"
