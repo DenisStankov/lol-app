@@ -45,11 +45,10 @@ function PatchCard() {
     async function fetchPatchSummary() {
       try {
         setLoading(true);
-        const res = await fetch("/api/patch-summary");
-        const data = await res.json();
-        setPatchTitle(data.title);
-        setPatchSummary(data.summary);
-        setPatchUrl(data.url);
+        // Instead of fetching from our API, we'll use static content for now
+        setPatchTitle("Latest Game Updates");
+        setPatchSummary("Stay tuned for the latest champion changes, item updates, and balance adjustments in this patch.");
+        setPatchUrl(`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchVersion.split('.').slice(0, 2).join('-')}-notes/`);
       } catch (err) {
         setError("Failed to load patch summary");
       } finally {
@@ -58,7 +57,7 @@ function PatchCard() {
     }
     fetchPatch();
     fetchPatchSummary();
-  }, []);
+  }, [patchVersion]); // Added patchVersion as dependency
 
   // Convert Data Dragon version to year-based patch (e.g., 15.10.1 -> 25.10)
   let displayPatch = patchVersion;
