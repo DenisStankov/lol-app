@@ -11,25 +11,35 @@ export async function GET() {
     const latestVersion = versions[0];
 
     // Convert version to year-based format (e.g., 15.10.1 -> 25.10)
-    const [major, minor] = latestVersion.split('.');
+    const [major, minor, patch] = latestVersion.split('.');
     const year = parseInt(major) + 10;
-    const patchNotesVersion = `${year}.${minor}`;
+    const patchNotesVersions = [
+      `${year}.${minor}`, // two-part
+      `${year}.${minor}.${patch}` // three-part
+    ];
+    const urlFormats = [
+      `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${year}-${minor}-notes/`,
+      `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${year}-${minor}-${patch}-notes/`
+    ];
 
-    // Fetch the patch notes page
-    const response = await fetch(
-      `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion}-notes/`,
-      {
+    let response, html, urlUsed;
+    for (const url of urlFormats) {
+      response = await fetch(url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
+      });
+      if (response.ok) {
+        html = await response.text();
+        urlUsed = url;
+        break;
       }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch patch notes: ${response.status}`);
     }
 
-    const html = await response.text();
+    if (!html) {
+      throw new Error('Failed to fetch patch notes: 404');
+    }
+
     const $ = cheerio.load(html);
 
     // Extract the title and summary
@@ -54,11 +64,11 @@ export async function GET() {
 
     return NextResponse.json({
       version: latestVersion,
-      displayVersion: patchNotesVersion,
+      displayVersion: patchNotesVersions[0],
       title,
       summary,
       championChanges,
-      url: `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchNotesVersion}-notes/`
+      url: urlUsed
     });
   } catch (error) {
     console.error('Error fetching patch notes:', error);
