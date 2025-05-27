@@ -45,15 +45,18 @@ export async function GET() {
     // Extract the title
     const title = $('h1').first().text().trim();
 
-    // Improved summary extraction: join the first two non-empty <p> tags after the <h1> in .article__content
+    // Improved summary extraction: get all <p> tags before the first <h2> in .article__content
     const articleContent = $('.article__content');
     let summary = '';
-    let found = 0;
-    articleContent.find('p').each((_, el) => {
-      const text = $(el).text().trim();
-      if (text && found < 2) {
-        summary += (found > 0 ? ' ' : '') + text;
-        found++;
+    let beforeH2 = true;
+    articleContent.children().each((_, el) => {
+      if ($(el).is('h2')) {
+        beforeH2 = false;
+        return false; // break loop
+      }
+      if (beforeH2 && $(el).is('p')) {
+        const text = $(el).text().trim();
+        if (text) summary += (summary ? ' ' : '') + text;
       }
     });
 
