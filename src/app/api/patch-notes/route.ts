@@ -42,9 +42,20 @@ export async function GET() {
 
     const $ = cheerio.load(html);
 
-    // Extract the title and summary
+    // Extract the title
     const title = $('h1').first().text().trim();
-    const summary = $('.article__content p').first().text().trim();
+
+    // Improved summary extraction: join the first two non-empty <p> tags after the <h1> in .article__content
+    const articleContent = $('.article__content');
+    let summary = '';
+    let found = 0;
+    articleContent.find('p').each((_, el) => {
+      const text = $(el).text().trim();
+      if (text && found < 2) {
+        summary += (found > 0 ? ' ' : '') + text;
+        found++;
+      }
+    });
 
     // Get champion changes
     const championChanges: { name: string; changes: string }[] = [];
