@@ -33,31 +33,47 @@ function PatchCard() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function fetchPatch() {
-      try {
-        const res = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
-        const data = await res.json();
-        setPatchVersion(data[0]);
-      } catch (err) {
-        setPatchVersion("Unknown");
-      }
-    }
-    async function fetchPatchSummary() {
+    async function fetchPatchData() {
       try {
         setLoading(true);
-        // Instead of fetching from our API, we'll use static content for now
-        setPatchTitle("Latest Game Updates");
-        setPatchSummary("Stay tuned for the latest champion changes, item updates, and balance adjustments in this patch.");
-        setPatchUrl(`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${patchVersion.split('.').slice(0, 2).join('-')}-notes/`);
+        // Fetch latest version
+        const versionRes = await fetch("https://ddragon.leagueoflegends.com/api/versions.json");
+        const versions = await versionRes.json();
+        const latestVersion = versions[0];
+        setPatchVersion(latestVersion);
+
+        // Fetch champion data for the latest version
+        const championRes = await fetch(`https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/en_US/champion.json`);
+        const championData = await championRes.json();
+        
+        // Get list of champions that were updated in this patch
+        const updatedChampions = Object.values(championData.data)
+          .filter((champion: any) => champion.version === latestVersion)
+          .map((champion: any) => champion.name);
+
+        // Create dynamic summary based on updated champions
+        if (updatedChampions.length > 0) {
+          setPatchTitle(`Patch ${latestVersion} Champion Updates`);
+          setPatchSummary(`This patch includes updates for ${updatedChampions.length} champions: ${updatedChampions.join(', ')}`);
+        } else {
+          setPatchTitle(`Patch ${latestVersion}`);
+          setPatchSummary("Check the official patch notes for detailed changes and updates.");
+        }
+
+        // Set the patch notes URL
+        const [major, minor] = latestVersion.split('.');
+        const year = parseInt(major) + 10;
+        setPatchUrl(`https://www.leagueoflegends.com/en-us/news/game-updates/patch-${year}-${minor}-notes/`);
       } catch (err) {
-        setError("Failed to load patch summary");
+        console.error('Error fetching patch data:', err);
+        setError("Failed to load patch information");
       } finally {
         setLoading(false);
       }
     }
-    fetchPatch();
-    fetchPatchSummary();
-  }, [patchVersion]); // Added patchVersion as dependency
+
+    fetchPatchData();
+  }, []);
 
   // Convert Data Dragon version to year-based patch (e.g., 15.10.1 -> 25.10)
   let displayPatch = patchVersion;
@@ -82,7 +98,7 @@ function PatchCard() {
       </CardHeader>
       <CardContent className="space-y-6">
         {loading ? (
-          <div className="text-slate-400 text-center">Loading patch summary...</div>
+          <div className="text-slate-400 text-center">Loading patch information...</div>
         ) : error ? (
           <div className="text-red-400 text-center">{error}</div>
         ) : (
