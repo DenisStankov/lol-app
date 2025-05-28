@@ -63,6 +63,16 @@ const rankMap: Record<Division, string> = {
   "challenger+": "Challenger",
 }
 
+// Add a mapping for role labels
+const roleLabels: Record<Role, string> = {
+  all: "All",
+  top: "Top",
+  jungle: "Jungle",
+  mid: "Mid",
+  adc: "ADC",
+  support: "Support",
+};
+
 export default function TierList() {
   // State for filters
   const [selectedRole, setSelectedRole] = useState<Role>("all")
@@ -311,31 +321,30 @@ export default function TierList() {
                       key={role}
                       onClick={() => setSelectedRole(role)}
                       className={cn(
-                        "flex flex-col items-center justify-center rounded-full w-14 h-14 transition-all duration-300",
+                        "flex flex-col items-center justify-center rounded-full w-14 h-14 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50",
                         selectedRole === role
                           ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-400/50 shadow-lg shadow-blue-500/10"
                           : "bg-white/5 border border-white/10 hover:border-blue-400/30 hover:bg-white/10",
                       )}
-                      aria-label={`Filter by ${role} role`}
+                      aria-label={`Filter by ${roleLabels[role]} role`}
+                      tabIndex={0}
                     >
-                      <div className="relative">
+                      <div className="relative flex items-center justify-center w-8 h-8">
                         {selectedRole === role && (
-                          <div className="absolute -inset-3 bg-blue-500/20 rounded-full blur-sm"></div>
+                          <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-sm"></div>
                         )}
                         <Image
                           src={getRoleIcon(role) || "/placeholder.svg"}
-                          alt={`${role} role`}
-                          width={28}
-                          height={28}
+                          alt={`${roleLabels[role]} role`}
+                          width={32}
+                          height={32}
                           className={cn(
-                            "w-7 h-7",
-                            selectedRole === role ? "brightness-125" : "opacity-75 hover:opacity-100",
+                            "w-8 h-8",
+                            selectedRole === role ? "brightness-125" : "opacity-80 hover:opacity-100",
                           )}
                         />
                       </div>
-                      <span className={cn("text-xs mt-1", selectedRole === role ? "text-blue-400" : "text-slate-400")}>
-                        {role.charAt(0).toUpperCase() + role.slice(1)}
-                      </span>
+                      <span className={cn("text-xs mt-1 font-medium", selectedRole === role ? "text-blue-400" : "text-slate-400")}>{roleLabels[role]}</span>
                     </button>
                   ))}
                 </div>
@@ -343,7 +352,10 @@ export default function TierList() {
                 {/* Division Filter with Rank Icon */}
                 <div className="w-full md:w-48 relative">
                   <button
-                    className="rank-dropdown w-full bg-white/5 border border-white/10 rounded-md py-2.5 px-4 text-white flex items-center justify-between hover:bg-white/10 transition-colors duration-300"
+                    className={cn(
+                      "rank-dropdown w-full bg-white/5 border border-white/10 rounded-md py-2.5 px-4 text-white flex items-center justify-between hover:bg-white/10 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50",
+                      isDropdownOpen && "ring-2 ring-blue-400/50"
+                    )}
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     aria-haspopup="listbox"
                     aria-expanded={isDropdownOpen}
@@ -360,11 +372,11 @@ export default function TierList() {
                       </div>
                       <span className="font-medium">{rankMap[selectedDivision]}+</span>
                     </div>
-                    <ArrowDown className="h-4 w-4 text-slate-400" />
+                    <ArrowDown className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", isDropdownOpen && "rotate-180")}/>
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="rank-dropdown absolute z-20 mt-1 w-full bg-slate-900 border border-white/10 rounded-md shadow-lg py-1 backdrop-blur-sm" role="listbox" tabIndex={-1}>
+                    <div className="rank-dropdown absolute z-50 mt-1 w-full bg-slate-900 border border-white/10 rounded-md shadow-xl py-1 backdrop-blur-sm" role="listbox" tabIndex={-1}>
                       {Object.entries(rankMap).map(([division, rankName]) => (
                         <button
                           key={division}
