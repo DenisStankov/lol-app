@@ -408,7 +408,7 @@ export default function TierList() {
                             "w-full flex items-center gap-2 px-4 py-2 rounded-lg transition-colors",
                             selectedDivision === division ? "bg-blue-500/10 text-blue-400" : "hover:bg-blue-400/10 text-white"
                           )}
-                          onClick={() => {
+                          onMouseDown={() => {
                             setSelectedDivision(division as Division)
                             setIsDropdownOpen(false)
                           }}
