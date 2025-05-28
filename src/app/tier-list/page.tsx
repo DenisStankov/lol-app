@@ -313,91 +313,87 @@ export default function TierList() {
               </h3>
             </div>
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+              <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-stretch md:items-center">
                 {/* Role Filter */}
-                <div className="flex gap-3 overflow-x-auto pb-2 md:pb-0">
+                <div className="flex gap-2 md:gap-3 items-center">
                   {(["all", "top", "jungle", "mid", "adc", "support"] as Role[]).map((role) => (
                     <button
                       key={role}
                       onClick={() => setSelectedRole(role)}
                       className={cn(
-                        "flex flex-col items-center justify-center rounded-full w-14 h-14 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50",
+                        "flex flex-col items-center justify-center rounded-xl w-12 h-12 md:w-14 md:h-14 transition-all duration-200 border-2",
                         selectedRole === role
-                          ? "bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-400/50 shadow-lg shadow-blue-500/10"
-                          : "bg-white/5 border border-white/10 hover:border-blue-400/30 hover:bg-white/10",
+                          ? "bg-blue-500/20 border-blue-400 shadow-md"
+                          : "bg-white/5 border-transparent hover:bg-blue-400/10"
                       )}
                       aria-label={`Filter by ${roleLabels[role]} role`}
                       tabIndex={0}
                     >
-                      <div className="relative flex items-center justify-center w-8 h-8">
-                        {selectedRole === role && (
-                          <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-sm"></div>
+                      <Image
+                        src={getRoleIcon(role) || "/placeholder.svg"}
+                        alt={`${roleLabels[role]} role`}
+                        width={28}
+                        height={28}
+                        className={cn(
+                          "w-7 h-7 md:w-8 md:h-8",
+                          selectedRole === role ? "brightness-125" : "opacity-80 hover:opacity-100"
                         )}
-                        <Image
-                          src={getRoleIcon(role) || "/placeholder.svg"}
-                          alt={`${roleLabels[role]} role`}
-                          width={32}
-                          height={32}
-                          className={cn(
-                            "w-8 h-8",
-                            selectedRole === role ? "brightness-125" : "opacity-80 hover:opacity-100",
-                          )}
-                        />
-                      </div>
-                      <span className={cn("text-xs mt-1 font-medium", selectedRole === role ? "text-blue-400" : "text-slate-400")}>{roleLabels[role]}</span>
+                      />
+                      <span className={cn(
+                        "text-xs mt-1 font-medium",
+                        selectedRole === role ? "text-blue-400" : "text-slate-400"
+                      )}>
+                        {roleLabels[role]}
+                      </span>
                     </button>
                   ))}
                 </div>
 
                 {/* Division Filter with Rank Icon */}
-                <div className="w-full md:w-48 relative">
+                <div className="relative flex-shrink-0">
                   <button
                     className={cn(
-                      "rank-dropdown w-full bg-white/5 border border-white/10 rounded-md py-2.5 px-4 text-white flex items-center justify-between hover:bg-white/10 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/50",
-                      isDropdownOpen && "ring-2 ring-blue-400/50"
+                      "flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-200 font-medium",
+                      isDropdownOpen
+                        ? "bg-blue-500/20 border-blue-400 shadow-md"
+                        : "bg-white/5 border-transparent hover:bg-blue-400/10"
                     )}
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     aria-haspopup="listbox"
                     aria-expanded={isDropdownOpen}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5">
-                        <Image
-                          src={getRankIcon(selectedDivision) || "/placeholder.svg"}
-                          alt={selectedDivision}
-                          width={32}
-                          height={32}
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <span className="font-medium">{rankMap[selectedDivision]}+</span>
-                    </div>
-                    <ArrowDown className={cn("h-4 w-4 text-slate-400 transition-transform duration-200", isDropdownOpen && "rotate-180")}/>
+                    <Image
+                      src={getRankIcon(selectedDivision) || "/placeholder.svg"}
+                      alt={selectedDivision}
+                      width={28}
+                      height={28}
+                      className="h-7 w-7 object-cover rounded-full"
+                    />
+                    <span>{rankMap[selectedDivision]}+</span>
+                    <ArrowDown className={cn("h-4 w-4 ml-1 transition-transform", isDropdownOpen && "rotate-180")} />
                   </button>
-
                   {isDropdownOpen && (
-                    <div className="rank-dropdown absolute z-50 mt-1 w-full bg-slate-900 border border-white/10 rounded-md shadow-xl py-1 backdrop-blur-sm" role="listbox" tabIndex={-1}>
+                    <div className="absolute z-50 mt-2 w-full min-w-[180px] bg-slate-900 border border-white/10 rounded-xl shadow-xl py-1 backdrop-blur-sm" role="listbox" tabIndex={-1}>
                       {Object.entries(rankMap).map(([division, rankName]) => (
                         <button
                           key={division}
-                          className="w-full px-4 py-2.5 text-left hover:bg-white/5 flex items-center gap-3 transition-colors"
+                          className={cn(
+                            "w-full flex items-center gap-2 px-4 py-2 rounded-lg transition-colors",
+                            selectedDivision === division ? "bg-blue-500/10 text-blue-400" : "hover:bg-blue-400/10 text-white"
+                          )}
                           onClick={() => {
                             setSelectedDivision(division as Division)
                             setIsDropdownOpen(false)
                           }}
                         >
-                          <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5">
-                            <Image
-                              src={`/images/ranks/Rank=${rankName}.png`}
-                              alt={rankName}
-                              width={32}
-                              height={32}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <span className={selectedDivision === division ? "text-blue-400" : "text-white"}>
-                            {rankName}+
-                          </span>
+                          <Image
+                            src={`/images/ranks/Rank=${rankName}.png`}
+                            alt={rankName}
+                            width={24}
+                            height={24}
+                            className="h-6 w-6 object-cover rounded-full"
+                          />
+                          <span>{rankName}+</span>
                         </button>
                       ))}
                     </div>
@@ -405,14 +401,14 @@ export default function TierList() {
                 </div>
 
                 {/* Search Bar */}
-                <div className="relative w-full md:w-64 ml-auto">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 h-4 w-4" />
+                <div className="relative flex-1 max-w-xs ml-auto">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 h-4 w-4" />
                   <input
                     type="text"
                     placeholder="Search champions..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 py-2.5 bg-white/5 border border-white/10 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-400/50 focus:border-blue-400/50 transition-all duration-300"
+                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400/30 transition-all"
                   />
                 </div>
               </div>
