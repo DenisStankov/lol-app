@@ -9,6 +9,8 @@ import Navigation from "@/components/navigation"
 import { Badge } from "@/components/badge"
 import { Card, CardContent } from "@/components/card"
 import Image from "next/image"
+import { createPortal } from "react-dom"
+import { useRef } from "react"
 
 // Role types
 type Role = "top" | "jungle" | "mid" | "adc" | "support" | "all"
@@ -93,6 +95,9 @@ export default function TierList() {
   const [patchVersion, setPatchVersion] = useState<string>("")
 
   const router = useRouter()
+
+  const dropdownRef = useRef<HTMLButtonElement>(null)
+  const [dropdownPos, setDropdownPos] = useState<{ left: number; top: number; width: number }>({ left: 0, top: 0, width: 0 })
 
   // Fetch current patch version on mount
   useEffect(() => {
@@ -246,6 +251,17 @@ export default function TierList() {
     return `/images/ranks/Rank=${rankName}.png`
   }
 
+  // When opening the dropdown, set its position
+  const handleDropdownToggle = () => {
+    setIsDropdownOpen((open) => {
+      if (!open && dropdownRef.current) {
+        const rect = dropdownRef.current.getBoundingClientRect()
+        setDropdownPos({ left: rect.left, top: rect.bottom, width: rect.width })
+      }
+      return !open
+    })
+  }
+
   // Fix dropdown: close on outside click and add keyboard accessibility
   useEffect(() => {
     if (!isDropdownOpen) return
@@ -352,13 +368,14 @@ export default function TierList() {
                 {/* Division Filter with Rank Icon */}
                 <div className="relative flex-shrink-0">
                   <button
+                    ref={dropdownRef}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-200 font-medium",
                       isDropdownOpen
                         ? "bg-blue-500/20 border-blue-400 shadow-md"
                         : "bg-white/5 border-transparent hover:bg-blue-400/10"
                     )}
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    onClick={handleDropdownToggle}
                     aria-haspopup="listbox"
                     aria-expanded={isDropdownOpen}
                   >
@@ -372,8 +389,18 @@ export default function TierList() {
                     <span>{rankMap[selectedDivision]}+</span>
                     <ArrowDown className={cn("h-4 w-4 ml-1 transition-transform", isDropdownOpen && "rotate-180")} />
                   </button>
-                  {isDropdownOpen && (
-                    <div className="absolute z-50 mt-2 w-full min-w-[180px] bg-slate-900 border border-white/10 rounded-xl shadow-xl py-1 backdrop-blur-sm" role="listbox" tabIndex={-1}>
+                  {isDropdownOpen && typeof window !== "undefined" && createPortal(
+                    <div
+                      className="z-50 min-w-[180px] bg-slate-900 border border-white/10 rounded-xl shadow-xl py-1 backdrop-blur-sm"
+                      style={{
+                        position: "fixed",
+                        left: dropdownPos.left,
+                        top: dropdownPos.top,
+                        width: dropdownPos.width,
+                      }}
+                      role="listbox"
+                      tabIndex={-1}
+                    >
                       {Object.entries(rankMap).map(([division, rankName]) => (
                         <button
                           key={division}
@@ -396,7 +423,8 @@ export default function TierList() {
                           <span>{rankName}+</span>
                         </button>
                       ))}
-                    </div>
+                    </div>,
+                    document.body
                   )}
                 </div>
 
