@@ -26,47 +26,19 @@ interface Summoner {
 
 function PatchCard() {
   const [patchVersion, setPatchVersion] = useState("...");
-  const [patchTitle, setPatchTitle] = useState("");
-  const [patchSummary, setPatchSummary] = useState("");
   const [patchUrl, setPatchUrl] = useState("");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     async function fetchPatchData() {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/patch-notes');
-        if (!response.ok) {
-          throw new Error('Failed to fetch patch notes');
-        }
-        const data = await response.json();
-        
-        setPatchVersion(data.version);
-        setPatchTitle(data.title);
-        setPatchSummary(data.summary);
-        setPatchUrl(data.url);
-      } catch (err) {
-        console.error('Error fetching patch data:', err);
-        setError("Failed to load patch information");
-      } finally {
-        setLoading(false);
-      }
+      const response = await fetch('/api/patch-notes');
+      const data = await response.json();
+      setPatchVersion(data.displayVersion);
+      setPatchUrl(data.url);
+      setLoading(false);
     }
-
     fetchPatchData();
   }, []);
-
-  // Convert Data Dragon version to year-based patch (e.g., 15.10.1 -> 25.10)
-  let displayPatch = patchVersion;
-  let patchNotesVersion = patchVersion;
-  const match = patchVersion.match(/^(\d+)\.(\d+)\.\d+$/);
-  if (match) {
-    const year = parseInt(match[1], 10) + 10;
-    const patch = match[2];
-    displayPatch = `${year}.${patch}`;
-    patchNotesVersion = `${year}.${patch}`;
-  }
 
   return (
     <Card className="h-full bg-white/10 border-white/20 backdrop-blur-md">
@@ -75,30 +47,24 @@ function PatchCard() {
           <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
             <Star className="h-4 w-4 text-blue-400" />
           </div>
-          Patch {displayPatch}
+          Patch {patchVersion}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {loading ? (
-          <div className="text-slate-400 text-center">Loading patch information...</div>
-        ) : error ? (
-          <div className="text-red-400 text-center">{error}</div>
+          <div className="text-slate-400 text-center">Loading patch info...</div>
         ) : (
-          <>
-            <div className="text-lg font-semibold text-white mb-2">{patchTitle}</div>
-            <div className="text-slate-300 text-sm mb-4">{patchSummary}</div>
-          </>
+          <a
+            href={patchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block"
+          >
+            <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
+              View Full Patch Notes
+            </Button>
+          </a>
         )}
-        <a
-          href={patchUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block"
-        >
-          <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white border-0">
-            View Full Patch Notes
-          </Button>
-        </a>
       </CardContent>
     </Card>
   );
