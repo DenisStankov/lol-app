@@ -75,10 +75,13 @@ const roleLabels: Record<Role, string> = {
   support: "Support",
 };
 
+// Define supported divisions for real data
+const supportedDivisions: Division[] = ["challenger+", "grandmaster+", "master+"];
+
 export default function TierList() {
   // State for filters
   const [selectedRole, setSelectedRole] = useState<Role>("all")
-  const [selectedDivision, setSelectedDivision] = useState<Division>("platinum+")
+  const [selectedDivision, setSelectedDivision] = useState<Division>("grandmaster+")
   const [searchQuery, setSearchQuery] = useState("")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
@@ -401,7 +404,7 @@ export default function TierList() {
                       role="listbox"
                       tabIndex={-1}
                     >
-                      {Object.entries(rankMap).map(([division, rankName]) => (
+                      {supportedDivisions.map((division) => (
                         <button
                           key={division}
                           className={cn(
@@ -414,13 +417,13 @@ export default function TierList() {
                           }}
                         >
                           <Image
-                            src={`/images/ranks/Rank=${rankName}.png`}
-                            alt={rankName}
+                            src={getRankIcon(division) || "/placeholder.svg"}
+                            alt={rankMap[division]}
                             width={24}
                             height={24}
                             className="h-6 w-6 object-cover rounded-full"
                           />
-                          <span>{rankName}+</span>
+                          <span>{rankMap[division]}+</span>
                         </button>
                       ))}
                     </div>,

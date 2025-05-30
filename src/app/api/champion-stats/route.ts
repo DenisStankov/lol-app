@@ -159,15 +159,25 @@ const regionToRoutingValue: Record<string, string> = {
 // Map for rank tiers to API values
 const rankToApiValue: Record<string, string> = {
   'CHALLENGER': 'CHALLENGER',
+  'CHALLENGER+': 'CHALLENGER',
   'GRANDMASTER': 'GRANDMASTER',
+  'GRANDMASTER+': 'GRANDMASTER',
   'MASTER': 'MASTER',
+  'MASTER+': 'MASTER',
   'DIAMOND': 'DIAMOND',
+  'DIAMOND+': 'DIAMOND',
   'EMERALD': 'EMERALD',
+  'EMERALD+': 'EMERALD',
   'PLATINUM': 'PLATINUM',
+  'PLATINUM+': 'PLATINUM',
   'GOLD': 'GOLD',
+  'GOLD+': 'GOLD',
   'SILVER': 'SILVER',
+  'SILVER+': 'SILVER',
   'BRONZE': 'BRONZE',
+  'BRONZE+': 'BRONZE',
   'IRON': 'IRON',
+  'IRON+': 'IRON',
   'ALL': 'PLATINUM' // Default to Platinum for "ALL"
 };
 
@@ -342,8 +352,8 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     
     // Map display region to API region
     const apiRegion = displayRegionToApiRegion[region.toLowerCase()] || 'na1';
-    const apiRank = rankToApiValue[rank] || 'PLATINUM';
-    const apiDivision = rank === 'CHALLENGER' || rank === 'GRANDMASTER' || rank === 'MASTER' ? 'I' : 'I';
+    const apiRank = rankToApiValue[rank.toUpperCase()] || 'PLATINUM';
+    const apiDivision = apiRank === 'CHALLENGER' || apiRank === 'GRANDMASTER' || apiRank === 'MASTER' ? 'I' : 'I';
     
     // Step 1: Get the current patch version from Data Dragon
     const versions = await fetchVersions();
