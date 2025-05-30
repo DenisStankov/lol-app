@@ -150,15 +150,7 @@ export default function TierList() {
       try {
         const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}`)
         const data = await res.json()
-        setChampions(
-          Object.values(data).map((champ: any) => ({
-            ...champ,
-            primaryRolePercentage:
-              typeof champ.primaryRolePercentage === "number"
-                ? champ.primaryRolePercentage
-                : 100,
-          }))
-        )
+        setChampions(Object.values(data))
       } catch (err) {
         setChampions([])
       }
@@ -673,7 +665,11 @@ export default function TierList() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col items-center">
-                            <span className="font-bold text-white">{champion.winrate.toFixed(1)}%</span>
+                            <span className="font-bold text-white">
+                              {typeof champion.winrate === "number"
+                                ? champion.winrate.toFixed(1) + "%"
+                                : "—"}
+                            </span>
                             <span
                               className={cn(
                                 "text-xs flex items-center",
@@ -690,7 +686,9 @@ export default function TierList() {
                                 <ArrowDown className="h-3 w-3 mr-0.5" />
                               ) : null}
                               {champion.winrateDelta > 0 ? "+" : ""}
-                              {champion.winrateDelta.toFixed(1)}%
+                              {typeof champion.winrateDelta === "number"
+                                ? champion.winrateDelta.toFixed(1) + "%"
+                                : "—"}
                             </span>
                           </div>
                         </TableCell>
@@ -703,17 +701,29 @@ export default function TierList() {
                               ></div>
                             </div>
                             <div className="flex items-center justify-between w-full max-w-[100px]">
-                              <span className="font-bold text-white">{champion.pickrate.toFixed(1)}%</span>
+                              <span className="font-bold text-white">
+                                {typeof champion.pickrate === "number"
+                                  ? champion.pickrate.toFixed(1) + "%"
+                                  : "—"}
+                              </span>
                               {champion.banrate && (
                                 <span className="text-xs text-slate-400 flex items-center">
                                   <Shield className="h-3 w-3 mr-0.5 opacity-75" />
-                                  {champion.banrate.toFixed(1)}%
+                                  {champion.banrate && (
+                                    typeof champion.banrate === "number"
+                                      ? champion.banrate.toFixed(1) + "%"
+                                      : "—"
+                                  )}
                                 </span>
                               )}
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="text-right text-slate-400">{champion.games.toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-slate-400">
+                          {typeof champion.games === "number"
+                            ? champion.games.toLocaleString()
+                            : "—"}
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
