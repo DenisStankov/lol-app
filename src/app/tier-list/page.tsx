@@ -150,7 +150,15 @@ export default function TierList() {
       try {
         const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}`)
         const data = await res.json()
-        setChampions(Object.values(data))
+        setChampions(
+          Object.values(data).map((champ: any) => ({
+            ...champ,
+            primaryRolePercentage:
+              typeof champ.primaryRolePercentage === "number"
+                ? champ.primaryRolePercentage
+                : 100,
+          }))
+        )
       } catch (err) {
         setChampions([])
       }
@@ -647,7 +655,9 @@ export default function TierList() {
                               />
                             </div>
                             <span className="text-xs text-slate-400 mt-1">
-                              {champion.primaryRolePercentage.toFixed(1)}%
+                              {typeof champion.primaryRolePercentage === "number"
+                                ? champion.primaryRolePercentage.toFixed(1) + "%"
+                                : "—"}
                             </span>
                           </div>
                         </TableCell>
