@@ -948,7 +948,7 @@ export async function GET(req) {
           };
         }
         return new Response(JSON.stringify(mergedStats), { status: 200 });
-      } catch (error) {
+  } catch (error) {
         console.error('[API] Error fetching real data:', error);
         return new Response(JSON.stringify([]), { status: 200 });
       }

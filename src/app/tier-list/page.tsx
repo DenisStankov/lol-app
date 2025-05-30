@@ -39,7 +39,7 @@ type SortDirection = "asc" | "desc"
 interface Champion {
   id: string
   name: string
-  icon: string
+    icon: string
   primaryRole: Role
   secondaryRole?: Role
   primaryRolePercentage: number
@@ -135,7 +135,7 @@ export default function TierList() {
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-    } else {
+        } else {
       setSortField(field)
       setSortDirection("desc")
     }
@@ -149,9 +149,63 @@ export default function TierList() {
       setLoading(true)
       try {
         const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}`)
-        const data = await res.json()
-        setChampions(Object.values(data))
-      } catch (err) {
+        const data = await res.json() as Record<string, any>
+        // Map the data to flatten the selected role's stats to the top level
+        const mappedChampions: Champion[] = Object.values(data).map((champ: any) => {
+          // Determine the selected role key (API uses uppercase: TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY)
+          const roleMap: Record<string, string> = {
+            top: 'TOP',
+            jungle: 'JUNGLE',
+            mid: 'MIDDLE',
+            adc: 'BOTTOM',
+            support: 'UTILITY',
+          }
+          // If selectedRole is 'all', pick the role with the most games
+          let selectedRoleKey = selectedRole !== 'all' ? roleMap[selectedRole] : null;
+          let roleStats = null;
+          if (champ.roles) {
+            if (selectedRoleKey && champ.roles[selectedRoleKey]) {
+              roleStats = champ.roles[selectedRoleKey]
+            } else {
+              // Pick the role with the most games
+              const entries = Object.entries(champ.roles)
+              if (entries.length > 0) {
+                entries.sort((a, b) => (b[1].games || 0) - (a[1].games || 0))
+                selectedRoleKey = entries[0][0]
+                roleStats = entries[0][1]
+              }
+            }
+          }
+          // Map the selectedRoleKey back to Role type
+          const reverseRoleMap: Record<string, Role> = {
+            'TOP': 'top',
+            'JUNGLE': 'jungle',
+            'MIDDLE': 'mid',
+            'BOTTOM': 'adc',
+            'UTILITY': 'support',
+          }
+          const mappedRole: Role = selectedRole !== 'all'
+            ? selectedRole
+            : (selectedRoleKey && reverseRoleMap[selectedRoleKey])
+              ? reverseRoleMap[selectedRoleKey]
+              : 'all';
+          return {
+            id: champ.id,
+            name: champ.name,
+            icon: champ.icon,
+            primaryRole: mappedRole,
+            primaryRolePercentage: 100, // Not available in API, set to 100 or calculate if needed
+            tier: roleStats?.tier || 'C',
+            winrate: roleStats?.winRate ?? 0,
+            winrateDelta: roleStats?.winRateDelta ?? 0,
+            pickrate: roleStats?.pickRate ?? 0,
+            games: roleStats?.games ?? 0,
+            banrate: roleStats?.banRate ?? 0,
+          }
+        })
+        setChampions(mappedChampions)
+      } catch (err: any) {
+        console.error('Error fetching champion data:', err?.message ?? err);
         setChampions([])
       }
       setLoading(false)
@@ -264,7 +318,7 @@ export default function TierList() {
     }
   }, [isDropdownOpen])
 
-  return (
+    return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
       {/* Decorative Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -288,7 +342,7 @@ export default function TierList() {
         </div>
       </div>
 
-      <Navigation />
+        <Navigation />
 
       <div className="container mx-auto py-8 px-4 relative z-10">
         <div className="flex flex-col items-center mb-12">
@@ -316,7 +370,7 @@ export default function TierList() {
                 {/* Role Filter */}
                 <div className="flex gap-2 md:gap-3 items-center">
                   {(["all", "top", "jungle", "mid", "adc", "support"] as Role[]).map((role) => (
-                    <button
+          <button
                       key={role}
                       onClick={() => setSelectedRole(role)}
                       className={cn(
@@ -344,13 +398,13 @@ export default function TierList() {
                       )}>
                         {roleLabels[role]}
                       </span>
-                    </button>
+          </button>
                   ))}
-                </div>
+        </div>
 
                 {/* Division Filter with Rank Icon */}
                 <div className="relative flex-shrink-0">
-                  <button
+              <button
                     ref={dropdownRef}
                     className={cn(
                       "flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-200 font-medium",
@@ -371,7 +425,7 @@ export default function TierList() {
                     />
                     <span>{rankMap[selectedDivision]}+</span>
                     <ArrowDown className={cn("h-4 w-4 ml-1 transition-transform", isDropdownOpen && "rotate-180")} />
-                  </button>
+              </button>
                   {isDropdownOpen && typeof window !== "undefined" && createPortal(
                     <div
                       className="z-50 min-w-[180px] bg-slate-900 border border-white/10 rounded-xl shadow-xl py-1 backdrop-blur-sm"
@@ -409,7 +463,7 @@ export default function TierList() {
                     </div>,
                     document.body
                   )}
-                </div>
+        </div>
 
                 {/* Region dropdown */}
                 <select
@@ -433,8 +487,8 @@ export default function TierList() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400/30 transition-all"
                   />
-                </div>
               </div>
+            </div>
             </CardContent>
           </Card>
 
@@ -445,14 +499,14 @@ export default function TierList() {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
                     <Trophy className="h-5 w-5 text-blue-400" />
-                  </div>
+              </div>
                   <div>
                     <h3 className="text-sm font-medium text-slate-400">Top Tier</h3>
                     <p className="text-lg font-bold text-white">
                       {champions.filter((c) => c.tier === "S+" || c.tier === "S").length} Champions
                     </p>
-                  </div>
-                </div>
+            </div>
+              </div>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/5 border-white/10 backdrop-blur-sm">
@@ -460,7 +514,7 @@ export default function TierList() {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
                     <Swords className="h-5 w-5 text-purple-400" />
-                  </div>
+            </div>
                   <div>
                     <h3 className="text-sm font-medium text-slate-400">Highest Winrate</h3>
                     <p className="text-lg font-bold text-white">
@@ -468,8 +522,8 @@ export default function TierList() {
                         ? `${Math.max(...champions.map((c) => c.winrate)).toFixed(1)}%`
                         : "Loading..."}
                     </p>
-                  </div>
-                </div>
+          </div>
+            </div>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-blue-500/5 to-purple-500/10 border-white/10 backdrop-blur-sm">
@@ -477,8 +531,8 @@ export default function TierList() {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
                     <Shield className="h-5 w-5 text-indigo-400" />
-                  </div>
-                  <div>
+          </div>
+            <div>
                     <h3 className="text-sm font-medium text-slate-400">Most Banned</h3>
                     <p className="text-lg font-bold text-white">
                       {champions.length > 0 && champions.some((c) => c.banrate)
@@ -491,8 +545,8 @@ export default function TierList() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </div>
+              </div>
+            </div>
 
         {/* Champion Table */}
         <Card className="bg-white/5 border-white/10 backdrop-blur-sm overflow-hidden">
@@ -521,8 +575,8 @@ export default function TierList() {
                             <ArrowUp className="ml-1 h-4 w-4" />
                           ) : (
                             <ArrowDown className="ml-1 h-4 w-4" />
-                          ))}
-                      </div>
+                ))}
+              </div>
                     </TableHead>
                     <TableHead
                       className="w-28 text-center cursor-pointer hover:bg-white/5 transition-colors text-blue-400 font-medium"
@@ -536,7 +590,7 @@ export default function TierList() {
                           ) : (
                             <ArrowDown className="ml-1 h-4 w-4" />
                           ))}
-                      </div>
+            </div>
                     </TableHead>
                     <TableHead
                       className="w-28 text-center cursor-pointer hover:bg-white/5 transition-colors text-blue-400 font-medium"
@@ -549,8 +603,8 @@ export default function TierList() {
                             <ArrowUp className="ml-1 h-4 w-4" />
                           ) : (
                             <ArrowDown className="ml-1 h-4 w-4" />
-                          ))}
-                      </div>
+                ))}
+              </div>
                     </TableHead>
                     <TableHead className="w-24 text-right text-blue-400 font-medium">Games</TableHead>
                   </TableRow>
@@ -562,7 +616,7 @@ export default function TierList() {
                         <div className="flex flex-col items-center justify-center h-full">
                           <div className="w-16 h-16 rounded-full border-4 border-blue-500/30 border-t-blue-500 animate-spin mb-6"></div>
                           <p className="text-slate-400 text-lg">Loading champion data...</p>
-                        </div>
+            </div>
                       </TableCell>
                     </TableRow>
                   ) : sortedChampions.length === 0 ? (
@@ -571,9 +625,9 @@ export default function TierList() {
                         <div className="flex flex-col items-center justify-center h-full">
                           <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                             <Search className="h-8 w-8 text-slate-500" />
-                          </div>
+          </div>
                           <p className="text-slate-400 mb-4 text-lg">No champions found</p>
-                          <button
+                   <button
                             onClick={() => {
                               setSearchQuery("")
                               setSelectedRole("all")
@@ -581,7 +635,7 @@ export default function TierList() {
                             className="px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-colors"
                           >
                             Clear filters
-                          </button>
+                   </button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -690,7 +744,7 @@ export default function TierList() {
                                 ? champion.winrateDelta.toFixed(1) + "%"
                                 : "—"}
                             </span>
-                          </div>
+               </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col items-center">
@@ -699,7 +753,7 @@ export default function TierList() {
                                 className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
                                 style={{ width: `${Math.min(champion.pickrate * 5, 100)}%` }}
                               ></div>
-                            </div>
+             </div>
                             <div className="flex items-center justify-between w-full max-w-[100px]">
                               <span className="font-bold text-white">
                                 {typeof champion.pickrate === "number"
@@ -715,8 +769,8 @@ export default function TierList() {
                                       : "—"
                                   )}
                                 </span>
-                              )}
-                            </div>
+           )}
+        </div>
                           </div>
                         </TableCell>
                         <TableCell className="text-right text-slate-400">
@@ -789,17 +843,17 @@ export default function TierList() {
                     className={`w-10 h-10 rounded-full flex items-center justify-center ${tierInfo.color} ${tierInfo.textColor}`}
                   >
                     {tierInfo.icon}
-                  </div>
-                  <div>
+                    </div>
+                    <div>
                     <h3 className={`text-lg font-bold ${tierInfo.textColor}`}>Tier {tierInfo.tier}</h3>
                     <p className="text-sm text-slate-400">{tierInfo.description}</p>
+                    </div>
                   </div>
-                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-      </div>
+                    ))}
+                  </div>
+                </div>
 
       <footer className="border-t border-white/10 mt-16 bg-black/20 backdrop-blur-sm relative z-10">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
@@ -818,8 +872,8 @@ export default function TierList() {
               <a href="#" className="text-sm text-slate-400 hover:text-blue-400 transition-colors">
                 Contact
               </a>
-            </div>
           </div>
+      </div>
         </div>
       </footer>
 
