@@ -78,12 +78,27 @@ const roleLabels: Record<Role, string> = {
 // Define supported divisions for real data
 const supportedDivisions: Division[] = ["challenger+", "grandmaster+", "master+"];
 
+const regionMap: Record<string, string> = {
+  na: "NA",
+  euw: "EUW",
+  eune: "EUNE",
+  kr: "KR",
+  br: "BR",
+  jp: "JP",
+  lan: "LAN",
+  las: "LAS",
+  oce: "OCE",
+  tr: "TR",
+  ru: "RU",
+};
+
 export default function TierList() {
   // State for filters
   const [selectedRole, setSelectedRole] = useState<Role>("all")
   const [selectedDivision, setSelectedDivision] = useState<Division>("grandmaster+")
   const [searchQuery, setSearchQuery] = useState("")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [selectedRegion, setSelectedRegion] = useState<keyof typeof regionMap>("na")
 
   // State for sorting
   const [sortField, setSortField] = useState<SortField>(null)
@@ -130,54 +145,19 @@ export default function TierList() {
 
   // Fetch champions data
   useEffect(() => {
-    const fetchChampions = async () => {
+    const fetchStats = async () => {
       setLoading(true)
       try {
-        const response = await fetch(`/api/champion-stats?rank=${encodeURIComponent(selectedDivision)}`)
-        if (!response.ok) throw new Error("Failed to fetch champion data")
-        const data = await response.json()
-        // Transform API data to Champion[]
-        const championsArray: Champion[] = Object.entries(data).map(([id, champ]: [string, any]) => {
-          // Find the main role (highest games or winrate, or use champ.role)
-          const mainRole = champ.role || Object.keys(champ.roles)[0]
-          const roleStats = champ.roles[mainRole]
-          // Map API role to v0 role
-          const roleMap: Record<string, Role> = {
-            TOP: "top",
-            JUNGLE: "jungle",
-            MIDDLE: "mid",
-            BOTTOM: "adc",
-            UTILITY: "support",
-          }
-          // Make sure we have a valid icon URL
-          let iconUrl = ""
-          if (champ.image && typeof champ.image === "object") {
-            iconUrl =
-              champ.image.icon || (patchVersion ? `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${champ.image.full}` : "")
-          }
-          return {
-            id: String(id),
-            name: String(champ.name),
-            icon: iconUrl,
-            primaryRole: roleMap[mainRole] || "all",
-            primaryRolePercentage: Number(roleStats?.rolePercentage || 100),
-            tier: String(roleStats?.tier || "C") as Tier,
-            winrate: Number(roleStats?.winRate || 0),
-            winrateDelta: Number(roleStats?.winRateDelta || 0),
-            pickrate: Number(roleStats?.pickRate || 0),
-            games: Number(roleStats?.totalGames || 0),
-            banrate: Number(roleStats?.banRate || 0),
-          }
-        })
-        setChampions(championsArray)
+        const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}`)
+        const data = await res.json()
+        setChampions(Object.values(data))
       } catch (err) {
         setChampions([])
-      } finally {
-        setLoading(false)
       }
+      setLoading(false)
     }
-    fetchChampions()
-  }, [selectedDivision, patchVersion])
+    fetchStats()
+  }, [selectedRole, selectedDivision, selectedRegion, searchQuery])
 
   // Filter champions based on selected filters
   const filteredChampions = champions.filter((champion) => {
@@ -332,7 +312,7 @@ export default function TierList() {
               </h3>
             </div>
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-stretch md:items-center">
+              <div className="flex flex-row gap-2 items-center w-full flex-wrap md:flex-nowrap mb-4">
                 {/* Role Filter */}
                 <div className="flex gap-2 md:gap-3 items-center">
                   {(["all", "top", "jungle", "mid", "adc", "support"] as Role[]).map((role) => (
@@ -430,6 +410,18 @@ export default function TierList() {
                     document.body
                   )}
                 </div>
+
+                {/* Region dropdown */}
+                <select
+                  value={selectedRegion}
+                  onChange={e => setSelectedRegion(e.target.value as keyof typeof regionMap)}
+                  className="rounded-xl border-2 px-3 py-1 bg-slate-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Select region"
+                >
+                  {Object.entries(regionMap).map(([key, label]) => (
+                    <option key={key} value={key}>{label}</option>
+                  ))}
+                </select>
 
                 {/* Search Bar */}
                 <div className="relative flex-1 max-w-xs ml-auto">
