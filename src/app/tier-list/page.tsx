@@ -151,58 +151,62 @@ export default function TierList() {
         const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}`)
         const data = await res.json() as Record<string, any>
         // Map the data to flatten the selected role's stats to the top level
-        const mappedChampions: Champion[] = Object.values(data).map((champ: any) => {
-          // Determine the selected role key (API uses uppercase: TOP, JUNGLE, MIDDLE, BOTTOM, UTILITY)
-          const roleMap: Record<string, string> = {
-            top: 'TOP',
-            jungle: 'JUNGLE',
-            mid: 'MIDDLE',
-            adc: 'BOTTOM',
-            support: 'UTILITY',
-          }
-          // If selectedRole is 'all', pick the role with the most games
-          let selectedRoleKey = selectedRole !== 'all' ? roleMap[selectedRole] : null;
-          let roleStats = null;
-          if (champ.roles) {
-            if (selectedRoleKey && champ.roles[selectedRoleKey]) {
-              roleStats = champ.roles[selectedRoleKey]
+        const mappedChampions: Champion[] = Object.values(data)
+          .map((champ: any) => {
+            const roleMap: Record<string, string> = {
+              top: 'TOP',
+              jungle: 'JUNGLE',
+              mid: 'MIDDLE',
+              adc: 'BOTTOM',
+              support: 'UTILITY',
+            };
+            const reverseRoleMap: Record<string, Role> = {
+              'TOP': 'top',
+              'JUNGLE': 'jungle',
+              'MIDDLE': 'mid',
+              'BOTTOM': 'adc',
+              'UTILITY': 'support',
+            };
+            let selectedRoleKey = selectedRole !== 'all' ? roleMap[selectedRole] : null;
+            let roleStats = null;
+
+            // Only include if the champ has stats for the selected role
+            if (selectedRole !== 'all') {
+              if (!champ.roles || !selectedRoleKey || !champ.roles[selectedRoleKey]) return null;
+              roleStats = champ.roles[selectedRoleKey];
             } else {
               // Pick the role with the most games
-              const entries = Object.entries(champ.roles)
-              if (entries.length > 0) {
-                entries.sort((a, b) => (b[1].games || 0) - (a[1].games || 0))
-                selectedRoleKey = entries[0][0]
-                roleStats = entries[0][1]
+              if (champ.roles) {
+                const entries = Object.entries(champ.roles);
+                if (entries.length > 0) {
+                  entries.sort((a, b) => (b[1] as any).games - (a[1] as any).games);
+                  selectedRoleKey = entries[0][0];
+                  roleStats = entries[0][1];
+                }
               }
             }
-          }
-          // Map the selectedRoleKey back to Role type
-          const reverseRoleMap: Record<string, Role> = {
-            'TOP': 'top',
-            'JUNGLE': 'jungle',
-            'MIDDLE': 'mid',
-            'BOTTOM': 'adc',
-            'UTILITY': 'support',
-          }
-          const mappedRole: Role = selectedRole !== 'all'
-            ? selectedRole
-            : (selectedRoleKey && reverseRoleMap[selectedRoleKey])
-              ? reverseRoleMap[selectedRoleKey]
-              : 'all';
-          return {
-            id: champ.id,
-            name: champ.name,
-            icon: champ.icon,
-            primaryRole: mappedRole,
-            primaryRolePercentage: 100, // Not available in API, set to 100 or calculate if needed
-            tier: roleStats?.tier || 'C',
-            winrate: roleStats?.winRate ?? 0,
-            winrateDelta: roleStats?.winRateDelta ?? 0,
-            pickrate: roleStats?.pickRate ?? 0,
-            games: roleStats?.games ?? 0,
-            banrate: roleStats?.banRate ?? 0,
-          }
-        })
+
+            const mappedRole: Role = selectedRole !== 'all'
+              ? selectedRole
+              : (selectedRoleKey && reverseRoleMap[selectedRoleKey])
+                ? reverseRoleMap[selectedRoleKey]
+                : 'all';
+
+            return {
+              id: champ.id,
+              name: champ.name,
+              icon: champ.icon,
+              primaryRole: mappedRole,
+              primaryRolePercentage: 100,
+              tier: roleStats?.tier || 'C',
+              winrate: roleStats?.winRate ?? 0,
+              winrateDelta: roleStats?.winRateDelta ?? 0,
+              pickrate: roleStats?.pickRate ?? 0,
+              games: roleStats?.games ?? 0,
+              banrate: roleStats?.banRate ?? undefined,
+            };
+          })
+          .filter((c): c is Champion => Boolean(c && c.id));
         setChampions(mappedChampions)
       } catch (err: any) {
         console.error('Error fetching champion data:', err?.message ?? err);
