@@ -934,7 +934,7 @@ export async function GET(req) {
         return new Response(JSON.stringify(realData), { status: 200 });
       } catch (error) {
         console.error('[API] Error fetching real data:', error);
-        console.log('[API] Falling back to simulated data due to error');
+        return new Response(JSON.stringify([]), { status: 200 });
       }
     }
     
@@ -1444,4 +1444,45 @@ async function getMatchIds(apiRegion, apiRank, apiDivision, count = 50) {
 
   console.log(`[champion-stats] Collected ${matchIds.length} unique match IDs from Riot API`);
   return matchIds;
+}
+
+// Add this function to aggregate champion stats from match data
+async function aggregateChampionStatsFromMatches(matchIds, apiRegion) {
+  const championStats = {};
+  let totalGames = 0;
+
+  for (const matchId of matchIds) {
+    const matchData = await getMatchData(matchId, apiRegion);
+    if (!matchData || !matchData.info || !matchData.info.participants) continue;
+    for (const participant of matchData.info.participants) {
+      const champId = participant.championName;
+      const lane = participant.teamPosition;
+      if (!championStats[champId]) {
+        championStats[champId] = { games: 0, wins: 0, lanes: {} };
+      }
+      championStats[champId].games += 1;
+      totalGames += 1;
+      if (participant.win) championStats[champId].wins += 1;
+      if (!championStats[champId].lanes[lane]) championStats[champId].lanes[lane] = 0;
+      championStats[champId].lanes[lane] += 1;
+    }
+  }
+
+  // Calculate winrate, pickrate, and primaryRole
+  const result = {};
+  for (const champId in championStats) {
+    const stats = championStats[champId];
+    const winrate = stats.games > 0 ? (stats.wins / stats.games) * 100 : 0;
+    const pickrate = totalGames > 0 ? (stats.games / totalGames) * 100 : 0;
+    const primaryRole = Object.entries(stats.lanes).sort((a, b) => b[1] - a[1])[0][0] || "TOP";
+    result[champId] = {
+      id: champId,
+      winrate,
+      pickrate,
+      primaryRole: primaryRole.toLowerCase(),
+      games: stats.games,
+      wins: stats.wins,
+    };
+  }
+  return result;
 }
