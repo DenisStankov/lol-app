@@ -931,7 +931,23 @@ export async function GET(req) {
             })) : 'No role stats',
         });
         
-        return new Response(JSON.stringify(realData), { status: 200 });
+        // After aggregating champion stats, fetch Data Dragon champion data and merge it
+        const version = await getCurrentPatch();
+        const champResponse = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`);
+        const champData = champResponse.data.data;
+        const mergedStats = {};
+        for (const champId in realData) {
+          const stats = realData[champId];
+          const champInfo = champData[champId];
+          mergedStats[champId] = {
+            ...stats,
+            name: champInfo ? champInfo.name : champId,
+            icon: champInfo
+              ? `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champInfo.image.full}`
+              : "/placeholder.svg"
+          };
+        }
+        return new Response(JSON.stringify(mergedStats), { status: 200 });
       } catch (error) {
         console.error('[API] Error fetching real data:', error);
         return new Response(JSON.stringify([]), { status: 200 });
