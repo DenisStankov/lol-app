@@ -4,8 +4,52 @@ import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Shield, Sword, Heart, Activity, Droplet } from "lucide-react"
+import {
+  ArrowLeft,
+  Shield,
+  Sword,
+  Heart,
+  Activity,
+  Droplet,
+  Star,
+  Sparkles,
+  Trophy,
+  Target,
+  Zap,
+  Clock,
+  Eye,
+  TrendingUp,
+  Crown,
+  Users,
+} from "lucide-react"
 import Navigation from "@/components/navigation"
+import { Card, CardContent } from "@/components/card"
+import { Badge } from "@/components/badge"
+import { cn } from "@/lib/utils"
+
+// Add this component at the top of the file after the imports
+const SafeImage = ({ src, alt, fill, className, ...props }: any) => {
+  const [imgSrc, setImgSrc] = useState(src)
+  const [hasError, setHasError] = useState(false)
+
+  const handleError = () => {
+    if (!hasError) {
+      setHasError(true)
+      setImgSrc("/placeholder.svg?height=64&width=64")
+    }
+  }
+
+  return (
+    <Image
+      src={imgSrc || "/placeholder.svg"}
+      alt={alt}
+      fill={fill}
+      className={className}
+      onError={handleError}
+      {...props}
+    />
+  )
+}
 
 // Define our champion data interface based on the Riot API
 interface ChampionData {
