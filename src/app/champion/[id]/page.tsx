@@ -417,15 +417,34 @@ export default function ChampionDetailsPage() {
   const [selectedAbility, setSelectedAbility] = useState<string>("passive")
   const [selectedTab, setSelectedTab] = useState("build")
 
-  // Use mock data for preview
   useEffect(() => {
-    setLoading(true)
-    // Simulate loading delay
-    setTimeout(() => {
-      setChampionData(mockChampionData)
-      setMetaData(mockMetaData)
-      setLoading(false)
-    }, 1000)
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        // Fetch champion details
+        const championResponse = await fetch(`/api/champion-details?id=${champId}`)
+        if (!championResponse.ok) {
+          throw new Error('Failed to fetch champion details')
+        }
+        const championData = await championResponse.json()
+        setChampionData(championData)
+
+        // Fetch champion meta data
+        const metaResponse = await fetch(`/api/champion-meta?id=${champId}`)
+        if (!metaResponse.ok) {
+          throw new Error('Failed to fetch champion meta data')
+        }
+        const metaData = await metaResponse.json()
+        setMetaData(metaData)
+      } catch (err) {
+        console.error('Error fetching champion data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load champion data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [champId])
 
   if (loading) {
