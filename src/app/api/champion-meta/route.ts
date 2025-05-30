@@ -248,30 +248,30 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 // This would be replaced with a real implementation
 async function fetchChampionMetaData(championId: string): Promise<ChampionMetaData> {
+  let version = "14.8.1"; // fallback version
   try {
-    // Use a specific version instead of 'latest'
-    const version = "14.8.1"; // Specify a known working version
+    // Fetch latest version from Data Dragon
+    const versionRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
+    if (versionRes.ok) {
+      const versions = await versionRes.json();
+      version = versions[0];
+    }
     console.log(`Fetching data for champion: ${championId} with version ${version}`);
     
     // Get real champion stats from our API
-    const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/champion-stats?rank=PLATINUM`);
-    
+    const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/champion-stats?rank=PLATINUM&patch=${version}`);
     if (!statsResponse.ok) {
       console.error(`Error fetching champion stats: ${statsResponse.status}`);
       throw new Error(`Failed to fetch champion stats: ${statsResponse.status}`);
     }
-    
     const statsData = await statsResponse.json();
     
     // Get basic champion data from Data Dragon to determine role
     const response = await fetch(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion/${championId}.json`);
-    
-    // Check if response is ok before parsing
     if (!response.ok) {
       console.error(`Error fetching champion data: ${response.status} ${response.statusText}`);
       throw new Error(`Failed to fetch champion data: ${response.status}`);
     }
-    
     // Parse champion data with the correct type
     const matchData = await response.json() as ChampionDataResponse;
     const champData = matchData.data[championId];
@@ -279,80 +279,19 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
     const role = determineChampionRole(tags, championId);
     
     console.log(`Champion ${championId} has role: ${role}`);
-    
     // Find the champion stats from our API
     const champStats = statsData[championId];
-    
-    if (!champStats) {
-      console.log(`No stats found for ${championId}, using generated data instead`);
-      
-      // Fallback to generated data if champion stats not found
-      const winRate = (45 + Math.random() * 10).toFixed(1) + '%';
-      const pickRate = (2 + Math.random() * 20).toFixed(1) + '%';
-      const banRate = (1 + Math.random() * 10).toFixed(1) + '%';
-      
-      const runes = generateChampionSpecificRunes(championId, role, version);
-      const build = generateChampionSpecificBuilds(championId, role, version);
-      const counters = generateChampionCounters(championId, role, version);
-      // @ts-expect-error - Data structure mismatch between Riot API and our model
-      const spells = champData.spells.map((spell) => ({
-        id: spell.id,
-        name: spell.name,
-        description: spell.description,
-        image: {
-          full: spell.image.full
-        }
-      }));
-      const skillOrder = generateChampionSkillOrder(championId, spells);
-      
-      return {
-        championId,
-        winRate,
-        pickRate,
-        banRate,
-        roleSpecificData: {
-          runes,
-          build,
-          counters,
-          skillOrder,
-          skills: {
-            winRate: (48 + Math.random() * 8).toFixed(1) + '%'
-          }
-        }
-      };
-    }
-    
-    // Find the best role stats
-    let bestRole = '';
-    let highestGames = 0;
-    
-    for (const [roleName, roleStats] of Object.entries(champStats.roles)) {
-      if (roleStats.games > highestGames) {
-        highestGames = roleStats.games;
-        bestRole = roleName;
-      }
-    }
-    
-    // If no best role found, use the first available role
-    if (!bestRole && Object.keys(champStats.roles).length > 0) {
-      bestRole = Object.keys(champStats.roles)[0];
-    }
-    
-    console.log(`Best role for ${championId} is ${bestRole} with ${highestGames} games`);
-    
-    // Get the stats for the best role
-    const roleStats = champStats.roles[bestRole];
-    
+    if (!champStats) throw new Error(`No stats found for champion ${championId}`);
+    const roleStats = champStats.roles && champStats.roles[role] ? champStats.roles[role] : Object.values(champStats.roles || {})[0];
+    if (!roleStats) throw new Error(`No role stats found for champion ${championId}`);
     // Format the data
     const winRate = roleStats.winRate.toFixed(1) + '%';
     const pickRate = roleStats.pickRate.toFixed(1) + '%';
     const banRate = roleStats.banRate.toFixed(1) + '%';
-    
     // Get champion-specific builds, counters, and skill orders
     const runes = generateChampionSpecificRunes(championId, role, version);
     const build = generateChampionSpecificBuilds(championId, role, version);
     const counters = generateChampionCounters(championId, role, version);
-    
     // Get skill order
     // @ts-expect-error - Property access on dynamically retrieved champion data
     const spells = champData.spells.map((spell) => ({
@@ -364,7 +303,6 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
       }
     }));
     const skillOrder = generateChampionSkillOrder(championId, spells);
-    
     return {
       championId,
       winRate,
@@ -381,12 +319,9 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
         }
       }
     };
-    
   } catch (error) {
     console.error('Error in fetchChampionMetaData:', error);
-    
     // Fallback to generated data in case of error
-    // @ts-expect-error - Type for rune generation might not match expected return type
     return {
       championId,
       winRate: '50.0%',
