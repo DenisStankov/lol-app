@@ -1409,17 +1409,15 @@ async function getMatchIds(apiRegion, apiRank, apiDivision, count = 50) {
 
   // Only allow Challenger, Grandmaster, Master for league endpoints
   const validLeagues = ['CHALLENGER', 'GRANDMASTER', 'MASTER'];
-  if (!validLeagues.includes(apiRank)) {
+  const upperRank = apiRank.toUpperCase();
+  if (!validLeagues.includes(upperRank)) {
     console.warn(`[champion-stats] Rank ${apiRank} is not supported for league endpoint. Only CHALLENGER, GRANDMASTER, or MASTER are allowed. Returning no match IDs and using simulated data.`);
     return [];
   }
 
   // 1. Get Challenger/GM/Master league entries
-  let leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/${apiRank.toLowerCase()}leagues/by-queue/${queue}`;
-  if (apiRank === 'CHALLENGER') leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/${queue}`;
-  if (apiRank === 'GRANDMASTER') leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/grandmasterleagues/by-queue/${queue}`;
-  if (apiRank === 'MASTER') leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/masterleagues/by-queue/${queue}`;
-
+  let leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/${upperRank.toLowerCase()}leagues/by-queue/${queue}`;
+  
   let summonerIds = [];
   try {
     const leagueRes = await axios.get(leagueUrl, {
