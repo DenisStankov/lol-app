@@ -385,9 +385,18 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     let matchIds: string[] = [];
     if (RIOT_API_KEY && !RIOT_API_KEY.includes('your-api-key-here')) {
       try {
-        console.log(`[champion-stats] Attempting to fetch match IDs with rank=${apiRank}`); // Debug log
-        matchIds = await getMatchIds(apiRegion, apiRank, apiDivision, 50);
+        console.log(`[champion-stats] Attempting to fetch match IDs with rank=${apiRank}`);
+        matchIds = await getMatchIds(apiRegion, apiRank, apiDivision, 200);
         console.log(`[champion-stats] Fetched ${matchIds.length} match IDs from Riot API`);
+        
+        if (matchIds.length > 0) {
+          console.log(`[champion-stats] Processing matches in batches...`);
+          const matches = await processMatchesInBatches(matchIds, apiRegion);
+          console.log(`[champion-stats] Successfully processed ${matches.length} matches`);
+          
+          // Process the matches here...
+          // Rest of your existing match processing code
+        }
       } catch (error) {
         console.error('Error fetching match IDs:', error);
         console.log('Falling back to simulated data due to match ID fetch error');
@@ -893,15 +902,24 @@ async function getMatchData(matchId: string, region: string): Promise<any> {
     const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
     const url = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
     
-    console.log(`Fetching match data for ${matchId}`);
     const response = await axios.get(url, {
       headers: {
         'X-Riot-Token': RIOT_API_KEY
       }
     });
     
+    // Add small delay to respect rate limits
+    await delay(50); // 50ms delay between requests
+    
     return response.data;
   } catch (error) {
+    if (error.response?.status === 429) {
+      // Rate limit hit - wait and retry
+      const retryAfter = error.response.headers['retry-after'] || 1;
+      console.log(`Rate limit hit, waiting ${retryAfter}s before retry...`);
+      await delay(retryAfter * 1000);
+      return getMatchData(matchId, region);
+    }
     console.error(`Error fetching match data for ${matchId}:`, error);
     return null;
   }
@@ -1408,110 +1426,125 @@ function calculateSimulatedTier(winRate: number, pickRate: number, banRate: numb
 }
 
 // Fetch Challenger/GM/Master summoner IDs and their recent match IDs from Riot API
-async function getMatchIds(apiRegion, apiRank, apiDivision, count = 50) {
-  const platformRouting = apiRegion; // e.g., 'kr', 'na1', etc.
+async function getMatchIds(apiRegion, apiRank, apiDivision, count = 200) {
+  const platformRouting = apiRegion;
   const regionalRouting = regionToRoutingValue[platformRouting] || 'americas';
   const queue = 'RANKED_SOLO_5x5';
 
-  // Only allow Challenger, Grandmaster, Master for league endpoints
   const validLeagues = ['CHALLENGER', 'GRANDMASTER', 'MASTER'];
   const upperRank = apiRank.toUpperCase();
-  console.log(`[champion-stats] getMatchIds called with rank=${upperRank}`); // Debug log
+  console.log(`[champion-stats] getMatchIds called with rank=${upperRank}`);
   
   if (!validLeagues.includes(upperRank)) {
     console.warn(`[champion-stats] Rank ${apiRank} is not supported for league endpoint. Only CHALLENGER, GRANDMASTER, or MASTER are allowed. Returning no match IDs and using simulated data.`);
     return [];
   }
 
-  // 1. Get Challenger/GM/Master league entries
   let leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/${upperRank.toLowerCase()}leagues/by-queue/${queue}`;
-  console.log(`[champion-stats] Fetching from URL: ${leagueUrl}`); // Debug log
+  console.log(`[champion-stats] Fetching from URL: ${leagueUrl}`);
   
-  let summonerIds = [];
   try {
+    // Fetch more players
     const leagueRes = await axios.get(leagueUrl, {
       headers: { 'X-Riot-Token': RIOT_API_KEY }
     });
     const entries = leagueRes.data.entries || [];
-    summonerIds = entries.slice(0, 10).map(e => e.summonerId); // Limit to 10 for rate limits
+    // Get top 50 players instead of 10
+    const topPlayers = entries
+      .sort((a, b) => b.leaguePoints - a.leaguePoints)
+      .slice(0, 50);
+    
+    // Get PUUIDs in parallel
+    const puuids = await Promise.all(
+      topPlayers.map(async (player) => {
+        try {
+          const summonerUrl = `https://${platformRouting}.api.riotgames.com/lol/summoner/v4/summoners/${player.summonerId}`;
+          const summonerRes = await axios.get(summonerUrl, {
+            headers: { 'X-Riot-Token': RIOT_API_KEY }
+          });
+          return summonerRes.data.puuid;
+        } catch (err) {
+          console.error(`Error fetching summoner PUUID: ${err.message}`);
+          return null;
+        }
+      })
+    );
+
+    // Filter out failed PUUID fetches
+    const validPuuids = puuids.filter(puuid => puuid !== null);
+
+    // Get match IDs in parallel (20 matches per player)
+    const matchIdPromises = validPuuids.map(async (puuid) => {
+      try {
+        const matchesUrl = `https://${regionalRouting}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&start=0&count=20`;
+        const matchesRes = await axios.get(matchesUrl, {
+          headers: { 'X-Riot-Token': RIOT_API_KEY }
+        });
+        return matchesRes.data;
+      } catch (err) {
+        console.error(`Error fetching matches for PUUID: ${err.message}`);
+        return [];
+      }
+    });
+
+    const matchIdArrays = await Promise.all(matchIdPromises);
+    
+    // Flatten and deduplicate match IDs
+    const uniqueMatchIds = [...new Set(matchIdArrays.flat())];
+    
+    // Take up to 200 unique matches
+    const limitedMatchIds = uniqueMatchIds.slice(0, count);
+    
+    console.log(`[champion-stats] Collected ${limitedMatchIds.length} unique match IDs from ${validPuuids.length} players`);
+    return limitedMatchIds;
   } catch (err) {
     console.error('[champion-stats] Error fetching league entries:', err?.response?.data || err);
     return [];
   }
-
-  // 2. Get PUUIDs for these summoners
-  let puuids = [];
-  for (const summonerId of summonerIds) {
-    try {
-      const summonerUrl = `https://${platformRouting}.api.riotgames.com/lol/summoner/v4/summoners/${summonerId}`;
-      const summonerRes = await axios.get(summonerUrl, {
-        headers: { 'X-Riot-Token': RIOT_API_KEY }
-      });
-      puuids.push(summonerRes.data.puuid);
-    } catch (err) {
-      console.error('[champion-stats] Error fetching summoner PUUID:', err?.response?.data || err);
-    }
-  }
-
-  // 3. Get recent match IDs for each PUUID
-  let matchIds = [];
-  for (const puuid of puuids) {
-    try {
-      const matchesUrl = `https://${regionalRouting}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&start=0&count=5`;
-      const matchesRes = await axios.get(matchesUrl, {
-        headers: { 'X-Riot-Token': RIOT_API_KEY }
-      });
-      for (const matchId of matchesRes.data) {
-        if (!matchIds.includes(matchId)) matchIds.push(matchId);
-        if (matchIds.length >= count) break;
-      }
-    } catch (err) {
-      console.error('[champion-stats] Error fetching match IDs for puuid:', err?.response?.data || err);
-    }
-    if (matchIds.length >= count) break;
-  }
-
-  console.log(`[champion-stats] Collected ${matchIds.length} unique match IDs from Riot API`);
-  return matchIds;
 }
 
-// Add this function to aggregate champion stats from match data
-async function aggregateChampionStatsFromMatches(matchIds, apiRegion) {
-  const championStats = {};
-  let totalGames = 0;
+// Add rate limiting helper
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  for (const matchId of matchIds) {
-    const matchData = await getMatchData(matchId, apiRegion);
-    if (!matchData || !matchData.info || !matchData.info.participants) continue;
-    for (const participant of matchData.info.participants) {
-      const champId = participant.championName;
-      const lane = participant.teamPosition;
-      if (!championStats[champId]) {
-        championStats[champId] = { games: 0, wins: 0, lanes: {} };
+// Modify getMatchData to handle rate limits
+async function getMatchData(matchId: string, region: string): Promise<any> {
+  try {
+    const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
+    const url = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
+    
+    const response = await axios.get(url, {
+      headers: {
+        'X-Riot-Token': RIOT_API_KEY
       }
-      championStats[champId].games += 1;
-      totalGames += 1;
-      if (participant.win) championStats[champId].wins += 1;
-      if (!championStats[champId].lanes[lane]) championStats[champId].lanes[lane] = 0;
-      championStats[champId].lanes[lane] += 1;
+    });
+    
+    // Add small delay to respect rate limits
+    await delay(50); // 50ms delay between requests
+    
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 429) {
+      // Rate limit hit - wait and retry
+      const retryAfter = error.response.headers['retry-after'] || 1;
+      console.log(`Rate limit hit, waiting ${retryAfter}s before retry...`);
+      await delay(retryAfter * 1000);
+      return getMatchData(matchId, region);
     }
+    console.error(`Error fetching match data for ${matchId}:`, error);
+    return null;
   }
+}
 
-  // Calculate winrate, pickrate, and primaryRole
-  const result = {};
-  for (const champId in championStats) {
-    const stats = championStats[champId];
-    const winrate = stats.games > 0 ? (stats.wins / stats.games) * 100 : 0;
-    const pickrate = totalGames > 0 ? (stats.games / totalGames) * 100 : 0;
-    const primaryRole = Object.entries(stats.lanes).sort((a, b) => b[1] - a[1])[0][0] || "TOP";
-    result[champId] = {
-      id: champId,
-      winrate,
-      pickrate,
-      primaryRole: primaryRole.toLowerCase(),
-      games: stats.games,
-      wins: stats.wins,
-    };
+// Modify fetchChampionStats to process matches in parallel batches
+async function processMatchesInBatches(matchIds: string[], region: string, batchSize = 10) {
+  const results = [];
+  for (let i = 0; i < matchIds.length; i += batchSize) {
+    const batch = matchIds.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map(matchId => getMatchData(matchId, region))
+    );
+    results.push(...batchResults.filter(result => result !== null));
+    console.log(`[champion-stats] Processed ${results.length}/${matchIds.length} matches`);
   }
-  return result;
+  return results;
 }
