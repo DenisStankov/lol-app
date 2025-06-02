@@ -896,33 +896,25 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
   return adjustments;
 }
 
+// Add rate limiting helper
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Function to get match data from Riot API
-async function getMatchData(matchId: string, region: string): Promise<any> {
-  try {
-    const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
-    const url = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
-    
-    const response = await axios.get(url, {
-      headers: {
-        'X-Riot-Token': RIOT_API_KEY
-      }
-    });
-    
-    // Add small delay to respect rate limits
-    await delay(50); // 50ms delay between requests
-    
-    return response.data;
-  } catch (error) {
-    if (error.response?.status === 429) {
-      // Rate limit hit - wait and retry
-      const retryAfter = error.response.headers['retry-after'] || 1;
-      console.log(`Rate limit hit, waiting ${retryAfter}s before retry...`);
-      await delay(retryAfter * 1000);
-      return getMatchData(matchId, region);
-    }
-    console.error(`Error fetching match data for ${matchId}:`, error);
-    return null;
+// This function has been moved to avoid duplication
+// The implementation is now in the rate-limited version below
+
+// Modify fetchChampionStats to process matches in parallel batches
+async function processMatchesInBatches(matchIds: string[], region: string, batchSize = 10) {
+  const results = [];
+  for (let i = 0; i < matchIds.length; i += batchSize) {
+    const batch = matchIds.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map(matchId => getMatchData(matchId, region))
+    );
+    results.push(...batchResults.filter(result => result !== null));
+    console.log(`[champion-stats] Processed ${results.length}/${matchIds.length} matches`);
   }
+  return results;
 }
 
 // API route handler
@@ -1501,50 +1493,4 @@ async function getMatchIds(apiRegion, apiRank, apiDivision, count = 200) {
     console.error('[champion-stats] Error fetching league entries:', err?.response?.data || err);
     return [];
   }
-}
-
-// Add rate limiting helper
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Modify getMatchData to handle rate limits
-async function getMatchData(matchId: string, region: string): Promise<any> {
-  try {
-    const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
-    const url = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
-    
-    const response = await axios.get(url, {
-      headers: {
-        'X-Riot-Token': RIOT_API_KEY
-      }
-    });
-    
-    // Add small delay to respect rate limits
-    await delay(50); // 50ms delay between requests
-    
-    return response.data;
-  } catch (error) {
-    if (error.response?.status === 429) {
-      // Rate limit hit - wait and retry
-      const retryAfter = error.response.headers['retry-after'] || 1;
-      console.log(`Rate limit hit, waiting ${retryAfter}s before retry...`);
-      await delay(retryAfter * 1000);
-      return getMatchData(matchId, region);
-    }
-    console.error(`Error fetching match data for ${matchId}:`, error);
-    return null;
-  }
-}
-
-// Modify fetchChampionStats to process matches in parallel batches
-async function processMatchesInBatches(matchIds: string[], region: string, batchSize = 10) {
-  const results = [];
-  for (let i = 0; i < matchIds.length; i += batchSize) {
-    const batch = matchIds.slice(i, i + batchSize);
-    const batchResults = await Promise.all(
-      batch.map(matchId => getMatchData(matchId, region))
-    );
-    results.push(...batchResults.filter(result => result !== null));
-    console.log(`[champion-stats] Processed ${results.length}/${matchIds.length} matches`);
-  }
-  return results;
 }
