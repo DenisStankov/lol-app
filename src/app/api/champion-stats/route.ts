@@ -16,20 +16,37 @@ let generatedStatsCache: any = null;
 // Add rate limiting helper
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Add retry helper function at the top with other helpers
+async function retryWithBackoff(fn: () => Promise<any>, retries = 3, baseDelay = 1000): Promise<any> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (i === retries - 1) throw error; // Last retry, throw the error
+      
+      // Calculate delay with exponential backoff
+      const delay = baseDelay * Math.pow(2, i);
+      console.log(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
 // Function to get match data with rate limiting
 async function getMatchData(matchId: string, region: string): Promise<any> {
   try {
     const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
     const url = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
     
-    const response = await axios.get(url, {
-      headers: {
-        'X-Riot-Token': RIOT_API_KEY
-      }
-    });
+    const response = await retryWithBackoff(() => 
+      axios.get(url, {
+        headers: { 'X-Riot-Token': RIOT_API_KEY },
+        timeout: 10000
+      })
+    );
     
     // Add small delay to respect rate limits
-    await delay(50); // 50ms delay between requests
+    await delay(50);
     
     return response.data;
   } catch (error) {
@@ -1442,7 +1459,7 @@ function calculateSimulatedTier(winRate: number, pickRate: number, banRate: numb
   return 'D';
 }
 
-// Fetch Challenger/GM/Master summoner IDs and their recent match IDs from Riot API
+// Update getMatchIds function to use retry logic
 async function getMatchIds(apiRegion, apiRank, apiDivision, count = 200) {
   const platformRouting = apiRegion;
   const regionalRouting = regionToRoutingValue[platformRouting] || 'americas';
@@ -1461,24 +1478,31 @@ async function getMatchIds(apiRegion, apiRank, apiDivision, count = 200) {
   console.log(`[champion-stats] Fetching from URL: ${leagueUrl}`);
   
   try {
-    // Fetch more players
-    const leagueRes = await axios.get(leagueUrl, {
-      headers: { 'X-Riot-Token': RIOT_API_KEY }
-    });
+    // Fetch more players with retry logic
+    const leagueRes = await retryWithBackoff(() => 
+      axios.get(leagueUrl, {
+        headers: { 'X-Riot-Token': RIOT_API_KEY },
+        timeout: 10000 // 10 second timeout
+      })
+    );
+    
     const entries = leagueRes.data.entries || [];
     // Get top 50 players instead of 10
     const topPlayers = entries
       .sort((a, b) => b.leaguePoints - a.leaguePoints)
       .slice(0, 50);
     
-    // Get PUUIDs in parallel
+    // Get PUUIDs in parallel with retry logic
     const puuids = await Promise.all(
       topPlayers.map(async (player) => {
         try {
           const summonerUrl = `https://${platformRouting}.api.riotgames.com/lol/summoner/v4/summoners/${player.summonerId}`;
-          const summonerRes = await axios.get(summonerUrl, {
-            headers: { 'X-Riot-Token': RIOT_API_KEY }
-          });
+          const summonerRes = await retryWithBackoff(() => 
+            axios.get(summonerUrl, {
+              headers: { 'X-Riot-Token': RIOT_API_KEY },
+              timeout: 10000
+            })
+          );
           return summonerRes.data.puuid;
         } catch (err) {
           console.error(`Error fetching summoner PUUID: ${err.message}`);
@@ -1489,17 +1513,25 @@ async function getMatchIds(apiRegion, apiRank, apiDivision, count = 200) {
 
     // Filter out failed PUUID fetches
     const validPuuids = puuids.filter(puuid => puuid !== null);
+    console.log(`[champion-stats] Successfully fetched ${validPuuids.length} valid PUUIDs`);
 
-    // Get match IDs in parallel (20 matches per player)
+    // Get match IDs in parallel with retry logic
     const matchIdPromises = validPuuids.map(async (puuid) => {
       try {
         const matchesUrl = `https://${regionalRouting}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&start=0&count=20`;
-        const matchesRes = await axios.get(matchesUrl, {
-          headers: { 'X-Riot-Token': RIOT_API_KEY }
-        });
+        const matchesRes = await retryWithBackoff(() => 
+          axios.get(matchesUrl, {
+            headers: { 'X-Riot-Token': RIOT_API_KEY },
+            timeout: 10000
+          })
+        );
         return matchesRes.data;
       } catch (err) {
-        console.error(`Error fetching matches for PUUID: ${err.message}`);
+        if (err.response?.status === 504) {
+          console.error(`Timeout error fetching matches for PUUID, skipping: ${err.message}`);
+        } else {
+          console.error(`Error fetching matches for PUUID: ${err.message}`);
+        }
         return [];
       }
     });
