@@ -353,11 +353,11 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     // Map display region to API region
     const apiRegion = displayRegionToApiRegion[region.toLowerCase()] || 'na1';
     
-    // Handle rank mapping - preserve GRANDMASTER, CHALLENGER, MASTER as is
-    let apiRank = rank.toUpperCase();
-    if (!['GRANDMASTER', 'CHALLENGER', 'MASTER'].includes(apiRank)) {
-      apiRank = rankToApiValue[apiRank] || 'PLATINUM';
-    }
+    // Handle rank mapping
+    const upperRank = rank.toUpperCase();
+    const validHighEloRanks = ['CHALLENGER', 'GRANDMASTER', 'MASTER'];
+    const apiRank = validHighEloRanks.includes(upperRank) ? upperRank : (rankToApiValue[upperRank] || 'PLATINUM');
+    console.log(`[champion-stats] Using API rank: ${apiRank}`); // Debug log
     
     const apiDivision = apiRank === 'CHALLENGER' || apiRank === 'GRANDMASTER' || apiRank === 'MASTER' ? 'I' : 'I';
     
@@ -380,6 +380,7 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     let matchIds: string[] = [];
     if (RIOT_API_KEY && !RIOT_API_KEY.includes('your-api-key-here')) {
       try {
+        console.log(`[champion-stats] Attempting to fetch match IDs with rank=${apiRank}`); // Debug log
         matchIds = await getMatchIds(apiRegion, apiRank, apiDivision, 50);
         console.log(`[champion-stats] Fetched ${matchIds.length} match IDs from Riot API`);
       } catch (error) {
@@ -1410,6 +1411,8 @@ async function getMatchIds(apiRegion, apiRank, apiDivision, count = 50) {
   // Only allow Challenger, Grandmaster, Master for league endpoints
   const validLeagues = ['CHALLENGER', 'GRANDMASTER', 'MASTER'];
   const upperRank = apiRank.toUpperCase();
+  console.log(`[champion-stats] getMatchIds called with rank=${upperRank}`); // Debug log
+  
   if (!validLeagues.includes(upperRank)) {
     console.warn(`[champion-stats] Rank ${apiRank} is not supported for league endpoint. Only CHALLENGER, GRANDMASTER, or MASTER are allowed. Returning no match IDs and using simulated data.`);
     return [];
@@ -1417,6 +1420,7 @@ async function getMatchIds(apiRegion, apiRank, apiDivision, count = 50) {
 
   // 1. Get Challenger/GM/Master league entries
   let leagueUrl = `https://${platformRouting}.api.riotgames.com/lol/league/v4/${upperRank.toLowerCase()}leagues/by-queue/${queue}`;
+  console.log(`[champion-stats] Fetching from URL: ${leagueUrl}`); // Debug log
   
   let summonerIds = [];
   try {
