@@ -352,7 +352,13 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     
     // Map display region to API region
     const apiRegion = displayRegionToApiRegion[region.toLowerCase()] || 'na1';
-    const apiRank = rankToApiValue[rank.toUpperCase()] || 'PLATINUM';
+    
+    // Handle rank mapping - preserve GRANDMASTER, CHALLENGER, MASTER as is
+    let apiRank = rank.toUpperCase();
+    if (!['GRANDMASTER', 'CHALLENGER', 'MASTER'].includes(apiRank)) {
+      apiRank = rankToApiValue[apiRank] || 'PLATINUM';
+    }
+    
     const apiDivision = apiRank === 'CHALLENGER' || apiRank === 'GRANDMASTER' || apiRank === 'MASTER' ? 'I' : 'I';
     
     // Step 1: Get the current patch version from Data Dragon
