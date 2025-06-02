@@ -13,6 +13,72 @@ const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-your-api-key-here';
 // At the top of the file
 let generatedStatsCache: any = null;
 
+// Add rate limiting helper
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Function to get match data with rate limiting
+async function getMatchData(matchId: string, region: string): Promise<any> {
+  try {
+    const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
+    const url = `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/${matchId}`;
+    
+    const response = await axios.get(url, {
+      headers: {
+        'X-Riot-Token': RIOT_API_KEY
+      }
+    });
+    
+    // Add small delay to respect rate limits
+    await delay(50); // 50ms delay between requests
+    
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 429) {
+      // Rate limit hit - wait and retry
+      const retryAfter = error.response.headers['retry-after'] || 1;
+      console.log(`Rate limit hit, waiting ${retryAfter}s before retry...`);
+      await delay(retryAfter * 1000);
+      return getMatchData(matchId, region);
+    }
+    console.error(`Error fetching match data for ${matchId}:`, error);
+    return null;
+  }
+}
+
+// Process matches in batches to handle rate limits
+async function processMatchesInBatches(matchIds: string[], region: string, batchSize = 10) {
+  const results = [];
+  for (let i = 0; i < matchIds.length; i += batchSize) {
+    const batch = matchIds.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map(matchId => getMatchData(matchId, region))
+    );
+    results.push(...batchResults.filter(result => result !== null));
+    console.log(`[champion-stats] Processed ${results.length}/${matchIds.length} matches`);
+  }
+  return results;
+}
+
+// Mapping from regional API endpoints to routing values for match v5 API
+const regionToRoutingValue: Record<string, string> = {
+  'br1': 'americas',
+  'eun1': 'europe',
+  'euw1': 'europe',
+  'jp1': 'asia',
+  'kr': 'asia',
+  'la1': 'americas',
+  'la2': 'americas',
+  'na1': 'americas',
+  'oc1': 'americas',
+  'tr1': 'europe',
+  'ru': 'europe',
+  'ph2': 'asia',
+  'sg2': 'asia',
+  'th2': 'asia',
+  'tw2': 'asia',
+  'vn2': 'asia'
+};
+
 // Interfaces for champion data from Data Dragon
 interface ChampionImage {
   full: string;
@@ -135,26 +201,6 @@ interface LeagueEntry {
   freshBlood: boolean;
   hotStreak: boolean;
 }
-
-// Mapping from regional API endpoints to routing values for match v5 API
-const regionToRoutingValue: Record<string, string> = {
-  'br1': 'americas',
-  'eun1': 'europe',
-  'euw1': 'europe',
-  'jp1': 'asia',
-  'kr': 'asia',
-  'la1': 'americas',
-  'la2': 'americas',
-  'na1': 'americas',
-  'oc1': 'americas',
-  'tr1': 'europe',
-  'ru': 'europe',
-  'ph2': 'asia',
-  'sg2': 'asia',
-  'th2': 'asia',
-  'tw2': 'asia',
-  'vn2': 'asia'
-};
 
 // Map for rank tiers to API values
 const rankToApiValue: Record<string, string> = {
@@ -894,27 +940,6 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
   }
   
   return adjustments;
-}
-
-// Add rate limiting helper
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Function to get match data from Riot API
-// This function has been moved to avoid duplication
-// The implementation is now in the rate-limited version below
-
-// Modify fetchChampionStats to process matches in parallel batches
-async function processMatchesInBatches(matchIds: string[], region: string, batchSize = 10) {
-  const results = [];
-  for (let i = 0; i < matchIds.length; i += batchSize) {
-    const batch = matchIds.slice(i, i + batchSize);
-    const batchResults = await Promise.all(
-      batch.map(matchId => getMatchData(matchId, region))
-    );
-    results.push(...batchResults.filter(result => result !== null));
-    console.log(`[champion-stats] Processed ${results.length}/${matchIds.length} matches`);
-  }
-  return results;
 }
 
 // API route handler
