@@ -353,11 +353,16 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
     // Map display region to API region
     const apiRegion = displayRegionToApiRegion[region.toLowerCase()] || 'na1';
     
-    // Handle rank mapping
-    const upperRank = rank.toUpperCase();
-    const validHighEloRanks = ['CHALLENGER', 'GRANDMASTER', 'MASTER'];
-    const apiRank = validHighEloRanks.includes(upperRank) ? upperRank : (rankToApiValue[upperRank] || 'PLATINUM');
-    console.log(`[champion-stats] Using API rank: ${apiRank}`); // Debug log
+    // Handle rank mapping - directly use the rank for high-elo tiers
+    const upperRank = rank.toUpperCase().trim();
+    let apiRank = upperRank;
+    
+    // Only use rankToApiValue for non-high-elo ranks
+    if (!['CHALLENGER', 'GRANDMASTER', 'MASTER'].includes(upperRank)) {
+      apiRank = rankToApiValue[upperRank] || 'PLATINUM';
+    }
+    
+    console.log(`[champion-stats] Using API rank: ${apiRank}`);
     
     const apiDivision = apiRank === 'CHALLENGER' || apiRank === 'GRANDMASTER' || apiRank === 'MASTER' ? 'I' : 'I';
     
