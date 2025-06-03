@@ -2,6 +2,126 @@
 /* eslint-disable */
 import { NextRequest, NextResponse } from 'next/server';
 import axios, { AxiosError } from 'axios';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Constants for data freshness
+const DATA_FRESHNESS_HOURS = 6; // Consider data stale after 6 hours
+
+// Function to check if data needs updating
+async function needsUpdate(rank: string, region: string): Promise<boolean> {
+  try {
+    const { data: lastUpdate, error } = await supabase
+      .from('champion_stats_updates')
+      .select('last_update')
+      .eq('rank', rank)
+      .eq('region', region)
+      .single();
+
+    if (error || !lastUpdate) return true;
+
+    const lastUpdateTime = new Date(lastUpdate.last_update).getTime();
+    const now = new Date().getTime();
+    const hoursSinceUpdate = (now - lastUpdateTime) / (1000 * 60 * 60);
+
+    return hoursSinceUpdate >= DATA_FRESHNESS_HOURS;
+  } catch (error) {
+    console.error('Error checking update status:', error);
+    return true;
+  }
+}
+
+// Function to get cached stats from Supabase
+async function getCachedStats(rank: string, region: string) {
+  try {
+    const { data: stats, error } = await supabase
+      .from('champion_stats')
+      .select('*')
+      .eq('rank', rank)
+      .eq('region', region);
+
+    if (error) throw error;
+    if (!stats || stats.length === 0) return null;
+
+    // Convert array of stats to the expected format
+    const formattedStats = {};
+    for (const stat of stats) {
+      formattedStats[stat.champion_id] = {
+        id: stat.champion_id,
+        name: stat.name,
+        image: stat.image,
+        roles: JSON.parse(stat.roles),
+        difficulty: stat.difficulty,
+        damageType: stat.damage_type,
+        range: stat.range
+      };
+    }
+
+    return formattedStats;
+  } catch (error) {
+    console.error('Error fetching cached stats:', error);
+    return null;
+  }
+}
+
+// Function to update cached stats in Supabase
+async function updateCachedStats(stats: any, rank: string, region: string) {
+  try {
+    // Begin a transaction
+    const { error: deleteError } = await supabase
+      .from('champion_stats')
+      .delete()
+      .eq('rank', rank)
+      .eq('region', region);
+
+    if (deleteError) throw deleteError;
+
+    // Prepare stats for insertion
+    const statsToInsert = Object.entries(stats).map(([championId, data]) => ({
+      champion_id: championId,
+      name: data.name,
+      image: data.image,
+      roles: JSON.stringify(data.roles),
+      difficulty: data.difficulty,
+      damage_type: data.damageType,
+      range: data.range,
+      rank: rank,
+      region: region
+    }));
+
+    // Insert new stats
+    const { error: insertError } = await supabase
+      .from('champion_stats')
+      .insert(statsToInsert);
+
+    if (insertError) throw insertError;
+
+    // Update the last update timestamp
+    const { error: updateError } = await supabase
+      .from('champion_stats_updates')
+      .upsert({
+        rank: rank,
+        region: region,
+        last_update: new Date().toISOString()
+      });
+
+    if (updateError) throw updateError;
+
+    console.log(`Successfully updated cached stats for ${rank} ${region}`);
+  } catch (error) {
+    console.error('Error updating cached stats:', error);
+    throw error;
+  }
+}
 
 // Debug logging for API key (safely)
 console.log("API KEY AVAILABLE:", process.env.RIOT_API_KEY ? "YES (Key exists)" : "NO (Key not found)");
@@ -962,96 +1082,57 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
 // API route handler
 export async function GET(req) {
   try {
-    // Extract query parameters
     const searchParams = req.nextUrl.searchParams;
     const patch = searchParams.get('patch') || 'latest';
     const rank = searchParams.get('rank') || 'ALL';
     const region = searchParams.get('region') || 'global';
     
     console.log(`[API] Champion stats API called with params: patch=${patch}, rank=${rank}, region=${region}`);
-    
-    // Check if we have a valid Riot API key
+
+    // First, try to get cached data
+    const cachedStats = await getCachedStats(rank, region);
+    const shouldUpdate = await needsUpdate(rank, region);
+
+    if (cachedStats && !shouldUpdate) {
+      console.log(`[API] Returning cached stats for ${rank} ${region}`);
+      return new Response(JSON.stringify(cachedStats), { status: 200 });
+    }
+
+    // If we need to update or don't have cached data, fetch new data
+    console.log(`[API] Fetching fresh data for ${rank} ${region}`);
     const hasValidApiKey = RIOT_API_KEY && !RIOT_API_KEY.includes('your-api-key-here');
-    console.log(`[API] Using Riot API: ${hasValidApiKey ? 'YES' : 'NO'}`);
-    
+
+    let stats;
     if (hasValidApiKey) {
       try {
-        console.log(`[API] Attempting to fetch real data from Riot API`);
-        const realData = await fetchChampionStats(rank, region);
-        console.log(`[API] Successfully fetched real data for ${Object.keys(realData).length} champions`);
-        
-        // Log some sample data
-        const sampleChampionId = Object.keys(realData)[0];
-        const sampleChampion = realData[sampleChampionId];
-        console.log(`[API] Sample champion data for ${sampleChampionId}:`, {
-          name: sampleChampion.name,
-          roles: Object.keys(sampleChampion.roles || {}),
-          stats: sampleChampion.roles ? 
-            Object.entries(sampleChampion.roles).map(([role, stats]) => ({
-              role,
-              winRate: (stats as any).winRate,
-              pickRate: (stats as any).pickRate,
-              totalGames: (stats as any).totalGames
-            })) : 'No role stats',
-        });
-        
-        // After aggregating champion stats, fetch Data Dragon champion data and merge it
-        const version = await getCurrentPatch();
-        const champResponse = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${version}/data/en_US/champion.json`);
-        const champData = champResponse.data.data;
-        const mergedStats = {};
-        for (const champId in realData) {
-          const stats = realData[champId];
-          const champInfo = champData[champId];
-          mergedStats[champId] = {
-            ...stats,
-            name: champInfo ? champInfo.name : champId,
-            icon: champInfo
-              ? `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champInfo.image.full}`
-              : "/placeholder.svg"
-          };
-        }
-        return new Response(JSON.stringify(mergedStats), { status: 200 });
-  } catch (error) {
+        stats = await fetchChampionStats(rank, region);
+        // Update cache with new data
+        await updateCachedStats(stats, rank, region);
+      } catch (error) {
         console.error('[API] Error fetching real data:', error);
-        return new Response(JSON.stringify([]), { status: 200 });
+        // If we have cached data, return it even if it's stale
+        if (cachedStats) {
+          console.log('[API] Returning stale cached data due to fetch error');
+          return new Response(JSON.stringify(cachedStats), { status: 200 });
+        }
+        stats = await generateSimulatedStats(patch);
       }
+    } else {
+      stats = await generateSimulatedStats(patch);
+      // Cache simulated data too
+      await updateCachedStats(stats, rank, region);
     }
-    
-    console.log('[API] Using simulated data from Data Dragon');
-    // Fetch data from Data Dragon as a fallback
-    const versions = await fetchVersions();
-    const currentPatch = patch === 'latest' ? versions[0] : patch;
-    console.log(`[API] Using patch version: ${currentPatch}`);
-    
-    const champions = await fetchChampions(currentPatch);
-    console.log(`[API] Fetched base data for ${Object.keys(champions).length} champions`);
-    
-    // Generate simulated stats with improved realism
-    const response = await generateEnhancedStats(champions, currentPatch, rank, region);
-    
-    // Log sample simulated data
-    const sampleChampionId = Object.keys(response)[0];
-    const sampleChampion = response[sampleChampionId];
-    console.log(`[API] Sample simulated data for ${sampleChampionId}:`, {
-      name: sampleChampion.name,
-      roles: Object.keys(sampleChampion.roles || {}),
-      stats: sampleChampion.roles ? 
-        Object.entries(sampleChampion.roles).map(([role, stats]) => ({
-          role,
-          winRate: stats.winRate,
-          pickRate: stats.pickRate,
-          totalGames: stats.totalGames,
-          tier: stats.tier
-        })) : 'No role stats',
-    });
-    
-    // After generating stats (before returning):
-    generatedStatsCache = response;
-    return new Response(JSON.stringify(response), { status: 200 });
+
+    return new Response(JSON.stringify(stats), { status: 200 });
   } catch (error) {
     console.error('[champion-stats] API error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Unknown error', stack: process.env.NODE_ENV === 'development' ? error.stack : undefined }), { status: 500 });
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'Unknown error', 
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
+      }), 
+      { status: 500 }
+    );
   }
 }
 
