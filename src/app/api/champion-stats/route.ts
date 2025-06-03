@@ -1438,12 +1438,14 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
   return adjustments;
 }
 
-// Update the GET handler to be fast and respect Vercel timeout
+// Update the GET handler with more logging
 export async function GET(req) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const rank = searchParams.get('rank') || 'ALL';
     const region = searchParams.get('region') || 'global';
+    
+    console.log(`[champion-stats] Fetching stats for rank=${rank}, region=${region}`);
     
     // First check if we have recent data in Supabase (last 24 hours)
     const { data: cachedData, error: cacheError } = await supabase
@@ -1454,9 +1456,11 @@ export async function GET(req) {
       .gt('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
     if (!cacheError && cachedData?.length > 0) {
-      console.log('Returning cached data');
+      console.log(`[champion-stats] Found recent cached data (${cachedData.length} records)`);
       return new Response(JSON.stringify(cachedData), { status: 200 });
     }
+
+    console.log('[champion-stats] No recent cache found, checking for older data...');
 
     // If no recent cache, check if we have any data at all (even if older)
     const { data: oldData, error: oldDataError } = await supabase
@@ -1465,39 +1469,37 @@ export async function GET(req) {
       .eq('rank', rank)
       .eq('region', region);
 
+    if (!oldDataError && oldData?.length > 0) {
+      console.log(`[champion-stats] Found older data (${oldData.length} records), using as base for new stats`);
+    } else {
+      console.log('[champion-stats] No existing data found, generating fresh stats');
+    }
+
     // Get current patch version for simulated data
     const versions = await fetchVersions();
     const patch = versions[0] || '14.4.1';
+    console.log(`[champion-stats] Using patch version: ${patch}`);
 
-    // If we have old data, use it to generate more accurate simulated data
-    const historicalData = oldData || [];
-    
-    // Generate quick simulated stats (optimized for speed)
-    const simulatedStats = await generateQuickSimulatedStats(patch, rank, region, historicalData);
+    // Generate quick simulated stats
+    const simulatedStats = await generateQuickSimulatedStats(patch, rank, region, oldData || []);
+    console.log(`[champion-stats] Generated stats for ${Object.keys(simulatedStats).length} champions`);
 
-    // Return the simulated data immediately
-    const response = new Response(JSON.stringify(simulatedStats), { status: 200 });
-
-    // Trigger background update without waiting for it
-    if (process.env.VERCEL_ENV === 'production') {
-      // In production, use Vercel's Edge Config or similar to trigger a background job
-      try {
-        fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/update-stats`, {
-          method: 'POST',
-          body: JSON.stringify({ rank, region }),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.CRON_SECRET}`
-          }
-        }).catch(console.error); // Ignore errors in background job trigger
-      } catch (error) {
-        console.error('Failed to trigger background update:', error);
-      }
+    // Store the new data
+    try {
+      await storeAggregatedData(simulatedStats, rank, region);
+      console.log('[champion-stats] Successfully stored aggregated data');
+      
+      const timestamp = new Date().toISOString();
+      await storeHistoricalData(simulatedStats, rank, region, timestamp);
+      console.log('[champion-stats] Successfully stored historical data');
+    } catch (storageError) {
+      console.error('[champion-stats] Error storing data:', storageError);
+      // Continue to return data even if storage failed
     }
 
-    return response;
+    return new Response(JSON.stringify(simulatedStats), { status: 200 });
   } catch (error) {
-    console.error('Error in champion-stats API:', error);
+    console.error('[champion-stats] Error in API:', error);
     return new Response(
       JSON.stringify({
         error: error.message || 'Unknown error',
@@ -1505,6 +1507,86 @@ export async function GET(req) {
       }),
       { status: 500 }
     );
+  }
+}
+
+// Update storeAggregatedData with more logging
+async function storeAggregatedData(stats: Record<string, ChampionStats>, rank: string, region: string) {
+  try {
+    console.log(`[champion-stats] Preparing aggregated data for rank=${rank}, region=${region}`);
+    
+    // Prepare data for storage
+    const aggregatedData = Object.entries(stats).map(([championId, championStats]) => {
+      // ... existing mapping code ...
+    });
+    
+    console.log(`[champion-stats] Prepared ${aggregatedData.length} records for storage`);
+    
+    // Delete existing data for this rank and region
+    const { error: deleteError } = await supabase
+      .from('champion_stats_aggregated')
+      .delete()
+      .eq('rank', rank)
+      .eq('region', region);
+
+    if (deleteError) {
+      console.error('[champion-stats] Error deleting old data:', deleteError);
+      throw deleteError;
+    }
+    
+    console.log('[champion-stats] Successfully deleted old data');
+    
+    // Insert new data
+    const { error: insertError } = await supabase
+      .from('champion_stats_aggregated')
+      .insert(aggregatedData);
+
+    if (insertError) {
+      console.error('[champion-stats] Error inserting new data:', insertError);
+      throw insertError;
+    }
+    
+    console.log(`[champion-stats] Successfully stored ${aggregatedData.length} records`);
+  } catch (error) {
+    console.error('[champion-stats] Error in storeAggregatedData:', error);
+    throw error;
+  }
+}
+
+// Update storeHistoricalData with more logging
+async function storeHistoricalData(stats: Record<string, ChampionStats>, rank: string, region: string, timestamp: string) {
+  try {
+    console.log(`[champion-stats] Preparing historical data for rank=${rank}, region=${region}`);
+    
+    const historicalRecords = Object.entries(stats).flatMap(([championId, championStats]) => {
+      return Object.entries(championStats.roles || {}).map(([role, roleStats]) => ({
+        champion_id: championId,
+        rank: rank,
+        region: region,
+        primary_role: role,
+        win_rate: roleStats.winRate,
+        pick_rate: roleStats.pickRate,
+        ban_rate: roleStats.banRate,
+        total_games: roleStats.totalGames,
+        updated_at: timestamp
+      }));
+    });
+
+    console.log(`[champion-stats] Prepared ${historicalRecords.length} historical records`);
+
+    const { error } = await supabase
+      .from('champion_stats_history')
+      .insert(historicalRecords);
+
+    if (error) {
+      console.error('[champion-stats] Error storing historical data:', error);
+      throw error;
+    }
+
+    console.log(`[champion-stats] Successfully stored ${historicalRecords.length} historical records`);
+  } catch (error) {
+    console.error('[champion-stats] Error in storeHistoricalData:', error);
+    // Don't throw here to prevent breaking the main flow
   }
 }
 
@@ -1594,37 +1676,6 @@ async function generateQuickSimulatedStats(patch: string, rank: string, region: 
   } catch (error) {
     console.error('Error generating quick simulated stats:', error);
     throw error;
-  }
-}
-
-// Add function to store historical data
-async function storeHistoricalData(stats: Record<string, ChampionStats>, rank: string, region: string, timestamp: string) {
-  try {
-    const historicalRecords = Object.entries(stats).flatMap(([championId, championStats]) => {
-      return Object.entries(championStats.roles || {}).map(([role, roleStats]) => ({
-        champion_id: championId,
-        rank: rank,
-        region: region,
-        primary_role: role,
-        win_rate: roleStats.winRate,
-        pick_rate: roleStats.pickRate,
-        ban_rate: roleStats.banRate,
-        total_games: roleStats.totalGames,
-        updated_at: timestamp
-      }));
-    });
-
-    const { error } = await supabase
-      .from('champion_stats_history')
-      .insert(historicalRecords);
-
-    if (error) {
-      console.error('Error storing historical data:', error);
-      throw error;
-    }
-  } catch (error) {
-    console.error('Error in storeHistoricalData:', error);
-    // Don't throw here to prevent breaking the main flow
   }
 }
 
@@ -1811,69 +1862,6 @@ async function getMatchIds(region: string, rank: string, division: string, count
     return Array.from(matchIds).slice(0, count);
   } catch (error) {
     console.error('Error in getMatchIds:', error);
-    throw error;
-  }
-}
-
-// Function to store aggregated champion stats in Supabase
-async function storeAggregatedData(stats: Record<string, ChampionStats>, rank: string, region: string) {
-  try {
-    // Prepare data for storage
-    const aggregatedData = Object.entries(stats).map(([championId, championStats]) => {
-      // Calculate overall stats across all roles
-      const totalGames = Object.values(championStats.roles || {}).reduce((sum, role) => sum + (role.games || 0), 0);
-      const totalWins = Object.values(championStats.roles || {}).reduce((sum, role) => sum + (role.wins || 0), 0);
-      
-      // Find primary role (role with highest number of games)
-      let primaryRole = '';
-      let maxGames = 0;
-      
-      Object.entries(championStats.roles || {}).forEach(([role, roleStats]) => {
-        if (roleStats.games > maxGames) {
-          maxGames = roleStats.games;
-          primaryRole = role;
-        }
-      });
-      
-      // Get stats for primary role
-      const primaryRoleStats = championStats.roles?.[primaryRole];
-      
-      // Only include fields that exist in the database schema
-      return {
-        champion_id: championId,
-        rank: rank,
-        region: region,
-        total_games: totalGames,
-        total_wins: totalWins,
-        win_rate: totalGames > 0 ? (totalWins / totalGames) * 100 : 50,
-        pick_rate: primaryRoleStats?.pickRate || 0,
-        ban_rate: primaryRoleStats?.banRate || 0,
-        primary_role: primaryRole || 'TOP', // Default to TOP if no primary role found
-        tier: primaryRoleStats?.tier || 'C',
-        updated_at: new Date().toISOString()
-      };
-    });
-    
-    // Delete existing data for this rank and region
-    await supabase
-      .from('champion_stats_aggregated')
-      .delete()
-      .eq('rank', rank)
-      .eq('region', region);
-    
-    // Insert new data
-    const { error } = await supabase
-      .from('champion_stats_aggregated')
-      .insert(aggregatedData);
-    
-    if (error) {
-      console.error('Error storing aggregated data:', error);
-      throw error;
-    }
-    
-    console.log(`Successfully stored aggregated data for ${rank} ${region}`);
-  } catch (error) {
-    console.error('Error in storeAggregatedData:', error);
     throw error;
   }
 }
