@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios, { AxiosError } from 'axios';
 import { createClient } from '@supabase/supabase-js';
-import cheerio from 'cheerio';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -1321,185 +1320,14 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
   return adjustments;
 }
 
-// Define data sources
-const DATA_SOURCES = {
-  RIOT: 'riot',
-  UGGS: 'u.gg',
-  OPGG: 'op.gg',
-  LOLALYTICS: 'lolalytics'
-};
-
-// Function to fetch data from U.GG
-async function fetchUGGData(rank: string, region: string) {
-  try {
-    // Note: This is a mock implementation. You'd need to implement actual scraping
-    // based on U.GG's actual structure
-    const response = await axios.get(`https://u.gg/lol/tier-list`, {
-      params: { rank, region },
-      timeout: 10000
-    });
-    
-    // Parse the HTML response
-    const $ = cheerio.load(response.data);
-    const champData = {};
-    
-    // Extract champion data from U.GG's HTML
-    $('.champion-row').each((_, elem) => {
-      const name = $(elem).find('.champion-name').text();
-      const winRate = parseFloat($(elem).find('.win-rate').text());
-      const pickRate = parseFloat($(elem).find('.pick-rate').text());
-      const banRate = parseFloat($(elem).find('.ban-rate').text());
-      
-      champData[name] = { winRate, pickRate, banRate, source: DATA_SOURCES.UGGS };
-    });
-    
-    return champData;
-  } catch (error) {
-    console.error('Error fetching U.GG data:', error);
-    return null;
-  }
-}
-
-// Function to fetch data from OP.GG
-async function fetchOPGGData(rank: string, region: string) {
-  try {
-    // Note: This is a mock implementation. You'd need to implement actual scraping
-    // based on OP.GG's actual structure
-    const response = await axios.get(`https://op.gg/statistics/champions`, {
-      params: { tier: rank, region },
-      timeout: 10000
-    });
-    
-    const $ = cheerio.load(response.data);
-    const champData = {};
-    
-    // Extract champion data from OP.GG's HTML
-    $('.champion-table-row').each((_, elem) => {
-      const name = $(elem).find('.champion-name').text();
-      const winRate = parseFloat($(elem).find('.win-rate').text());
-      const pickRate = parseFloat($(elem).find('.pick-rate').text());
-      const banRate = parseFloat($(elem).find('.ban-rate').text());
-      
-      champData[name] = { winRate, pickRate, banRate, source: DATA_SOURCES.OPGG };
-    });
-    
-    return champData;
-  } catch (error) {
-    console.error('Error fetching OP.GG data:', error);
-    return null;
-  }
-}
-
-// Function to fetch data from LoLalytics
-async function fetchLoLalyticsData(rank: string, region: string) {
-  try {
-    // Note: This is a mock implementation. You'd need to implement actual API calls
-    // based on LoLalytics' actual API
-    const response = await axios.get(`https://lolalytics.com/api/tierlist`, {
-      params: { tier: rank, region },
-      timeout: 10000
-    });
-    
-    return Object.entries(response.data).reduce((acc, [champId, data]: [string, any]) => {
-      acc[champId] = {
-        winRate: data.winRate,
-        pickRate: data.pickRate,
-        banRate: data.banRate,
-        source: DATA_SOURCES.LOLALYTICS
-      };
-      return acc;
-    }, {});
-  } catch (error) {
-    console.error('Error fetching LoLalytics data:', error);
-    return null;
-  }
-}
-
-// Function to aggregate data from multiple sources
-async function aggregateChampionData(sources: Record<string, any>[]) {
-  const aggregatedData = {};
-  
-  // Combine data from all sources
-  for (const sourceData of sources) {
-    if (!sourceData) continue;
-    
-    for (const [champId, data] of Object.entries(sourceData)) {
-      if (!aggregatedData[champId]) {
-        aggregatedData[champId] = {
-          sources: [],
-          winRates: [],
-          pickRates: [],
-          banRates: []
-        };
-      }
-      
-      aggregatedData[champId].sources.push(data.source);
-      if (data.winRate) aggregatedData[champId].winRates.push(data.winRate);
-      if (data.pickRate) aggregatedData[champId].pickRates.push(data.pickRate);
-      if (data.banRate) aggregatedData[champId].banRates.push(data.banRate);
-    }
-  }
-  
-  // Calculate averages and confidence
-  for (const [champId, data] of Object.entries(aggregatedData)) {
-    const numSources = data.sources.length;
-    
-    aggregatedData[champId] = {
-      winRate: data.winRates.reduce((a, b) => a + b, 0) / numSources,
-      pickRate: data.pickRates.reduce((a, b) => a + b, 0) / numSources,
-      banRate: data.banRates.reduce((a, b) => a + b, 0) / numSources,
-      confidence: numSources / Object.keys(DATA_SOURCES).length, // Confidence based on number of sources
-      sourcesUsed: data.sources
-    };
-  }
-  
-  return aggregatedData;
-}
-
-// Function to store aggregated data in Supabase
-async function storeAggregatedData(data: any, rank: string, region: string) {
-  try {
-    const { error: deleteError } = await supabase
-      .from('champion_stats_aggregated')
-      .delete()
-      .eq('rank', rank)
-      .eq('region', region);
-
-    if (deleteError) throw deleteError;
-
-    const statsToInsert = Object.entries(data).map(([championId, stats]: [string, any]) => ({
-      champion_id: championId,
-      rank,
-      region,
-      win_rate: stats.winRate,
-      pick_rate: stats.pickRate,
-      ban_rate: stats.banRate,
-      confidence: stats.confidence,
-      sources_used: stats.sourcesUsed,
-      updated_at: new Date().toISOString()
-    }));
-
-    const { error: insertError } = await supabase
-      .from('champion_stats_aggregated')
-      .insert(statsToInsert);
-
-    if (insertError) throw insertError;
-
-    console.log(`Successfully stored aggregated stats for ${rank} ${region}`);
-  } catch (error) {
-    console.error('Error storing aggregated stats:', error);
-    throw error;
-  }
-}
-
-// Update the GET handler to use multiple sources
+// Update the GET handler to use only Riot API data
 export async function GET(req) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const rank = searchParams.get('rank') || 'ALL';
     const region = searchParams.get('region') || 'global';
     
-    // First check if we have recent aggregated data
+    // First check if we have recent data
     const { data: cachedData, error: cacheError } = await supabase
       .from('champion_stats_aggregated')
       .select('*')
@@ -1508,30 +1336,17 @@ export async function GET(req) {
       .gt('updated_at', new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()); // 6 hours
 
     if (!cacheError && cachedData?.length > 0) {
-      console.log('Returning cached aggregated data');
+      console.log('Returning cached data');
       return new Response(JSON.stringify(cachedData), { status: 200 });
     }
 
-    // Fetch data from multiple sources in parallel
-    const [riotData, uggData, opggData, loLalyticsData] = await Promise.all([
-      fetchChampionStats(rank, region).catch(() => null),
-      fetchUGGData(rank, region).catch(() => null),
-      fetchOPGGData(rank, region).catch(() => null),
-      fetchLoLalyticsData(rank, region).catch(() => null)
-    ]);
+    // Fetch fresh data from Riot API
+    const championStats = await fetchChampionStats(rank, region);
 
-    // Aggregate data from all sources
-    const aggregatedData = await aggregateChampionData([
-      riotData,
-      uggData,
-      opggData,
-      loLalyticsData
-    ]);
+    // Store the new data
+    await storeAggregatedData(championStats, rank, region);
 
-    // Store aggregated data
-    await storeAggregatedData(aggregatedData, rank, region);
-
-    return new Response(JSON.stringify(aggregatedData), { status: 200 });
+    return new Response(JSON.stringify(championStats), { status: 200 });
   } catch (error) {
     console.error('Error in champion-stats API:', error);
     return new Response(
@@ -1544,4 +1359,13 @@ export async function GET(req) {
   }
 }
 
-// ... rest of your existing code ...
+// ... keep rest of your existing code for:
+// - fetchChampionStats
+// - getMatchData
+// - processMatchesInBatches
+// - analyzeMatchups
+// - analyzeBuilds
+// - trackHistoricalTrends
+// - all interfaces and type definitions
+// - helper functions for role detection, tier calculation, etc.
+// Remove all scraping-related functions and code
