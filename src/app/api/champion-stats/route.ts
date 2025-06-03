@@ -1034,22 +1034,44 @@ async function fetchChampionStats(rank: string = 'ALL', region: string = 'global
 
     // After processing matches, add enhanced data
     for (const [champId, champion] of Object.entries(result)) {
-      // Add historical trends
-      const trends = await trackHistoricalTrends(champId, rank, region);
-      
-      // Add matchup analysis
-      const matchupData = await analyzeMatchups(matches, champId);
-      
-      // Add build analysis
-      const buildData = await analyzeBuilds(matches, champId);
+      try {
+        // Add historical trends
+        const trends = await trackHistoricalTrends(champId, rank, region);
+        
+        // Add matchup analysis if we have match data
+        let matchupData = null;
+        let buildData = null;
+        
+        if (matchIds.length > 0) {
+          // Fetch match details for analysis if not already fetched
+          const matchDetails = await Promise.all(
+            matchIds.slice(0, 50).map(id => getMatchData(id, apiRegion))
+          );
+          const validMatches = matchDetails.filter(match => match !== null);
+          
+          if (validMatches.length > 0) {
+            matchupData = await analyzeMatchups(validMatches, champId);
+            buildData = await analyzeBuilds(validMatches, champId);
+          }
+        }
 
-      // Enhance the champion data
-      result[champId] = {
-        ...champion,
-        trends,
-        matchupData,
-        buildData
-      };
+        // Enhance the champion data
+        result[champId] = {
+          ...champion,
+          trends,
+          matchupData: matchupData || {
+            strongAgainst: [],
+            weakAgainst: []
+          },
+          buildData: buildData || {
+            popularBuilds: [],
+            situationalItems: []
+          }
+        };
+      } catch (error) {
+        console.error(`Error enhancing data for champion ${champId}:`, error);
+        // Continue with next champion if one fails
+      }
     }
 
     return result;
@@ -1556,6 +1578,7 @@ async function storeAggregatedData(stats: Record<string, ChampionStats>, rank: s
       // Get stats for primary role
       const primaryRoleStats = championStats.roles?.[primaryRole];
       
+      // Only include fields that exist in the database schema
       return {
         champion_id: championId,
         name: championStats.name,
@@ -1568,8 +1591,6 @@ async function storeAggregatedData(stats: Record<string, ChampionStats>, rank: s
         ban_rate: primaryRoleStats?.banRate || 0,
         primary_role: primaryRole,
         tier: primaryRoleStats?.tier || 'C',
-        damage_type: championStats.damageType,
-        difficulty: championStats.difficulty,
         updated_at: new Date().toISOString()
       };
     });
