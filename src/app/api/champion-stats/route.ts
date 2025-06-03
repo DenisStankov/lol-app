@@ -1855,7 +1855,6 @@ async function storeAggregatedData(stats: Record<string, ChampionStats>, rank: s
       // Only include fields that exist in the database schema
       return {
         champion_id: championId,
-        name: championStats.name,
         rank: rank,
         region: region,
         total_games: totalGames,
@@ -1863,7 +1862,7 @@ async function storeAggregatedData(stats: Record<string, ChampionStats>, rank: s
         win_rate: totalGames > 0 ? (totalWins / totalGames) * 100 : 50,
         pick_rate: primaryRoleStats?.pickRate || 0,
         ban_rate: primaryRoleStats?.banRate || 0,
-        primary_role: primaryRole,
+        primary_role: primaryRole || 'TOP', // Default to TOP if no primary role found
         tier: primaryRoleStats?.tier || 'C',
         updated_at: new Date().toISOString()
       };
