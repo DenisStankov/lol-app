@@ -39,16 +39,30 @@ type SortDirection = "asc" | "desc"
 interface Champion {
   id: string
   name: string
-    icon: string
+  icon: string
   primaryRole: Role
   secondaryRole?: Role
-  primaryRolePercentage: number
-  tier: Tier
-  winrate: number
-  winrateDelta: number
-  pickrate: number
-  games: number
-  banrate?: number
+  roles: {
+    [key: string]: {
+      games: number
+      wins: number
+      tier: Tier
+      winRate: number
+      pickRate: number
+      banRate: number
+      winRateDelta?: number
+      kda: {
+        kills: number
+        deaths: number
+        assists: number
+      }
+    }
+  }
+  difficulty: string
+  damageType: string
+  range: string
+  confidence: number
+  sourcesUsed: string[]
 }
 
 // Define rank map for use in multiple places
@@ -149,73 +163,100 @@ export default function TierList() {
       setLoading(true)
       try {
         const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}`)
-        const data = await res.json() as Record<string, any>
-        // Map the data to flatten the selected role's stats to the top level
-        const mappedChampions: Champion[] = Object.values(data)
-          .map((champ: any) => {
+        if (!res.ok) throw new Error('Failed to fetch champion stats')
+        
+        const data = await res.json()
+        
+        // Map the data to our Champion interface
+        const mappedChampions: Champion[] = Object.entries(data)
+          .map(([id, champData]: [string, any]) => {
             const roleMap: Record<string, string> = {
               top: 'TOP',
               jungle: 'JUNGLE',
               mid: 'MIDDLE',
               adc: 'BOTTOM',
               support: 'UTILITY',
-            };
+            }
+            
             const reverseRoleMap: Record<string, Role> = {
               'TOP': 'top',
               'JUNGLE': 'jungle',
               'MIDDLE': 'mid',
               'BOTTOM': 'adc',
               'UTILITY': 'support',
-            };
-            let selectedRoleKey = selectedRole !== 'all' ? roleMap[selectedRole] : null;
-            let roleStats = null;
-
-            // Only include if the champ has stats for the selected role
+            }
+            
+            // Get the role we want to display
+            const selectedRoleKey = selectedRole !== 'all' ? roleMap[selectedRole] : null
+            let primaryRoleStats = null
+            let primaryRole: Role = 'all'
+            
             if (selectedRole !== 'all') {
-              if (!champ.roles || !selectedRoleKey || !champ.roles[selectedRoleKey]) return null;
-              roleStats = champ.roles[selectedRoleKey];
+              // If specific role selected, only include champions that can play that role
+              if (!champData.roles || !champData.roles[selectedRoleKey]) {
+                return null
+              }
+              primaryRoleStats = champData.roles[selectedRoleKey]
+              primaryRole = selectedRole
             } else {
-              // Pick the role with the most games
-              if (champ.roles) {
-                const entries = Object.entries(champ.roles);
+              // Find the most played role
+              if (champData.roles) {
+                const entries = Object.entries(champData.roles)
                 if (entries.length > 0) {
-                  entries.sort((a, b) => (b[1] as any).games - (a[1] as any).games);
-                  selectedRoleKey = entries[0][0];
-                  roleStats = entries[0][1];
+                  entries.sort((a, b) => b[1].games - a[1].games)
+                  const [topRole, topRoleStats] = entries[0]
+                  primaryRoleStats = topRoleStats
+                  primaryRole = reverseRoleMap[topRole] || 'all'
                 }
               }
             }
-
-            const mappedRole: Role = selectedRole !== 'all'
-              ? selectedRole
-              : (selectedRoleKey && reverseRoleMap[selectedRoleKey])
-                ? reverseRoleMap[selectedRoleKey]
-                : 'all';
-
+            
+            if (!primaryRoleStats) return null
+            
             return {
-              id: champ.id,
-              name: champ.name,
-              icon: champ.icon,
-              primaryRole: mappedRole,
-              primaryRolePercentage: 100,
-              tier: roleStats?.tier || 'C',
-              winrate: roleStats?.winRate ?? 0,
-              winrateDelta: roleStats?.winRateDelta ?? 0,
-              pickrate: roleStats?.pickRate ?? 0,
-              games: roleStats?.games ?? 0,
-              banrate: roleStats?.banRate ?? undefined,
-            };
+              id,
+              name: champData.name,
+              icon: champData.image?.icon || `/champion-icons/${id}.png`,
+              primaryRole,
+              roles: champData.roles,
+              difficulty: champData.difficulty,
+              damageType: champData.damageType,
+              range: champData.range,
+              tier: primaryRoleStats.tier,
+              winrate: primaryRoleStats.winRate,
+              winrateDelta: primaryRoleStats.winRateDelta || 0,
+              pickrate: primaryRoleStats.pickRate,
+              games: primaryRoleStats.games,
+              banrate: primaryRoleStats.banRate,
+              kda: primaryRoleStats.kda,
+              confidence: champData.confidence || 0.5,
+              sourcesUsed: champData.sourcesUsed || []
+            }
           })
-          .filter((c): c is Champion => Boolean(c && c.id));
+          .filter(Boolean) // Remove null entries
+          
+        // Sort champions if needed
+        if (sortField) {
+          mappedChampions.sort((a, b) => {
+            const aValue = a[sortField]
+            const bValue = b[sortField]
+            return sortDirection === 'asc' 
+              ? (aValue > bValue ? 1 : -1)
+              : (bValue > aValue ? 1 : -1)
+          })
+        }
+        
         setChampions(mappedChampions)
-      } catch (err: any) {
-        console.error('Error fetching champion data:', err?.message ?? err);
-        setChampions([])
+      } catch (error) {
+        console.error('Error fetching champion stats:', error)
+        // You might want to show an error state here
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
+
     fetchStats()
-  }, [selectedRole, selectedDivision, selectedRegion, searchQuery])
+  }, [selectedRole, selectedDivision, selectedRegion, sortField, sortDirection])
 
   // Filter champions based on selected filters
   const filteredChampions = champions.filter((champion) => {
@@ -723,7 +764,38 @@ export default function TierList() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col items-center">
-                            <span className="font-bold text-white">
+                            <div className="w-full max-w-[100px] h-1.5 bg-white/10 rounded-full mb-1.5 overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                                style={{ width: `${champion.confidence * 100}%` }}
+                              ></div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-slate-400">
+                                Sources: {champion.sourcesUsed?.length || 0}
+                              </span>
+                              <div className="flex -space-x-2">
+                                {champion.sourcesUsed?.map((source, i) => (
+                                  <div
+                                    key={source}
+                                    className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center"
+                                    title={source}
+                                  >
+                                    <span className="text-[10px] font-bold">
+                                      {source.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col items-center">
+                            <span className={cn(
+                              "font-bold",
+                              champion.confidence >= 0.75 ? "text-white" : "text-slate-400"
+                            )}>
                               {typeof champion.winrate === "number"
                                 ? champion.winrate.toFixed(1) + "%"
                                 : "—"}
@@ -748,7 +820,10 @@ export default function TierList() {
                                 ? champion.winrateDelta.toFixed(1) + "%"
                                 : "—"}
                             </span>
-               </div>
+                            {champion.confidence < 0.5 && (
+                              <span className="text-xs text-amber-400">Low confidence</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col items-center">
@@ -757,7 +832,7 @@ export default function TierList() {
                                 className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
                                 style={{ width: `${Math.min(champion.pickrate * 5, 100)}%` }}
                               ></div>
-             </div>
+                            </div>
                             <div className="flex items-center justify-between w-full max-w-[100px]">
                               <span className="font-bold text-white">
                                 {typeof champion.pickrate === "number"
