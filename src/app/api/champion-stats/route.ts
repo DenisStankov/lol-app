@@ -1461,4 +1461,141 @@ function calculateSimulatedTier(winRate: number, pickRate: number, banRate: numb
   return 'D';
 }
 
+// Function to get match IDs from Riot API
+async function getMatchIds(region: string, rank: string, division: string, count: number = 100): Promise<string[]> {
+  try {
+    const matchIds = new Set<string>();
+    let retries = 3;
+    
+    while (matchIds.size < count && retries > 0) {
+      try {
+        // Get summoners from the specified rank
+        const summonerResponse = await axios.get(
+          `https://${region}.api.riotgames.com/lol/league/v4/${rank.toLowerCase() === 'challenger' ? 'challengerleagues' : 'grandmasterleagues'}/by-queue/RANKED_SOLO_5x5`,
+          {
+            headers: { 'X-Riot-Token': RIOT_API_KEY }
+          }
+        );
+
+        const summoners = summonerResponse.data.entries;
+        
+        // Randomly select summoners
+        const selectedSummoners = summoners
+          .sort(() => Math.random() - 0.5)
+          .slice(0, Math.min(10, summoners.length));
+
+        // Get puuids for selected summoners
+        for (const summoner of selectedSummoners) {
+          const summonerDetailResponse = await axios.get(
+            `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/${summoner.summonerId}`,
+            {
+              headers: { 'X-Riot-Token': RIOT_API_KEY }
+            }
+          );
+          
+          const puuid = summonerDetailResponse.data.puuid;
+          
+          // Get match IDs for each summoner
+          const routingValue = regionToRoutingValue[region.toLowerCase()] || 'americas';
+          const matchResponse = await axios.get(
+            `https://${routingValue}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids`,
+            {
+              params: {
+                queue: 420, // Ranked Solo/Duo queue
+                type: 'ranked',
+                start: 0,
+                count: 20
+              },
+              headers: { 'X-Riot-Token': RIOT_API_KEY }
+            }
+          );
+          
+          matchResponse.data.forEach((matchId: string) => matchIds.add(matchId));
+          
+          // Add delay to respect rate limits
+          await delay(100);
+          
+          if (matchIds.size >= count) break;
+        }
+      } catch (error) {
+        console.error('Error fetching match IDs:', error);
+        retries--;
+        if (retries > 0) {
+          await delay(1000); // Wait before retrying
+        }
+      }
+    }
+    
+    return Array.from(matchIds).slice(0, count);
+  } catch (error) {
+    console.error('Error in getMatchIds:', error);
+    throw error;
+  }
+}
+
+// Function to store aggregated champion stats in Supabase
+async function storeAggregatedData(stats: Record<string, ChampionStats>, rank: string, region: string) {
+  try {
+    // Prepare data for storage
+    const aggregatedData = Object.entries(stats).map(([championId, championStats]) => {
+      // Calculate overall stats across all roles
+      const totalGames = Object.values(championStats.roles || {}).reduce((sum, role) => sum + (role.games || 0), 0);
+      const totalWins = Object.values(championStats.roles || {}).reduce((sum, role) => sum + (role.wins || 0), 0);
+      
+      // Find primary role (role with highest number of games)
+      let primaryRole = '';
+      let maxGames = 0;
+      
+      Object.entries(championStats.roles || {}).forEach(([role, roleStats]) => {
+        if (roleStats.games > maxGames) {
+          maxGames = roleStats.games;
+          primaryRole = role;
+        }
+      });
+      
+      // Get stats for primary role
+      const primaryRoleStats = championStats.roles?.[primaryRole];
+      
+      return {
+        champion_id: championId,
+        name: championStats.name,
+        rank: rank,
+        region: region,
+        total_games: totalGames,
+        total_wins: totalWins,
+        win_rate: totalGames > 0 ? (totalWins / totalGames) * 100 : 50,
+        pick_rate: primaryRoleStats?.pickRate || 0,
+        ban_rate: primaryRoleStats?.banRate || 0,
+        primary_role: primaryRole,
+        tier: primaryRoleStats?.tier || 'C',
+        damage_type: championStats.damageType,
+        difficulty: championStats.difficulty,
+        updated_at: new Date().toISOString()
+      };
+    });
+    
+    // Delete existing data for this rank and region
+    await supabase
+      .from('champion_stats_aggregated')
+      .delete()
+      .eq('rank', rank)
+      .eq('region', region);
+    
+    // Insert new data
+    const { error } = await supabase
+      .from('champion_stats_aggregated')
+      .insert(aggregatedData);
+    
+    if (error) {
+      console.error('Error storing aggregated data:', error);
+      throw error;
+    }
+    
+    console.log(`Successfully stored aggregated data for ${rank} ${region}`);
+  } catch (error) {
+    console.error('Error in storeAggregatedData:', error);
+    throw error;
+  }
+}
+
 // ... rest of your existing code ...
