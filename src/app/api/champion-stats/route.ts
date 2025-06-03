@@ -1438,49 +1438,64 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
   return adjustments;
 }
 
-// Update the GET handler
+// Update the GET handler to be fast and respect Vercel timeout
 export async function GET(req) {
   try {
     const searchParams = req.nextUrl.searchParams;
     const rank = searchParams.get('rank') || 'ALL';
     const region = searchParams.get('region') || 'global';
     
-    // First check if we have recent data in Supabase
+    // First check if we have recent data in Supabase (last 24 hours)
     const { data: cachedData, error: cacheError } = await supabase
       .from('champion_stats_aggregated')
       .select('*')
       .eq('rank', rank)
       .eq('region', region)
-      .gt('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()); // 24 hours cache
+      .gt('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
     if (!cacheError && cachedData?.length > 0) {
       console.log('Returning cached data');
       return new Response(JSON.stringify(cachedData), { status: 200 });
     }
 
-    // If no cached data, generate high-quality simulated data
-    console.log('No recent cache found, generating simulated data');
+    // If no recent cache, check if we have any data at all (even if older)
+    const { data: oldData, error: oldDataError } = await supabase
+      .from('champion_stats_aggregated')
+      .select('*')
+      .eq('rank', rank)
+      .eq('region', region);
+
+    // Get current patch version for simulated data
     const versions = await fetchVersions();
     const patch = versions[0] || '14.4.1';
 
-    // Get historical data for trends if available
-    const { data: historicalData, error: historyError } = await supabase
-      .from('champion_stats_history')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(100);
+    // If we have old data, use it to generate more accurate simulated data
+    const historicalData = oldData || [];
+    
+    // Generate quick simulated stats (optimized for speed)
+    const simulatedStats = await generateQuickSimulatedStats(patch, rank, region, historicalData);
 
-    // Generate simulated stats with historical influence
-    const simulatedStats = await generateEnhancedSimulatedStats(patch, rank, region, historicalData || []);
+    // Return the simulated data immediately
+    const response = new Response(JSON.stringify(simulatedStats), { status: 200 });
 
-    // Store the simulated data
-    await storeAggregatedData(simulatedStats, rank, region);
+    // Trigger background update without waiting for it
+    if (process.env.VERCEL_ENV === 'production') {
+      // In production, use Vercel's Edge Config or similar to trigger a background job
+      try {
+        fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/update-stats`, {
+          method: 'POST',
+          body: JSON.stringify({ rank, region }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.CRON_SECRET}`
+          }
+        }).catch(console.error); // Ignore errors in background job trigger
+      } catch (error) {
+        console.error('Failed to trigger background update:', error);
+      }
+    }
 
-    // Also store in history for future reference
-    const timestamp = new Date().toISOString();
-    await storeHistoricalData(simulatedStats, rank, region, timestamp);
-
-    return new Response(JSON.stringify(simulatedStats), { status: 200 });
+    return response;
   } catch (error) {
     console.error('Error in champion-stats API:', error);
     return new Response(
@@ -1493,14 +1508,14 @@ export async function GET(req) {
   }
 }
 
-// Add new function for enhanced simulated stats
-async function generateEnhancedSimulatedStats(patch: string, rank: string, region: string, historicalData: any[]): Promise<Record<string, ChampionStats>> {
+// Add new optimized function for quick simulated stats
+async function generateQuickSimulatedStats(patch: string, rank: string, region: string, historicalData: any[]): Promise<Record<string, ChampionStats>> {
   try {
     // Get champion data from Data Dragon
     const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
     const champData = response.data.data;
     
-    // Get current meta data from our web search (can be updated manually periodically)
+    // Current meta champions (update this periodically via a CRON job)
     const currentMetaChampions = {
       TOP: ['Aatrox', 'K\'Sante', 'Olaf', 'Garen', 'Darius'],
       JUNGLE: ['Bel\'Veth', 'Vi', 'Rek\'Sai', 'Kindred', 'Graves'],
@@ -1511,47 +1526,28 @@ async function generateEnhancedSimulatedStats(patch: string, rank: string, regio
 
     const result: Record<string, ChampionStats> = {};
     
-    for (const [champId, champion] of Object.entries(champData)) {
-      const damageType = getDamageType(champion.tags, champion.info);
-      const difficulty = getDifficulty(champion.info);
+    // Process champions in parallel for speed
+    await Promise.all(Object.entries(champData).map(async ([champId, champion]) => {
       const roles = determineRolesFromTags(champion.tags, champion.info, champId);
-      
       const roleStats: Record<string, RoleStats> = {};
       
+      // Get historical data for this champion
+      const championHistory = historicalData.filter(h => h.champion_id === champId);
+      
       for (const role of roles) {
-        // Check if champion is meta in this role
         const isMetaInRole = currentMetaChampions[role]?.includes(champion.name);
+        const historicalRole = championHistory.find(h => h.primary_role === role);
         
-        // Get historical data for this champion
-        const championHistory = historicalData.filter(h => 
-          h.champion_id === champId && 
-          h.primary_role === role
-        );
+        // Base stats - use historical data if available, otherwise simulate
+        let baseWinRate = historicalRole?.win_rate || (48 + (Math.random() * 4));
+        let basePickRate = historicalRole?.pick_rate || (2 + (Math.random() * 5));
+        let baseBanRate = historicalRole?.ban_rate || (Math.random() * 3);
         
-        // Base stats with more realistic ranges
-        let baseWinRate = 48 + (Math.random() * 4); // 48-52% base
-        let basePickRate = 2 + (Math.random() * 5); // 2-7% base
-        let baseBanRate = Math.random() * 3; // 0-3% base
-        
-        // Adjust based on meta status
+        // Quick meta adjustments
         if (isMetaInRole) {
           baseWinRate += 2;
-          basePickRate *= 2;
-          baseBanRate *= 2;
-        }
-        
-        // Adjust based on rank
-        const rankAdjustments = calculateRankBasedAdjustments(champId, difficulty, rank);
-        baseWinRate += rankAdjustments.winRate;
-        basePickRate += rankAdjustments.pickRate;
-        baseBanRate += rankAdjustments.banRate;
-        
-        // Incorporate historical trends if available
-        if (championHistory.length > 0) {
-          const recentHistory = championHistory[0];
-          baseWinRate = (baseWinRate + recentHistory.win_rate) / 2;
-          basePickRate = (basePickRate + recentHistory.pick_rate) / 2;
-          baseBanRate = (baseBanRate + recentHistory.ban_rate) / 2;
+          basePickRate *= 1.5;
+          baseBanRate *= 1.5;
         }
         
         // Ensure rates stay within realistic bounds
@@ -1559,28 +1555,17 @@ async function generateEnhancedSimulatedStats(patch: string, rank: string, regio
         basePickRate = Math.max(0.5, Math.min(15, basePickRate));
         baseBanRate = Math.max(0, Math.min(40, baseBanRate));
         
-        const gamesPlayed = Math.floor(5000 + Math.random() * 15000);
+        const gamesPlayed = historicalRole?.total_games || Math.floor(5000 + Math.random() * 15000);
         
         roleStats[role] = {
           games: gamesPlayed,
           wins: Math.floor(gamesPlayed * (baseWinRate / 100)),
-          kda: {
-            kills: 5 + Math.random() * 5,
-            deaths: 3 + Math.random() * 4,
-            assists: 4 + Math.random() * 6
-          },
-          damage: {
-            dealt: 15000 + Math.random() * 10000,
-            taken: 20000 + Math.random() * 15000
-          },
-          gold: 10000 + Math.random() * 5000,
-          cs: 180 + Math.random() * 60,
-          vision: 15 + Math.random() * 15,
-          objectives: {
-            dragons: 1 + Math.random(),
-            barons: 0.3 + Math.random() * 0.4,
-            towers: 1 + Math.random()
-          },
+          kda: { kills: 5, deaths: 3, assists: 4 },
+          damage: { dealt: 15000, taken: 20000 },
+          gold: 10000,
+          cs: 180,
+          vision: 15,
+          objectives: { dragons: 1, barons: 0.3, towers: 1 },
           winRate: baseWinRate,
           pickRate: basePickRate,
           banRate: baseBanRate,
@@ -1591,21 +1576,23 @@ async function generateEnhancedSimulatedStats(patch: string, rank: string, regio
       
       result[champId] = {
         id: champId,
-        name: champion.name,
         image: champion.image,
         games: Object.values(roleStats).reduce((sum, stat) => sum + stat.games, 0),
         wins: Object.values(roleStats).reduce((sum, stat) => sum + stat.wins, 0),
         bans: Math.floor(Math.random() * 1000),
         roles: roleStats,
-        difficulty: difficulty,
-        damageType: damageType,
+        difficulty: getDifficulty(champion.info),
+        damageType: getDamageType(champion.tags, champion.info),
         range: champion.stats?.attackrange && champion.stats.attackrange > 150 ? 'Ranged' : 'Melee'
       };
-    }
+    }));
+
+    // Store the quick simulated data
+    await storeAggregatedData(result, rank, region);
     
     return result;
   } catch (error) {
-    console.error('Error generating enhanced simulated stats:', error);
+    console.error('Error generating quick simulated stats:', error);
     throw error;
   }
 }
@@ -1616,7 +1603,6 @@ async function storeHistoricalData(stats: Record<string, ChampionStats>, rank: s
     const historicalRecords = Object.entries(stats).flatMap(([championId, championStats]) => {
       return Object.entries(championStats.roles || {}).map(([role, roleStats]) => ({
         champion_id: championId,
-        name: championStats.name,
         rank: rank,
         region: region,
         primary_role: role,
