@@ -1442,21 +1442,38 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
 export async function GET(req) {
   try {
     const searchParams = req.nextUrl.searchParams;
-    const rank = searchParams.get('rank') || 'ALL';
+    let rank = searchParams.get('rank') || 'ALL';
     const region = searchParams.get('region') || 'global';
     
     console.log(`[champion-stats] Fetching stats for rank=${rank}, region=${region}`);
     
+    // Clean up rank input - remove '+' and convert to uppercase
+    rank = rank.replace('+', '').toUpperCase();
+    
     // Validate rank and region
-    if (!rankToApiValue[rank.toUpperCase()] && !['CHALLENGER', 'GRANDMASTER', 'MASTER'].includes(rank.toUpperCase())) {
-      return new Response(JSON.stringify({ error: 'Invalid rank provided' }), { 
+    const validRanks = [
+      'CHALLENGER', 'GRANDMASTER', 'MASTER',
+      'DIAMOND', 'EMERALD', 'PLATINUM', 'GOLD',
+      'SILVER', 'BRONZE', 'IRON', 'ALL'
+    ];
+    
+    if (!validRanks.includes(rank)) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid rank provided',
+        message: `Rank must be one of: ${validRanks.join(', ')}`,
+        providedRank: rank
+      }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
     if (!displayRegionToApiRegion[region.toLowerCase()]) {
-      return new Response(JSON.stringify({ error: 'Invalid region provided' }), { 
+      return new Response(JSON.stringify({ 
+        error: 'Invalid region provided',
+        message: `Region must be one of: ${Object.keys(displayRegionToApiRegion).join(', ')}`,
+        providedRegion: region
+      }), { 
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
