@@ -8,8 +8,9 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Add error checking for Supabase connection
 if (!supabaseUrl || !supabaseKey) {
-  console.error('Missing Supabase environment variables');
+  throw new Error('Missing Supabase environment variables');
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -159,6 +160,11 @@ async function updateCachedStats(stats: any, rank: string, region: string) {
 // Debug logging for API key (safely)
 console.log("API KEY AVAILABLE:", process.env.RIOT_API_KEY ? "YES (Key exists)" : "NO (Key not found)");
 console.log("API KEY LOOKS VALID:", process.env.RIOT_API_KEY && !process.env.RIOT_API_KEY.includes('your-api-key-here') ? "YES" : "NO");
+
+// Add error checking for Riot API key
+if (!process.env.RIOT_API_KEY) {
+  throw new Error('Missing Riot API key');
+}
 
 // Uncomment the RIOT_API_KEY constant for actual implementation
 const RIOT_API_KEY = process.env.RIOT_API_KEY || 'RGAPI-your-api-key-here';
@@ -1610,15 +1616,62 @@ export async function GET(req) {
   }
 }
 
-// Update storeAggregatedData with more logging
+// Update storeAggregatedData with better error handling
 async function storeAggregatedData(stats: Record<string, ChampionStats>, rank: string, region: string) {
   try {
+    if (!stats || Object.keys(stats).length === 0) {
+      throw new Error('No stats provided to store');
+    }
+
     console.log(`[champion-stats] Preparing aggregated data for rank=${rank}, region=${region}`);
     
     // Prepare data for storage
     const aggregatedData = Object.entries(stats).map(([championId, championStats]) => {
-      // ... existing mapping code ...
-    });
+      try {
+        // Calculate overall stats across all roles
+        const totalGames = Object.values(championStats.roles || {}).reduce((sum, role) => sum + (role.games || 0), 0);
+        const totalWins = Object.values(championStats.roles || {}).reduce((sum, role) => sum + (role.wins || 0), 0);
+        
+        // Find primary role (role with highest number of games)
+        let primaryRole = '';
+        let maxGames = 0;
+        
+        Object.entries(championStats.roles || {}).forEach(([role, roleStats]) => {
+          if (roleStats.games > maxGames) {
+            maxGames = roleStats.games;
+            primaryRole = role;
+          }
+        });
+        
+        // Get stats for primary role
+        const primaryRoleStats = championStats.roles?.[primaryRole];
+        
+        if (!primaryRole || !primaryRoleStats) {
+          throw new Error(`No valid role stats found for champion ${championId}`);
+        }
+        
+        return {
+          champion_id: championId,
+          rank: rank,
+          region: region,
+          total_games: totalGames,
+          total_wins: totalWins,
+          win_rate: totalGames > 0 ? (totalWins / totalGames) * 100 : 50,
+          pick_rate: primaryRoleStats.pickRate || 0,
+          ban_rate: primaryRoleStats.banRate || 0,
+          primary_role: primaryRole,
+          tier: primaryRoleStats.tier || 'C',
+          updated_at: new Date().toISOString()
+        };
+      } catch (error) {
+        console.error(`[champion-stats] Error preparing data for champion ${championId}:`, error);
+        return null;
+      }
+    }).filter(Boolean); // Remove any null entries from failed processing
+    
+    if (aggregatedData.length === 0) {
+      throw new Error('No valid aggregated data was generated');
+    }
     
     console.log(`[champion-stats] Prepared ${aggregatedData.length} records for storage`);
     
@@ -1691,90 +1744,98 @@ async function storeHistoricalData(stats: Record<string, ChampionStats>, rank: s
 }
 
 // Add new optimized function for quick simulated stats
-async function generateQuickSimulatedStats(patch: string, rank: string, region: string, historicalData: any[]): Promise<Record<string, ChampionStats>> {
+async function generateQuickSimulatedStats(patch: string, rank: string, region: string, historicalData: any[] = []): Promise<Record<string, ChampionStats>> {
   try {
-    // Get champion data from Data Dragon
-    const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
-    const champData = response.data.data;
+    console.log(`[champion-stats] Generating quick stats for patch=${patch}, rank=${rank}, region=${region}`);
     
-    // Current meta champions (update this periodically via a CRON job)
-    const currentMetaChampions = {
-      TOP: ['Aatrox', 'K\'Sante', 'Olaf', 'Garen', 'Darius'],
-      JUNGLE: ['Bel\'Veth', 'Vi', 'Rek\'Sai', 'Kindred', 'Graves'],
-      MIDDLE: ['Ahri', 'Viktor', 'Orianna', 'Vex', 'Akali'],
-      BOTTOM: ['Kai\'Sa', 'Jinx', 'Caitlyn', 'Ezreal', 'Jhin'],
-      UTILITY: ['Thresh', 'Lulu', 'Nautilus', 'Leona', 'Nami']
-    };
-
+    // Get champion data from Data Dragon
+    let champData;
+    try {
+      const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patch}/data/en_US/champion.json`);
+      champData = response.data.data;
+      console.log(`[champion-stats] Successfully fetched champion data for ${Object.keys(champData).length} champions`);
+    } catch (error) {
+      console.error('[champion-stats] Error fetching champion data:', error);
+      throw new Error(`Failed to fetch champion data: ${error.message}`);
+    }
+    
     const result: Record<string, ChampionStats> = {};
     
     // Process champions in parallel for speed
-    await Promise.all(Object.entries(champData).map(async ([champId, champion]) => {
-      const roles = determineRolesFromTags(champion.tags, champion.info, champId);
-      const roleStats: Record<string, RoleStats> = {};
-      
-      // Get historical data for this champion
-      const championHistory = historicalData.filter(h => h.champion_id === champId);
-      
-      for (const role of roles) {
-        const isMetaInRole = currentMetaChampions[role]?.includes(champion.name);
-        const historicalRole = championHistory.find(h => h.primary_role === role);
+    await Promise.all(Object.entries(champData).map(async ([champId, champion]: [string, any]) => {
+      try {
+        const roles = determineRolesFromTags(champion.tags, champion.info, champId);
+        const roleStats: Record<string, RoleStats> = {};
         
-        // Base stats - use historical data if available, otherwise simulate
-        let baseWinRate = historicalRole?.win_rate || (48 + (Math.random() * 4));
-        let basePickRate = historicalRole?.pick_rate || (2 + (Math.random() * 5));
-        let baseBanRate = historicalRole?.ban_rate || (Math.random() * 3);
+        // Get historical data for this champion
+        const championHistory = historicalData.filter(h => h.champion_id === champId);
         
-        // Quick meta adjustments
-        if (isMetaInRole) {
-          baseWinRate += 2;
-          basePickRate *= 1.5;
-          baseBanRate *= 1.5;
+        for (const role of roles) {
+          const isMetaInRole = currentMetaChampions[role]?.includes(champion.name);
+          const historicalRole = championHistory.find(h => h.primary_role === role);
+          
+          // Base stats - use historical data if available, otherwise simulate
+          let baseWinRate = historicalRole?.win_rate || (48 + (Math.random() * 4));
+          let basePickRate = historicalRole?.pick_rate || (2 + (Math.random() * 5));
+          let baseBanRate = historicalRole?.ban_rate || (Math.random() * 3);
+          
+          // Quick meta adjustments
+          if (isMetaInRole) {
+            baseWinRate += 2;
+            basePickRate *= 1.5;
+            baseBanRate *= 1.5;
+          }
+          
+          // Ensure rates stay within realistic bounds
+          baseWinRate = Math.max(45, Math.min(55, baseWinRate));
+          basePickRate = Math.max(0.5, Math.min(15, basePickRate));
+          baseBanRate = Math.max(0, Math.min(40, baseBanRate));
+          
+          const gamesPlayed = historicalRole?.total_games || Math.floor(5000 + Math.random() * 15000);
+          
+          roleStats[role] = {
+            games: gamesPlayed,
+            wins: Math.floor(gamesPlayed * (baseWinRate / 100)),
+            kda: { kills: 5, deaths: 3, assists: 4 },
+            damage: { dealt: 15000, taken: 20000 },
+            gold: 10000,
+            cs: 180,
+            vision: 15,
+            objectives: { dragons: 1, barons: 0.3, towers: 1 },
+            winRate: baseWinRate,
+            pickRate: basePickRate,
+            banRate: baseBanRate,
+            totalGames: gamesPlayed,
+            tier: calculateSimulatedTier(baseWinRate, basePickRate, baseBanRate)
+          };
         }
         
-        // Ensure rates stay within realistic bounds
-        baseWinRate = Math.max(45, Math.min(55, baseWinRate));
-        basePickRate = Math.max(0.5, Math.min(15, basePickRate));
-        baseBanRate = Math.max(0, Math.min(40, baseBanRate));
-        
-        const gamesPlayed = historicalRole?.total_games || Math.floor(5000 + Math.random() * 15000);
-        
-        roleStats[role] = {
-          games: gamesPlayed,
-          wins: Math.floor(gamesPlayed * (baseWinRate / 100)),
-          kda: { kills: 5, deaths: 3, assists: 4 },
-          damage: { dealt: 15000, taken: 20000 },
-          gold: 10000,
-          cs: 180,
-          vision: 15,
-          objectives: { dragons: 1, barons: 0.3, towers: 1 },
-          winRate: baseWinRate,
-          pickRate: basePickRate,
-          banRate: baseBanRate,
-          totalGames: gamesPlayed,
-          tier: calculateSimulatedTier(baseWinRate, basePickRate, baseBanRate)
+        result[champId] = {
+          id: champId,
+          name: champion.name,
+          image: champion.image,
+          games: Object.values(roleStats).reduce((sum, stat) => sum + stat.games, 0),
+          wins: Object.values(roleStats).reduce((sum, stat) => sum + stat.wins, 0),
+          bans: Math.floor(Math.random() * 1000),
+          roles: roleStats,
+          difficulty: getDifficulty(champion.info),
+          damageType: getDamageType(champion.tags, champion.info),
+          range: champion.stats?.attackrange && champion.stats.attackrange > 150 ? 'Ranged' : 'Melee'
         };
+      } catch (error) {
+        console.error(`[champion-stats] Error processing champion ${champId}:`, error);
+        // Don't throw here, continue processing other champions
       }
-      
-      result[champId] = {
-        id: champId,
-        image: champion.image,
-        games: Object.values(roleStats).reduce((sum, stat) => sum + stat.games, 0),
-        wins: Object.values(roleStats).reduce((sum, stat) => sum + stat.wins, 0),
-        bans: Math.floor(Math.random() * 1000),
-        roles: roleStats,
-        difficulty: getDifficulty(champion.info),
-        damageType: getDamageType(champion.tags, champion.info),
-        range: champion.stats?.attackrange && champion.stats.attackrange > 150 ? 'Ranged' : 'Melee'
-      };
     }));
-
-    // Store the quick simulated data
-    await storeAggregatedData(result, rank, region);
     
+    if (Object.keys(result).length === 0) {
+      throw new Error('No champion data was generated');
+    }
+    
+    console.log(`[champion-stats] Successfully generated stats for ${Object.keys(result).length} champions`);
     return result;
   } catch (error) {
-    console.error('Error generating quick simulated stats:', error);
+    console.error('[champion-stats] Error in generateQuickSimulatedStats:', error);
     throw error;
   }
 }
