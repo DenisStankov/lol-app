@@ -1438,7 +1438,7 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
   return adjustments;
 }
 
-// Update the GET handler with more logging
+// Update the GET handler with better error handling
 export async function GET(req) {
   try {
     const searchParams = req.nextUrl.searchParams;
@@ -1447,65 +1447,117 @@ export async function GET(req) {
     
     console.log(`[champion-stats] Fetching stats for rank=${rank}, region=${region}`);
     
-    // First check if we have recent data in Supabase (last 24 hours)
-    const { data: cachedData, error: cacheError } = await supabase
-      .from('champion_stats_aggregated')
-      .select('*')
-      .eq('rank', rank)
-      .eq('region', region)
-      .gt('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-
-    if (!cacheError && cachedData?.length > 0) {
-      console.log(`[champion-stats] Found recent cached data (${cachedData.length} records)`);
-      return new Response(JSON.stringify(cachedData), { status: 200 });
+    // Validate rank and region
+    if (!rankToApiValue[rank.toUpperCase()] && !['CHALLENGER', 'GRANDMASTER', 'MASTER'].includes(rank.toUpperCase())) {
+      return new Response(JSON.stringify({ error: 'Invalid rank provided' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    console.log('[champion-stats] No recent cache found, checking for older data...');
-
-    // If no recent cache, check if we have any data at all (even if older)
-    const { data: oldData, error: oldDataError } = await supabase
-      .from('champion_stats_aggregated')
-      .select('*')
-      .eq('rank', rank)
-      .eq('region', region);
-
-    if (!oldDataError && oldData?.length > 0) {
-      console.log(`[champion-stats] Found older data (${oldData.length} records), using as base for new stats`);
-    } else {
-      console.log('[champion-stats] No existing data found, generating fresh stats');
+    if (!displayRegionToApiRegion[region.toLowerCase()]) {
+      return new Response(JSON.stringify({ error: 'Invalid region provided' }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
-    // Get current patch version for simulated data
-    const versions = await fetchVersions();
-    const patch = versions[0] || '14.4.1';
-    console.log(`[champion-stats] Using patch version: ${patch}`);
-
-    // Generate quick simulated stats
-    const simulatedStats = await generateQuickSimulatedStats(patch, rank, region, oldData || []);
-    console.log(`[champion-stats] Generated stats for ${Object.keys(simulatedStats).length} champions`);
-
-    // Store the new data
+    // Get current patch version first to ensure we can proceed
+    let patch;
     try {
-      await storeAggregatedData(simulatedStats, rank, region);
-      console.log('[champion-stats] Successfully stored aggregated data');
-      
-      const timestamp = new Date().toISOString();
-      await storeHistoricalData(simulatedStats, rank, region, timestamp);
-      console.log('[champion-stats] Successfully stored historical data');
-    } catch (storageError) {
-      console.error('[champion-stats] Error storing data:', storageError);
-      // Continue to return data even if storage failed
+      const versions = await fetchVersions();
+      patch = versions[0];
+      if (!patch) throw new Error('No patch version available');
+      console.log(`[champion-stats] Using patch version: ${patch}`);
+    } catch (error) {
+      console.error('[champion-stats] Error fetching patch version:', error);
+      patch = '14.4.1'; // Fallback version
     }
 
-    return new Response(JSON.stringify(simulatedStats), { status: 200 });
+    try {
+      // First check if we have recent data in Supabase (last 24 hours)
+      const { data: cachedData, error: cacheError } = await supabase
+        .from('champion_stats_aggregated')
+        .select('*')
+        .eq('rank', rank)
+        .eq('region', region)
+        .gt('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+      if (!cacheError && cachedData?.length > 0) {
+        console.log(`[champion-stats] Found recent cached data (${cachedData.length} records)`);
+        return new Response(JSON.stringify(cachedData), { 
+          status: 200,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      // If no recent cache, generate new data
+      console.log('[champion-stats] Generating new stats...');
+      const simulatedStats = await generateQuickSimulatedStats(patch, rank, region, []);
+      
+      if (!simulatedStats || Object.keys(simulatedStats).length === 0) {
+        throw new Error('Failed to generate champion stats');
+      }
+
+      console.log(`[champion-stats] Generated stats for ${Object.keys(simulatedStats).length} champions`);
+
+      // Prepare data for storage
+      const timestamp = new Date().toISOString();
+      
+      // Store in background without waiting
+      Promise.all([
+        storeAggregatedData(simulatedStats, rank, region),
+        storeHistoricalData(simulatedStats, rank, region, timestamp)
+      ]).catch(error => {
+        console.error('[champion-stats] Background storage error:', error);
+      });
+
+      // Transform simulatedStats to match the expected format
+      const formattedStats = Object.entries(simulatedStats).map(([championId, stats]) => {
+        const primaryRole = Object.entries(stats.roles || {})
+          .reduce((max, [role, roleStats]) => 
+            (!max || roleStats.games > stats.roles[max].games) ? role : max, 
+            null) || 'TOP';
+
+        const primaryRoleStats = stats.roles?.[primaryRole];
+
+        return {
+          champion_id: championId,
+          rank: rank,
+          region: region,
+          total_games: stats.games || 0,
+          total_wins: stats.wins || 0,
+          win_rate: stats.games > 0 ? (stats.wins / stats.games) * 100 : 50,
+          pick_rate: primaryRoleStats?.pickRate || 0,
+          ban_rate: primaryRoleStats?.banRate || 0,
+          primary_role: primaryRole,
+          tier: primaryRoleStats?.tier || 'C',
+          updated_at: timestamp
+        };
+      });
+
+      return new Response(JSON.stringify(formattedStats), { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+    } catch (dbError) {
+      console.error('[champion-stats] Database operation error:', dbError);
+      throw dbError;
+    }
+
   } catch (error) {
     console.error('[champion-stats] Error in API:', error);
     return new Response(
       JSON.stringify({
-        error: error.message || 'Unknown error',
+        error: 'Failed to fetch champion stats',
+        details: error.message,
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       }),
-      { status: 500 }
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
 }
