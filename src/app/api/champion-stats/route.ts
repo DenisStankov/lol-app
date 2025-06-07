@@ -1438,29 +1438,71 @@ function calculateRankBasedAdjustments(champId: string, difficulty: string, rank
   return adjustments;
 }
 
-// Update the GET handler with better error handling
+// Update the GET handler with proper Riot API standards
 export async function GET(req) {
   try {
     const searchParams = req.nextUrl.searchParams;
     let rank = searchParams.get('rank') || 'ALL';
-    const region = searchParams.get('region') || 'global';
+    let region = searchParams.get('region') || 'global';
     
-    console.log(`[champion-stats] Fetching stats for rank=${rank}, region=${region}`);
+    console.log(`[champion-stats] Raw input - rank: ${rank}, region: ${region}`);
     
-    // Clean up rank input - remove '+' and convert to uppercase
-    rank = rank.replace('+', '').toUpperCase();
+    // Clean up rank input - remove '+' and any whitespace, convert to uppercase
+    rank = rank.replace(/\+/g, '').trim().toUpperCase();
     
-    // Validate rank and region
-    const validRanks = [
-      'CHALLENGER', 'GRANDMASTER', 'MASTER',
-      'DIAMOND', 'EMERALD', 'PLATINUM', 'GOLD',
-      'SILVER', 'BRONZE', 'IRON', 'ALL'
-    ];
+    // Clean up region input
+    region = region.toLowerCase().trim();
     
-    if (!validRanks.includes(rank)) {
+    // Map short region names to API region names
+    const regionMapping = {
+      'na': 'na1',
+      'euw': 'euw1',
+      'eune': 'eun1',
+      'kr': 'kr',
+      'br': 'br1',
+      'jp': 'jp1',
+      'lan': 'la1',
+      'las': 'la2',
+      'oce': 'oc1',
+      'tr': 'tr1',
+      'ru': 'ru',
+      'global': 'na1' // Default to NA1 for global
+    };
+
+    // Map display ranks to API ranks
+    const rankMapping = {
+      'CHALLENGER': 'CHALLENGER',
+      'GRANDMASTER': 'GRANDMASTER',
+      'MASTER': 'MASTER',
+      'DIAMOND': 'DIAMOND',
+      'EMERALD': 'EMERALD',
+      'PLATINUM': 'PLATINUM',
+      'GOLD': 'GOLD',
+      'SILVER': 'SILVER',
+      'BRONZE': 'BRONZE',
+      'IRON': 'IRON',
+      'ALL': 'PLATINUM' // Default to PLATINUM for ALL
+    };
+    
+    // Validate and map region
+    const apiRegion = regionMapping[region];
+    if (!apiRegion) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid region provided',
+        message: `Region must be one of: ${Object.keys(regionMapping).join(', ')}`,
+        providedRegion: region
+      }), { 
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Validate and map rank
+    const apiRank = rankMapping[rank];
+    if (!apiRank) {
       return new Response(JSON.stringify({ 
         error: 'Invalid rank provided',
-        message: `Rank must be one of: ${validRanks.join(', ')}`,
+        message: `Rank must be one of: ${Object.keys(rankMapping).join(', ')}`,
         providedRank: rank
       }), { 
         status: 400,
@@ -1468,16 +1510,7 @@ export async function GET(req) {
       });
     }
 
-    if (!displayRegionToApiRegion[region.toLowerCase()]) {
-      return new Response(JSON.stringify({ 
-        error: 'Invalid region provided',
-        message: `Region must be one of: ${Object.keys(displayRegionToApiRegion).join(', ')}`,
-        providedRegion: region
-      }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    console.log(`[champion-stats] Mapped values - rank: ${apiRank}, region: ${apiRegion}`);
 
     // Get current patch version first to ensure we can proceed
     let patch;
@@ -1496,8 +1529,8 @@ export async function GET(req) {
       const { data: cachedData, error: cacheError } = await supabase
         .from('champion_stats_aggregated')
         .select('*')
-        .eq('rank', rank)
-        .eq('region', region)
+        .eq('rank', apiRank)
+        .eq('region', apiRegion)
         .gt('updated_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       if (!cacheError && cachedData?.length > 0) {
@@ -1510,7 +1543,7 @@ export async function GET(req) {
 
       // If no recent cache, generate new data
       console.log('[champion-stats] Generating new stats...');
-      const simulatedStats = await generateQuickSimulatedStats(patch, rank, region, []);
+      const simulatedStats = await generateQuickSimulatedStats(patch, apiRank, apiRegion, []);
       
       if (!simulatedStats || Object.keys(simulatedStats).length === 0) {
         throw new Error('Failed to generate champion stats');
@@ -1518,18 +1551,8 @@ export async function GET(req) {
 
       console.log(`[champion-stats] Generated stats for ${Object.keys(simulatedStats).length} champions`);
 
-      // Prepare data for storage
+      // Transform and store data
       const timestamp = new Date().toISOString();
-      
-      // Store in background without waiting
-      Promise.all([
-        storeAggregatedData(simulatedStats, rank, region),
-        storeHistoricalData(simulatedStats, rank, region, timestamp)
-      ]).catch(error => {
-        console.error('[champion-stats] Background storage error:', error);
-      });
-
-      // Transform simulatedStats to match the expected format
       const formattedStats = Object.entries(simulatedStats).map(([championId, stats]) => {
         const primaryRole = Object.entries(stats.roles || {})
           .reduce((max, [role, roleStats]) => 
@@ -1540,8 +1563,8 @@ export async function GET(req) {
 
         return {
           champion_id: championId,
-          rank: rank,
-          region: region,
+          rank: apiRank,
+          region: apiRegion,
           total_games: stats.games || 0,
           total_wins: stats.wins || 0,
           win_rate: stats.games > 0 ? (stats.wins / stats.games) * 100 : 50,
@@ -1551,6 +1574,14 @@ export async function GET(req) {
           tier: primaryRoleStats?.tier || 'C',
           updated_at: timestamp
         };
+      });
+
+      // Store in background without waiting
+      Promise.all([
+        storeAggregatedData(simulatedStats, apiRank, apiRegion),
+        storeHistoricalData(simulatedStats, apiRank, apiRegion, timestamp)
+      ]).catch(error => {
+        console.error('[champion-stats] Background storage error:', error);
       });
 
       return new Response(JSON.stringify(formattedStats), { 
