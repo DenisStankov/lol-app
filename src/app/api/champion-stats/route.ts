@@ -39,6 +39,16 @@ const RATE_LIMITS = {
   }
 };
 
+// Add at the top with other constants, after the RATE_LIMITS
+// Current meta champions (update this periodically)
+const currentMetaChampions = {
+  TOP: ['Aatrox', 'K\'Sante', 'Olaf', 'Garen', 'Darius', 'Fiora', 'Jax', 'Sett', 'Urgot', 'Yorick'],
+  JUNGLE: ['Bel\'Veth', 'Vi', 'Rek\'Sai', 'Kindred', 'Graves', 'Kayn', 'Lee Sin', 'Elise', 'Evelynn', 'Kha\'Zix'],
+  MIDDLE: ['Ahri', 'Viktor', 'Orianna', 'Vex', 'Akali', 'Katarina', 'Zed', 'Yasuo', 'Yone', 'Cassiopeia'],
+  BOTTOM: ['Kai\'Sa', 'Jinx', 'Caitlyn', 'Ezreal', 'Jhin', 'Vayne', 'Samira', 'Xayah', 'Lucian', 'Draven'],
+  UTILITY: ['Thresh', 'Lulu', 'Nautilus', 'Leona', 'Nami', 'Pyke', 'Blitzcrank', 'Soraka', 'Yuumi', 'Karma']
+};
+
 // Add rate limiting tracking
 const rateLimiters = {
   tenSecondTimestamp: Date.now(),
@@ -1743,10 +1753,10 @@ async function storeHistoricalData(stats: Record<string, ChampionStats>, rank: s
   }
 }
 
-// Add new optimized function for quick simulated stats
+// Remove the currentMetaChampions constant and update generateQuickSimulatedStats
 async function generateQuickSimulatedStats(patch: string, rank: string, region: string, historicalData: any[] = []): Promise<Record<string, ChampionStats>> {
   try {
-    console.log(`[champion-stats] Generating quick stats for patch=${patch}, rank=${rank}, region=${region}`);
+    console.log(`[champion-stats] Generating stats for patch=${patch}, rank=${rank}, region=${region}`);
     
     // Get champion data from Data Dragon
     let champData;
@@ -1758,55 +1768,57 @@ async function generateQuickSimulatedStats(patch: string, rank: string, region: 
       console.error('[champion-stats] Error fetching champion data:', error);
       throw new Error(`Failed to fetch champion data: ${error.message}`);
     }
+
+    // If we have historical data, use it to inform our stats
+    const hasHistoricalData = historicalData && historicalData.length > 0;
+    console.log(`[champion-stats] Using ${hasHistoricalData ? 'historical' : 'baseline'} data for stats generation`);
     
     const result: Record<string, ChampionStats> = {};
     
-    // Process champions in parallel for speed
+    // Process champions in parallel
     await Promise.all(Object.entries(champData).map(async ([champId, champion]: [string, any]) => {
       try {
         const roles = determineRolesFromTags(champion.tags, champion.info, champId);
         const roleStats: Record<string, RoleStats> = {};
         
-        // Get historical data for this champion
-        const championHistory = historicalData.filter(h => h.champion_id === champId);
-        
+        // Get historical data for this champion if available
+        const championHistory = hasHistoricalData 
+          ? historicalData.filter(h => h.champion_id === champId)
+          : [];
+
         for (const role of roles) {
-          const isMetaInRole = currentMetaChampions[role]?.includes(champion.name);
           const historicalRole = championHistory.find(h => h.primary_role === role);
+
+          // Base stats - use historical data if available, otherwise use champion info
+          const baseStats = calculateBaseStats(champion.info, role);
           
-          // Base stats - use historical data if available, otherwise simulate
-          let baseWinRate = historicalRole?.win_rate || (48 + (Math.random() * 4));
-          let basePickRate = historicalRole?.pick_rate || (2 + (Math.random() * 5));
-          let baseBanRate = historicalRole?.ban_rate || (Math.random() * 3);
-          
-          // Quick meta adjustments
-          if (isMetaInRole) {
-            baseWinRate += 2;
-            basePickRate *= 1.5;
-            baseBanRate *= 1.5;
-          }
-          
-          // Ensure rates stay within realistic bounds
-          baseWinRate = Math.max(45, Math.min(55, baseWinRate));
-          basePickRate = Math.max(0.5, Math.min(15, basePickRate));
-          baseBanRate = Math.max(0, Math.min(40, baseBanRate));
-          
-          const gamesPlayed = historicalRole?.total_games || Math.floor(5000 + Math.random() * 15000);
-          
+          // If we have historical data, use it to adjust the base stats
+          const stats = historicalRole ? {
+            winRate: historicalRole.win_rate,
+            pickRate: historicalRole.pick_rate,
+            banRate: historicalRole.ban_rate,
+            totalGames: historicalRole.total_games
+          } : {
+            winRate: baseStats.winRate,
+            pickRate: baseStats.pickRate,
+            banRate: baseStats.banRate,
+            totalGames: baseStats.totalGames
+          };
+
           roleStats[role] = {
-            games: gamesPlayed,
-            wins: Math.floor(gamesPlayed * (baseWinRate / 100)),
-            kda: { kills: 5, deaths: 3, assists: 4 },
-            damage: { dealt: 15000, taken: 20000 },
-            gold: 10000,
-            cs: 180,
-            vision: 15,
-            objectives: { dragons: 1, barons: 0.3, towers: 1 },
-            winRate: baseWinRate,
-            pickRate: basePickRate,
-            banRate: baseBanRate,
-            totalGames: gamesPlayed,
-            tier: calculateSimulatedTier(baseWinRate, basePickRate, baseBanRate)
+            games: stats.totalGames,
+            wins: Math.floor(stats.totalGames * (stats.winRate / 100)),
+            kda: baseStats.kda,
+            damage: baseStats.damage,
+            gold: baseStats.gold,
+            cs: baseStats.cs,
+            vision: baseStats.vision,
+            objectives: baseStats.objectives,
+            winRate: stats.winRate,
+            pickRate: stats.pickRate,
+            banRate: stats.banRate,
+            totalGames: stats.totalGames,
+            tier: calculateTierFromStats(stats.winRate, stats.pickRate, stats.banRate)
           };
         }
         
@@ -1816,7 +1828,7 @@ async function generateQuickSimulatedStats(patch: string, rank: string, region: 
           image: champion.image,
           games: Object.values(roleStats).reduce((sum, stat) => sum + stat.games, 0),
           wins: Object.values(roleStats).reduce((sum, stat) => sum + stat.wins, 0),
-          bans: Math.floor(Math.random() * 1000),
+          bans: Math.floor(Object.values(roleStats).reduce((sum, stat) => sum + (stat.totalGames * (stat.banRate / 100)), 0)),
           roles: roleStats,
           difficulty: getDifficulty(champion.info),
           damageType: getDamageType(champion.tags, champion.info),
@@ -1824,7 +1836,6 @@ async function generateQuickSimulatedStats(patch: string, rank: string, region: 
         };
       } catch (error) {
         console.error(`[champion-stats] Error processing champion ${champId}:`, error);
-        // Don't throw here, continue processing other champions
       }
     }));
     
@@ -1838,6 +1849,68 @@ async function generateQuickSimulatedStats(patch: string, rank: string, region: 
     console.error('[champion-stats] Error in generateQuickSimulatedStats:', error);
     throw error;
   }
+}
+
+// Helper function to calculate base stats from champion info
+function calculateBaseStats(championInfo: ChampionInfo, role: string) {
+  // Calculate baseline stats based on champion attributes and role
+  const attack = championInfo.attack / 10;
+  const defense = championInfo.defense / 10;
+  const magic = championInfo.magic / 10;
+  const difficulty = championInfo.difficulty / 10;
+
+  // Base win rate starts at 50% and is adjusted by champion attributes
+  let winRate = 50;
+  
+  // Adjust win rate based on champion mastery curve (harder champions start lower)
+  winRate -= (difficulty * 0.5);
+  
+  // Pick rate is influenced by difficulty and role popularity
+  let pickRate = 5 - (difficulty * 0.5);
+  
+  // Ban rate is influenced by perceived strength
+  let banRate = Math.max(0, (attack + magic + defense) / 3 - difficulty / 2);
+  
+  // Ensure rates stay within realistic bounds
+  winRate = Math.max(47, Math.min(53, winRate));
+  pickRate = Math.max(0.5, Math.min(15, pickRate));
+  banRate = Math.max(0, Math.min(40, banRate));
+
+  return {
+    winRate,
+    pickRate,
+    banRate,
+    totalGames: 5000 + Math.floor(Math.random() * 5000), // Base number of games
+    kda: {
+      kills: 3 + attack * 0.5,
+      deaths: 3 + (10 - defense) * 0.2,
+      assists: 3 + defense * 0.5
+    },
+    damage: {
+      dealt: 15000 + (attack + magic) * 1000,
+      taken: 20000 + defense * 1000
+    },
+    gold: 10000,
+    cs: 180,
+    vision: 15,
+    objectives: {
+      dragons: 1,
+      barons: 0.3,
+      towers: 1
+    }
+  };
+}
+
+// Helper function to calculate tier based on stats
+function calculateTierFromStats(winRate: number, pickRate: number, banRate: number): TierType {
+  const score = (winRate - 50) * 2 + pickRate + banRate;
+  
+  if (score >= 15) return 'S+';
+  if (score >= 10) return 'S';
+  if (score >= 5) return 'A';
+  if (score >= 0) return 'B';
+  if (score >= -5) return 'C';
+  return 'D';
 }
 
 // Add these helper functions
