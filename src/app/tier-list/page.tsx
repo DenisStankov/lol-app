@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Search, ArrowUp, ArrowDown, Trophy, Filter, Star, Sparkles, Shield, Swords } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
@@ -274,33 +274,41 @@ export default function TierList() {
 
   // Filter champions based on selected filters
   const filteredChampions = champions.filter((champion) => {
-    if (selectedRole !== "all" && champion.primaryRole !== selectedRole) {
-      return false
-    }
+    // Only apply search filter here since role filtering is handled by the API
     if (searchQuery && !champion.name.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false
     }
     return true
   })
 
-  // Sort champions
-  const sortedChampions = [...filteredChampions].sort((a, b) => {
+  // Sort champions with memoization
+  const sortedChampions = useMemo(() => {
+    const sorted = [...filteredChampions]
+    
     if (!sortField) {
       const tierOrder = { "S+": 0, S: 1, A: 2, B: 3, C: 4, D: 5 }
-      return tierOrder[a.tier] - tierOrder[b.tier]
+      return sorted.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier])
     }
+    
     if (sortField === "tier") {
       const tierOrder = { "S+": 0, S: 1, A: 2, B: 3, C: 4, D: 5 }
-      return sortDirection === "asc" ? tierOrder[a.tier] - tierOrder[b.tier] : tierOrder[b.tier] - tierOrder[a.tier]
+      return sorted.sort((a, b) => 
+        sortDirection === "asc" 
+          ? tierOrder[a.tier] - tierOrder[b.tier] 
+          : tierOrder[b.tier] - tierOrder[a.tier]
+      )
     }
-    if (sortField === "winrate") {
-      return sortDirection === "asc" ? a.winrate - b.winrate : b.winrate - a.winrate
+    
+    if (sortField === "winrate" || sortField === "pickrate") {
+      return sorted.sort((a, b) => {
+        const aValue = a[sortField]
+        const bValue = b[sortField]
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue
+      })
     }
-    if (sortField === "pickrate") {
-      return sortDirection === "asc" ? a.pickrate - b.pickrate : b.pickrate - a.pickrate
-    }
-    return 0
-  })
+    
+    return sorted
+  }, [filteredChampions, sortField, sortDirection])
 
   const navigateToChampion = (championId: string) => {
     router.push(`/champion/${championId}`)
