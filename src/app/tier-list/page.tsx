@@ -162,9 +162,12 @@ export default function TierList() {
     const fetchStats = async () => {
       setLoading(true)
       try {
-        const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}`)
-        if (!res.ok) throw new Error('Failed to fetch champion stats')
+        // Fetch stats from our cached data endpoint
+        const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}&role=${selectedRole}`, {
+          next: { revalidate: 3600 } // Revalidate cache every hour
+        })
         
+        if (!res.ok) throw new Error('Failed to fetch champion stats')
         const data = await res.json()
         
         // Map the data to our Champion interface
@@ -213,22 +216,34 @@ export default function TierList() {
             
             if (!primaryRoleStats) return null
             
+            // Calculate tier based on win rate and pick rate
+            let tier: Tier = 'C'
+            const winRate = primaryRoleStats.winRate
+            const pickRate = primaryRoleStats.pickRate
+            
+            if (winRate >= 53 && pickRate >= 10) tier = 'S+'
+            else if (winRate >= 52 && pickRate >= 8) tier = 'S'
+            else if (winRate >= 51 && pickRate >= 5) tier = 'A'
+            else if (winRate >= 50 && pickRate >= 3) tier = 'B'
+            else if (winRate >= 48) tier = 'C'
+            else tier = 'D'
+            
             return {
               id,
               name: champData.name,
               icon: champData.image?.icon || `/champion-icons/${id}.png`,
               primaryRole,
               roles: champData.roles,
-              difficulty: champData.difficulty,
-              damageType: champData.damageType,
-              range: champData.range,
-              tier: primaryRoleStats.tier,
-              winrate: primaryRoleStats.winRate,
+              difficulty: champData.difficulty || 'Medium',
+              damageType: champData.damageType || 'Mixed',
+              range: champData.range || 'Melee',
+              tier,
+              winrate: winRate,
               winrateDelta: primaryRoleStats.winRateDelta || 0,
-              pickrate: primaryRoleStats.pickRate,
+              pickrate: pickRate,
               games: primaryRoleStats.games,
               banrate: primaryRoleStats.banRate,
-              kda: primaryRoleStats.kda,
+              kda: primaryRoleStats.kda || { kills: 0, deaths: 0, assists: 0 },
               confidence: champData.confidence || 0.5,
               sourcesUsed: champData.sourcesUsed || []
             }
@@ -249,7 +264,6 @@ export default function TierList() {
         setChampions(mappedChampions)
       } catch (error) {
         console.error('Error fetching champion stats:', error)
-        // You might want to show an error state here
       } finally {
         setLoading(false)
       }
