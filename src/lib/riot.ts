@@ -25,7 +25,11 @@ export async function fetchChampionData(rank: string = 'ALL', region: string = '
         return [id, {
           id,
           name: champion.name,
-          image: champion.image,
+          image: {
+            icon: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${id}.png`,
+            splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`,
+            loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${id}_0.jpg`
+          },
           roles,
           difficulty: champion.info.difficulty,
           damageType: champion.tags.includes('Assassin') ? 'Physical' : 

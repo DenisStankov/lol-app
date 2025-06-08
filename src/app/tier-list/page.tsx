@@ -231,7 +231,7 @@ export default function TierList() {
             return {
               id,
               name: champData.name,
-              icon: champData.image?.icon || `/champion-icons/${id}.png`,
+              icon: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${id}.png`,
               primaryRole,
               roles: champData.roles,
               difficulty: champData.difficulty || 'Medium',
