@@ -1,0 +1,93 @@
+"use client"
+
+import { useState } from "react"
+import Image from "next/image"
+import { motion } from "framer-motion"
+import { Sword, Shield, Wand2, Brain, Sparkles } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+interface ChampionHeroSectionProps {
+  champion: any // We'll type this properly later
+}
+
+const roleIcons = {
+  Fighter: Sword,
+  Tank: Shield,
+  Mage: Wand2,
+  Assassin: Sword,
+  Marksman: Sword,
+  Support: Sparkles,
+}
+
+export default function ChampionHeroSection({ champion }: ChampionHeroSectionProps) {
+  const [showLore, setShowLore] = useState(false)
+  const RoleIcon = roleIcons[champion.role as keyof typeof roleIcons] || Brain
+
+  return (
+    <section className="relative min-h-[70vh] flex items-center">
+      {/* Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <Image
+          src={champion.splashArtUrl || "/placeholder.svg"}
+          alt={champion.name}
+          fill
+          className="object-cover object-center"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/50 to-slate-950" />
+      </div>
+
+      {/* Particles Effect */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Add your particles component here */}
+      </div>
+
+      {/* Content */}
+      <div className="container relative z-10 mx-auto px-4 py-16">
+        <div className="max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="flex items-center space-x-4 mb-4">
+              <RoleIcon className="w-8 h-8 text-yellow-400" />
+              <span className="text-lg text-slate-300">{champion.role}</span>
+              <div className="w-px h-6 bg-slate-700" />
+              <span className="text-lg text-slate-300">Difficulty: {champion.difficulty}</span>
+            </div>
+
+            <h1 className="text-5xl md:text-7xl font-bold text-slate-100 mb-4">
+              {champion.name}
+            </h1>
+            <p className="text-2xl md:text-3xl text-yellow-400 font-medium mb-8">
+              {champion.title}
+            </p>
+
+            {/* Lore Toggle */}
+            <div 
+              className={cn(
+                "relative max-w-2xl transition-all duration-500 ease-in-out overflow-hidden",
+                showLore ? "h-auto" : "h-24"
+              )}
+            >
+              <p className="text-lg text-slate-300 leading-relaxed">
+                {champion.lore}
+              </p>
+              {!showLore && (
+                <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-950 to-transparent" />
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowLore(!showLore)}
+              className="mt-4 text-yellow-400 hover:text-yellow-300 transition-colors"
+            >
+              {showLore ? "Show Less" : "Read More"}
+            </button>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  )
+} 

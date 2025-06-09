@@ -34,6 +34,10 @@ import MatchupsCounters from "@/components/champion/matchups-counters"
 import { ParticlesComponent } from "@/components/champion/particles-component"
 import ChampionDetailClient from "@/components/champion/champion-detail-client"
 import type { ChampionData } from "@/lib/types"
+import ChampionHeroSection from "@/components/champion/champion-hero-section"
+import AbilitiesSection from "@/components/champion/abilities-section"
+import GameplayTabs from "@/components/champion/gameplay-tabs"
+import { Separator } from "@/components/ui/separator"
 
 // Add this component at the top of the file after the imports
 const SafeImage = ({ src, alt, fill, className, ...props }: any) => {
@@ -61,7 +65,7 @@ const SafeImage = ({ src, alt, fill, className, ...props }: any) => {
 
 export default function ChampionDetailsPage() {
   const params = useParams()
-  const [champion, setChampion] = useState<ChampionData | null>(null)
+  const [champion, setChampion] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -83,99 +87,20 @@ export default function ChampionDetailsPage() {
 
         // Fetch champion stats
         const statsResponse = await fetch(`/api/champion-stats`)
-        const statsData = await statsResponse.json() as { [key: string]: { winRate: number; pickRate: number; banRate: number; matches: number; roles: any } }
+        const statsData = await statsResponse.json()
         const championId = params.id as string
         const championStats = statsData[championId] || {}
 
-        // Combine all data into the format our components expect
-        const combinedData: ChampionData = {
-          id: detailsData.id,
-          name: detailsData.name,
-          title: detailsData.title,
-          description: detailsData.blurb,
-          lore: detailsData.lore,
-          abilities: detailsData.spells.map((spell: any, index: number) => ({
-            id: spell.id,
-            name: spell.name,
-            description: spell.description,
-            iconUrl: detailsData.imageURLs.spells[index],
-            keyBinding: ['Q', 'W', 'E', 'R'][index],
-            cost: spell.costBurn
-          })),
-          stats: {
-            winRate: championStats.winRate || 50,
-            pickRate: championStats.pickRate || 10,
-            banRate: championStats.banRate || 5,
-            matches: championStats.matches || 1000
-          },
-          imageURLs: detailsData.imageURLs,
-          particleType: detailsData.tags[0]?.toLowerCase() || "cosmic",
-          themeColorPrimary: getChampionThemeColor(detailsData.tags[0]),
-          themeColorSecondary: getChampionSecondaryColor(detailsData.tags[0]),
-          tags: detailsData.tags,
-          roles: championStats.roles || {},
-          difficulty: {
-            mechanical: detailsData.info.difficulty,
-            teamfight: Math.round((detailsData.info.attack + detailsData.info.magic + detailsData.info.defense) / 3)
-          },
-          matchups: metaData?.roleSpecificData?.counters?.map((counter: any) => ({
-            championId: counter.name,
-            championName: counter.name,
-            championIconUrl: counter.image,
-            difficulty: getDifficultyFromWinRate(parseFloat(counter.winRate)),
-            tips: detailsData.enemytips
-          })) || [],
-          counters: metaData?.roleSpecificData?.counters?.map((counter: any) => ({
-            championId: counter.name,
-            championName: counter.name,
-            championIconUrl: counter.image,
-            type: parseFloat(counter.winRate) > 50 ? "strong" : "weak"
-          })) || [],
-          recommendedBuilds: [{
-            name: "Recommended Build",
-            starterItems: metaData?.roleSpecificData?.build?.starter?.map((item: any) => ({
-              id: item.name,
-              name: item.name,
-              iconUrl: item.image,
-              cost: item.cost,
-              stats: [],
-              type: "Starter"
-            })) || [],
-            boots: metaData?.roleSpecificData?.build?.boots?.[0] ? {
-              id: metaData.roleSpecificData.build.boots[0].name,
-              name: metaData.roleSpecificData.build.boots[0].name,
-              iconUrl: metaData.roleSpecificData.build.boots[0].image,
-              cost: metaData.roleSpecificData.build.boots[0].cost,
-              stats: [],
-              type: "Boots"
-            } : {
-              id: "boots",
-              name: "Boots of Speed",
-              iconUrl: "/items/boots.png",
-              cost: 300,
-              stats: ["Movement Speed"],
-              type: "Boots"
-            },
-            coreItems: metaData?.roleSpecificData?.build?.core?.map((item: any) => ({
-              id: item.name,
-              name: item.name,
-              iconUrl: item.image,
-              cost: item.cost,
-              stats: [],
-              type: item.order === 1 ? "Mythic" : "Legendary"
-            })) || [],
-            situationalItems: metaData?.roleSpecificData?.build?.situational?.map((item: any) => ({
-              item: {
-                id: item.name,
-                name: item.name,
-                iconUrl: item.image,
-                cost: item.cost,
-                stats: [],
-                type: "Situational"
-              },
-              context: item.condition
-            })) || []
-          }]
+        // Combine all data
+        const combinedData = {
+          ...detailsData,
+          meta: metaData,
+          stats: championStats,
+          themeColors: {
+            primary: "rgba(15, 23, 42, 0.8)", // slate-900 with alpha
+            accent: "text-yellow-300",
+            particleColor: "#FFFFFF",
+          }
         }
 
         setChampion(combinedData)
@@ -191,24 +116,46 @@ export default function ChampionDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-lol-gold"></div>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-300"></div>
       </div>
     )
   }
 
   if (!champion) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-        <h1 className="text-2xl text-lol-gold mb-4">Champion not found</h1>
-        <Link href="/champions" className="text-lol-blue hover:text-lol-gold transition-colors">
-          Return to Champions
-        </Link>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
+        <h1 className="text-2xl text-yellow-300 mb-4">Champion not found</h1>
+        <p className="text-slate-400">Unable to load champion data</p>
       </div>
     )
   }
 
-  return <ChampionDetailClient champion={champion} />
+  return (
+    <div className="min-h-screen bg-slate-950">
+      {/* Hero Section with Lore */}
+      <ChampionHeroSection champion={champion} />
+
+      {/* Stats Section - Overlapping with Hero */}
+      <section className="relative z-10 -mt-32 container mx-auto px-4">
+        <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800/50 rounded-xl p-6 shadow-xl">
+          <StatsVisualization champion={champion} />
+        </div>
+      </section>
+
+      {/* Abilities & Skill Order Section */}
+      <section className="container mx-auto px-4 py-16">
+        <AbilitiesSection champion={champion} />
+      </section>
+
+      <Separator className="container mx-auto bg-slate-800/50" />
+
+      {/* Gameplay Information - Tabbed interface */}
+      <section className="container mx-auto px-4 py-16">
+        <GameplayTabs champion={champion} />
+      </section>
+    </div>
+  )
 }
 
 function getChampionThemeColor(championClass: string = ""): string {

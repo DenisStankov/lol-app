@@ -1,111 +1,185 @@
 "use client"
 
-import type React from "react"
-import type { ChampionData, ChampionStats } from "@/lib/types"
-import { BarChart, TrendingUp, Shield, Zap, Brain, ZapOff, HelpCircle, Swords } from "lucide-react"
-import { FrostedCard } from "@/components/ui/frosted-card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart as RechartsRadarChart } from "recharts"
+import { useEffect, useRef } from "react"
+import { motion } from "framer-motion"
+import { Shield, Sword, Wand2, Brain, Footprints, HeartHandshake, Target } from "lucide-react"
+
+interface StatConfig {
+  icon: React.ReactNode
+  label: string
+  value: number
+  color: string
+}
 
 interface StatsVisualizationProps {
-  champion: ChampionData
-}
-
-const statIcons: Record<keyof ChampionStats | string, React.ElementType> = {
-  attack: Swords,
-  defense: Shield,
-  magic: Zap,
-  difficulty: Brain,
-  mobility: TrendingUp,
-  utility: HelpCircle,
-  cc: ZapOff, // Placeholder for Crowd Control
-}
-
-const statColors: Record<keyof ChampionStats | string, string> = {
-  attack: "text-red-400",
-  defense: "text-blue-400",
-  magic: "text-purple-400",
-  difficulty: "text-yellow-400",
-  mobility: "text-green-400",
-  utility: "text-teal-400",
-  cc: "text-orange-400",
+  champion: any // We'll type this properly later
 }
 
 export default function StatsVisualization({ champion }: StatsVisualizationProps) {
-  const chartData = Object.entries(champion.stats).map(([key, value]) => ({
-    stat: key.charAt(0).toUpperCase() + key.slice(1),
-    value: value,
-  }))
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const radarChartConfig = {
-    value: {
-      label: "Value",
-      color: champion.themeColorPrimary || "hsl(var(--primary))",
-    },
-  }
+  const stats: StatConfig[] = [
+    { icon: <Sword className="w-6 h-6" />, label: "Attack", value: champion.stats.attack || 0, color: "rgb(239, 68, 68)" },
+    { icon: <Shield className="w-6 h-6" />, label: "Defense", value: champion.stats.defense || 0, color: "rgb(59, 130, 246)" },
+    { icon: <Wand2 className="w-6 h-6" />, label: "Magic", value: champion.stats.magic || 0, color: "rgb(147, 51, 234)" },
+    { icon: <Brain className="w-6 h-6" />, label: "Difficulty", value: champion.stats.difficulty || 0, color: "rgb(234, 179, 8)" },
+    { icon: <Footprints className="w-6 h-6" />, label: "Mobility", value: champion.stats.mobility || 0, color: "rgb(34, 197, 94)" },
+    { icon: <HeartHandshake className="w-6 h-6" />, label: "Utility", value: champion.stats.utility || 0, color: "rgb(14, 165, 233)" },
+    { icon: <Target className="w-6 h-6" />, label: "Range", value: champion.stats.range || 0, color: "rgb(236, 72, 153)" }
+  ]
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    // Set canvas size
+    const size = canvas.offsetWidth
+    canvas.width = size * 2 // For retina displays
+    canvas.height = size * 2
+    ctx.scale(2, 2)
+
+    // Calculate center and radius
+    const center = size / 2
+    const radius = (size / 2) * 0.8 // 80% of half width
+
+    // Draw hexagonal grid
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.1)" // slate-400 with low opacity
+    ctx.lineWidth = 1
+
+    // Draw multiple hexagons for the grid
+    for (let i = 1; i <= 5; i++) {
+      const currentRadius = (radius / 5) * i
+      ctx.beginPath()
+      for (let j = 0; j < 6; j++) {
+        const angle = (Math.PI / 3) * j
+        const x = center + currentRadius * Math.cos(angle)
+        const y = center + currentRadius * Math.sin(angle)
+        if (j === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.closePath()
+      ctx.stroke()
+    }
+
+    // Draw stat lines
+    ctx.beginPath()
+    stats.forEach((_, i) => {
+      const angle = (Math.PI / 3.5) * i - Math.PI / 2
+      ctx.moveTo(center, center)
+      ctx.lineTo(
+        center + radius * Math.cos(angle),
+        center + radius * Math.sin(angle)
+      )
+    })
+    ctx.stroke()
+
+  }, [stats])
 
   return (
-    <section id="stats" aria-labelledby="stats-heading">
-      <h2 id="stats-heading" className="text-3xl md:text-4xl font-bold text-lol-gold mb-8 text-center">
-        Champion Stats
-      </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        <FrostedCard className="p-4 md:p-6 h-[400px] md:h-[500px]">
-          <ChartContainer config={radarChartConfig} className="w-full h-full">
-            <RechartsRadarChart data={chartData} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
-              <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" labelKey="stat" />} />
-              <PolarGrid className="fill-lol-grey/10 stroke-lol-grey/30" />
-              <PolarAngleAxis dataKey="stat" tick={{ fill: "hsl(var(--foreground)/0.8)", fontSize: 12 }} />
-              <Radar
-                dataKey="value"
-                fill={`url(#${champion.id}-fill)`} // Use champion-specific gradient
-                fillOpacity={0.6}
-                stroke={champion.themeColorPrimary || "hsl(var(--primary))"}
-                strokeWidth={2}
-              />
-              <defs>
-                <linearGradient id={`${champion.id}-fill`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={champion.themeColorPrimary || "hsl(var(--primary))"} stopOpacity={0.8} />
-                  <stop
-                    offset="95%"
-                    stopColor={champion.themeColorSecondary || "hsl(var(--secondary))"}
-                    stopOpacity={0.3}
-                  />
-                </linearGradient>
-              </defs>
-            </RechartsRadarChart>
-          </ChartContainer>
-        </FrostedCard>
-
-        <div className="space-y-4">
-          {Object.entries(champion.stats).map(([key, value]) => {
-            const Icon = statIcons[key] || BarChart
-            const colorClass = statColors[key] || "text-lol-gold-light"
-            return (
-              <FrostedCard key={key} className="p-4 group hover:shadow-lol-gold/20 transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Icon className={`w-6 h-6 ${colorClass} transition-transform group-hover:scale-110`} />
-                    <span className="text-lg font-medium text-lol-gold-light/90">
-                      {key.charAt(0).toUpperCase() + key.slice(1)}
-                    </span>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+      {/* Hexagonal Chart */}
+      <div className="relative aspect-square">
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full"
+        />
+        <div className="absolute inset-0">
+          <div className="relative w-full h-full">
+            {stats.map((stat, index) => {
+              const angle = (360 / stats.length) * index - 90
+              const radius = 42 // percentage from center
+              return (
+                <motion.div
+                  key={stat.label}
+                  className="absolute flex items-center justify-center"
+                  style={{
+                    left: `${50 + radius * Math.cos((angle * Math.PI) / 180)}%`,
+                    top: `${50 + radius * Math.sin((angle * Math.PI) / 180)}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <div 
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-800/90 
+                             border border-slate-700/50 text-slate-200 shadow-lg"
+                    style={{
+                      color: stat.color
+                    }}
+                  >
+                    {stat.icon}
                   </div>
-                  <span className={`text-xl font-semibold ${colorClass}`}>{value} / 100</span>
-                </div>
-                <div className="mt-2 h-3 bg-lol-grey-dark/50 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full bg-gradient-to-r from-${statColors[key]?.replace("text-", "")} via-${statColors[key]?.replace("text-", "").replace("-400", "-500")} to-${statColors[key]?.replace("text-", "").replace("-400", "-600")} animate-stat-bar-fill`}
-                    style={{ "--stat-bar-width": `${value}%` } as React.CSSProperties}
+                </motion.div>
+              )
+            })}
+            {/* Stat Value Indicators */}
+            {stats.map((stat, index) => {
+              const angle = (360 / stats.length) * index - 90
+              const normalizedValue = stat.value / 100
+              const radius = 35 * normalizedValue // percentage from center
+              return (
+                <motion.div
+                  key={`value-${stat.label}`}
+                  className="absolute w-3 h-3"
+                  style={{
+                    left: `${50 + radius * Math.cos((angle * Math.PI) / 180)}%`,
+                    top: `${50 + radius * Math.sin((angle * Math.PI) / 180)}%`,
+                    transform: "translate(-50%, -50%)",
+                  }}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 + 0.5 }}
+                >
+                  <div 
+                    className="w-full h-full rounded-full shadow-lg animate-pulse"
+                    style={{ backgroundColor: stat.color }}
                   />
-                </div>
-              </FrostedCard>
-            )
-          })}
+                </motion.div>
+              )
+            })}
+          </div>
         </div>
       </div>
-      <p className="text-center mt-8 text-sm text-lol-grey">
-        Comparative stats with other champions in the same role would appear here.
-      </p>
-    </section>
+
+      {/* Stats List */}
+      <div className="space-y-4">
+        {stats.map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/30"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="text-slate-200" style={{ color: stat.color }}>
+                  {stat.icon}
+                </div>
+                <span className="text-lg font-medium text-slate-200">
+                  {stat.label}
+                </span>
+              </div>
+              <span className="text-xl font-semibold" style={{ color: stat.color }}>
+                {stat.value}
+              </span>
+            </div>
+            <div className="mt-2 h-2 bg-slate-700/30 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{ backgroundColor: stat.color }}
+                initial={{ width: 0 }}
+                animate={{ width: `${stat.value}%` }}
+                transition={{ delay: index * 0.1 + 0.5, duration: 1, ease: "easeOut" }}
+              />
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
   )
 } 
