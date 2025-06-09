@@ -19,13 +19,13 @@ export default function StatsVisualization({ champion }: StatsVisualizationProps
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const stats: StatConfig[] = [
-    { icon: <Sword className="w-6 h-6" />, label: "Attack", value: champion.stats.attack || 0, color: "rgb(239, 68, 68)" },
-    { icon: <Shield className="w-6 h-6" />, label: "Defense", value: champion.stats.defense || 0, color: "rgb(59, 130, 246)" },
-    { icon: <Wand2 className="w-6 h-6" />, label: "Magic", value: champion.stats.magic || 0, color: "rgb(147, 51, 234)" },
-    { icon: <Brain className="w-6 h-6" />, label: "Difficulty", value: champion.stats.difficulty || 0, color: "rgb(234, 179, 8)" },
-    { icon: <Footprints className="w-6 h-6" />, label: "Mobility", value: champion.stats.mobility || 0, color: "rgb(34, 197, 94)" },
-    { icon: <HeartHandshake className="w-6 h-6" />, label: "Utility", value: champion.stats.utility || 0, color: "rgb(14, 165, 233)" },
-    { icon: <Target className="w-6 h-6" />, label: "Range", value: champion.stats.range || 0, color: "rgb(236, 72, 153)" }
+    { icon: <Sword className="w-6 h-6" />, label: "Attack", value: champion?.stats?.attack || 0, color: "rgb(239, 68, 68)" },
+    { icon: <Shield className="w-6 h-6" />, label: "Defense", value: champion?.stats?.defense || 0, color: "rgb(59, 130, 246)" },
+    { icon: <Wand2 className="w-6 h-6" />, label: "Magic", value: champion?.stats?.magic || 0, color: "rgb(147, 51, 234)" },
+    { icon: <Brain className="w-6 h-6" />, label: "Difficulty", value: champion?.stats?.difficulty || 0, color: "rgb(234, 179, 8)" },
+    { icon: <Footprints className="w-6 h-6" />, label: "Mobility", value: champion?.stats?.mobility || 0, color: "rgb(34, 197, 94)" },
+    { icon: <HeartHandshake className="w-6 h-6" />, label: "Utility", value: champion?.stats?.utility || 0, color: "rgb(14, 165, 233)" },
+    { icon: <Target className="w-6 h-6" />, label: "Range", value: champion?.stats?.range || 0, color: "rgb(236, 72, 153)" }
   ]
 
   useEffect(() => {
@@ -77,6 +77,36 @@ export default function StatsVisualization({ champion }: StatsVisualizationProps
     ctx.stroke()
 
   }, [stats])
+
+  if (!champion?.stats) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        {/* Loading Hexagonal Chart */}
+        <div className="relative aspect-square">
+          <div className="absolute inset-0 rounded-xl bg-slate-800/50 animate-pulse" />
+        </div>
+
+        {/* Loading Stats List */}
+        <div className="space-y-4">
+          {[...Array(7)].map((_, index) => (
+            <div
+              key={index}
+              className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/30"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 rounded bg-slate-700/50 animate-pulse" />
+                  <div className="w-20 h-6 rounded bg-slate-700/50 animate-pulse" />
+                </div>
+                <div className="w-12 h-6 rounded bg-slate-700/50 animate-pulse" />
+              </div>
+              <div className="mt-2 h-2 bg-slate-700/30 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">

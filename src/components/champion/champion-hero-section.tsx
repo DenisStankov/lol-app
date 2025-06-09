@@ -21,7 +21,28 @@ const roleIcons = {
 
 export default function ChampionHeroSection({ champion }: ChampionHeroSectionProps) {
   const [showLore, setShowLore] = useState(false)
-  const RoleIcon = roleIcons[champion.role as keyof typeof roleIcons] || Brain
+  const RoleIcon = roleIcons[champion?.role as keyof typeof roleIcons] || Brain
+
+  if (!champion) {
+    return (
+      <section className="relative min-h-[70vh] flex items-center">
+        <div className="absolute inset-0 bg-slate-900 animate-pulse" />
+        <div className="container relative z-10 mx-auto px-4 py-16">
+          <div className="max-w-4xl">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="w-8 h-8 rounded-full bg-slate-800 animate-pulse" />
+              <div className="w-24 h-6 rounded bg-slate-800 animate-pulse" />
+              <div className="w-px h-6 bg-slate-700" />
+              <div className="w-32 h-6 rounded bg-slate-800 animate-pulse" />
+            </div>
+            <div className="w-64 h-12 rounded bg-slate-800 animate-pulse mb-4" />
+            <div className="w-48 h-8 rounded bg-slate-800 animate-pulse mb-8" />
+            <div className="w-full h-24 rounded bg-slate-800 animate-pulse" />
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="relative min-h-[70vh] flex items-center">
@@ -29,7 +50,7 @@ export default function ChampionHeroSection({ champion }: ChampionHeroSectionPro
       <div className="absolute inset-0 overflow-hidden">
         <Image
           src={champion.splashArtUrl || "/placeholder.svg"}
-          alt={champion.name}
+          alt={champion.name || "Champion"}
           fill
           className="object-cover object-center"
           priority
@@ -52,16 +73,18 @@ export default function ChampionHeroSection({ champion }: ChampionHeroSectionPro
           >
             <div className="flex items-center space-x-4 mb-4">
               <RoleIcon className="w-8 h-8 text-yellow-400" />
-              <span className="text-lg text-slate-300">{champion.role}</span>
+              <span className="text-lg text-slate-300">{champion.role || "Unknown Role"}</span>
               <div className="w-px h-6 bg-slate-700" />
-              <span className="text-lg text-slate-300">Difficulty: {champion.difficulty}</span>
+              <span className="text-lg text-slate-300">
+                Difficulty: {champion.difficulty || "Unknown"}
+              </span>
             </div>
 
             <h1 className="text-5xl md:text-7xl font-bold text-slate-100 mb-4">
-              {champion.name}
+              {champion.name || "Unknown Champion"}
             </h1>
             <p className="text-2xl md:text-3xl text-yellow-400 font-medium mb-8">
-              {champion.title}
+              {champion.title || "The Unknown"}
             </p>
 
             {/* Lore Toggle */}
@@ -72,19 +95,21 @@ export default function ChampionHeroSection({ champion }: ChampionHeroSectionPro
               )}
             >
               <p className="text-lg text-slate-300 leading-relaxed">
-                {champion.lore}
+                {champion.lore || "No lore available for this champion."}
               </p>
               {!showLore && (
                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-slate-950 to-transparent" />
               )}
             </div>
 
-            <button
-              onClick={() => setShowLore(!showLore)}
-              className="mt-4 text-yellow-400 hover:text-yellow-300 transition-colors"
-            >
-              {showLore ? "Show Less" : "Read More"}
-            </button>
+            {champion.lore && (
+              <button
+                onClick={() => setShowLore(!showLore)}
+                className="mt-4 text-yellow-400 hover:text-yellow-300 transition-colors"
+              >
+                {showLore ? "Show Less" : "Read More"}
+              </button>
+            )}
           </motion.div>
         </div>
       </div>
