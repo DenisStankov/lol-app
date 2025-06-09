@@ -6,7 +6,8 @@ import { FrostedCard } from "@/components/ui/frosted-card"
 import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/badge"
+import { Card } from "@/components/card"
 
 interface AbilitiesShowcaseProps {
   champion: ChampionData

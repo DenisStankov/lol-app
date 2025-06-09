@@ -96,7 +96,7 @@ export default function ChampionDetailsPage() {
         <h1 className="text-2xl text-lol-gold mb-4">Champion not found</h1>
         <Link href="/champions" className="text-lol-blue hover:text-lol-gold transition-colors">
           Return to Champions
-        </Link>
+              </Link>
       </div>
     )
   }
