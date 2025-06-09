@@ -42,7 +42,7 @@ export default function StatsVisualization({ champion }: StatsVisualizationProps
       label: "Value",
       color: champion.themeColorPrimary || "hsl(var(--primary))",
     },
-  } satisfies Parameters<typeof RechartsRadarChart>[0]["config"]
+  }
 
   return (
     <section id="stats" aria-labelledby="stats-heading">

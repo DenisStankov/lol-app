@@ -1,3 +1,13 @@
+export interface ChampionStats {
+  attack: number
+  defense: number
+  magic: number
+  difficulty: number
+  mobility: number
+  utility: number
+  cc: number
+}
+
 export interface ChampionData {
   id: string
   name: string
