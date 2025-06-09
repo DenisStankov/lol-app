@@ -2,13 +2,13 @@
 
 import type { ChampionData } from "@/lib/types"
 import HeroSection from "./hero-section"
-import StatsVisualization from "./stats-visualization"
-import AbilitiesShowcase from "./abilities-showcase"
-import BuildPathItems from "./build-path-items"
-import MatchupsCounters from "./matchups-counters"
+import StatsVisualization from "@/components/champion/stats-visualization"
+import AbilitiesShowcase from "@/components/champion/abilities-showcase"
+import BuildPathItems from "@/components/champion/build-path-items"
+import MatchupsCounters from "@/components/champion/matchups-counters"
 import { Separator } from "@/components/ui/separator"
 import { useEffect, useState } from "react"
-import { ParticlesComponent } from "./particles-component"
+import { ParticlesComponent } from "@/components/champion/particles-component"
 import { FrostedCard } from "@/components/ui/frosted-card"
 
 interface ChampionDetailClientProps {

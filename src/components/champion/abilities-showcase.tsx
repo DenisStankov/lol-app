@@ -7,7 +7,6 @@ import { CardContent, CardHeader, CardTitle, CardDescription } from "@/component
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/badge"
-import { Card } from "@/components/card"
 
 interface AbilitiesShowcaseProps {
   champion: ChampionData
@@ -46,10 +45,9 @@ export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) 
                       </CardTitle>
                       {ability.cost && (
                         <p className="text-xs text-lol-grey">
-                          {ability.cost.type}: {ability.cost.values.join(" / ")}
+                          Cost: {ability.cost}
                         </p>
                       )}
-                      <p className="text-xs text-lol-grey">Cooldown: {ability.cooldown.join(" / ")}s</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -57,41 +55,6 @@ export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) 
                   <CardDescription className="text-lol-gold-light/80 text-sm mb-3">
                     {ability.description}
                   </CardDescription>
-                  {ability.videoUrl && (
-                    <div className="aspect-video bg-lol-grey-dark rounded-md overflow-hidden mb-3">
-                      {/* Placeholder for video player */}
-                      <Image
-                        src="/placeholder.svg?width=160&height=90"
-                        alt="Ability video preview"
-                        layout="fill"
-                        objectFit="cover"
-                      />
-                    </div>
-                  )}
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-semibold text-lol-gold">Scaling:</h4>
-                    {ability.scaling.length > 0 ? (
-                      ability.scaling.map((s) => (
-                        <TooltipProvider key={s.type + s.value}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="outline"
-                                className="mr-1 border-lol-gold/30 text-lol-gold/80 cursor-default"
-                              >
-                                {s.value} {s.type}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-lol-blue-dark text-lol-gold-light border-lol-gold/50">
-                              <p>Scales with {s.type}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ))
-                    ) : (
-                      <p className="text-xs text-lol-grey">No direct scaling.</p>
-                    )}
-                  </div>
                 </CardContent>
               </FrostedCard>
             </CarouselItem>
@@ -105,7 +68,7 @@ export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) 
         <h3 className="text-2xl font-semibold text-lol-gold mb-4 text-center">Skill Order</h3>
         <FrostedCard className="p-4 md:p-6">
           <div className="flex flex-wrap gap-2 justify-center">
-            {champion.skillOrder.map((key, index) => (
+            {champion.abilities.map((ability, index) => (
               <TooltipProvider key={index}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -117,14 +80,12 @@ export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) 
                         variant="secondary"
                         className="w-10 h-10 flex items-center justify-center text-lg font-bold bg-lol-blue-light/10 text-lol-blue-light border-lol-blue-light/30 hover:bg-lol-blue-light/20 transition-colors cursor-default"
                       >
-                        {key}
+                        {ability.keyBinding}
                       </Badge>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent className="bg-lol-blue-dark text-lol-gold-light border-lol-gold/50">
-                    <p>
-                      Level {index + 1}: Level up {champion.abilities.find((a) => a.keyBinding === key)?.name}
-                    </p>
+                    <p>Level {index + 1}: {ability.name}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -132,9 +93,6 @@ export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) 
           </div>
         </FrostedCard>
       </div>
-      <p className="text-center mt-8 text-sm text-lol-grey">
-        Ability combo suggestions with visual guides would appear here.
-      </p>
     </section>
   )
 } 

@@ -2,18 +2,31 @@ export interface ChampionData {
   id: string
   name: string
   title: string
-  tags: string[]
-  imageURLs: {
-    square: string
-    splash: string
-    loading: string
-  }
+  description: string
+  lore: string
+  abilities: Array<{
+    id: string
+    name: string
+    description: string
+    iconUrl: string
+    keyBinding: string
+    cost?: string
+  }>
   stats: {
     winRate: number
     pickRate: number
     banRate: number
     matches: number
   }
+  imageURLs: {
+    splash: string
+    loading: string
+    square: string
+  }
+  particleType: string
+  themeColorPrimary: string
+  themeColorSecondary: string
+  tags: string[]
   roles: {
     [key: string]: {
       winRate: number
@@ -25,12 +38,4 @@ export interface ChampionData {
     mechanical: number
     teamfight: number
   }
-  abilities: {
-    id: string
-    name: string
-    description: string
-    iconUrl: string
-    keyBinding: string
-    cost?: string
-  }[]
 } 
