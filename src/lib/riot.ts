@@ -1,77 +1,134 @@
 import axios from 'axios'
 
-export async function fetchChampionData(rank: string = 'ALL', region: string = 'global') {
+const RIOT_API_KEY = process.env.RIOT_API_KEY;
+const DDRAGON_BASE_URL = 'https://ddragon.leagueoflegends.com';
+const FALLBACK_VERSION = '13.24.1'; // Fallback to a known version
+
+// Cache the version to avoid multiple calls
+let cachedVersion: string | null = null;
+
+async function getLatestVersion(): Promise<string> {
+  if (cachedVersion) return cachedVersion;
+  
   try {
-    // Get current patch version
-    const patchResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
-    const currentPatch = patchResponse.data[0]
-
-    // Fetch champion data from Riot's Data Dragon
-    const response = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${currentPatch}/data/en_US/champion.json`)
-    const champData = response.data.data
-
-    // Generate simulated stats for each champion
-    return Object.fromEntries(
-      Object.entries(champData).map(([id, champion]: [string, any]) => {
-        // Generate role-specific stats
-        const roles = {
-          TOP: generateRoleStats(champion),
-          JUNGLE: generateRoleStats(champion),
-          MIDDLE: generateRoleStats(champion),
-          BOTTOM: generateRoleStats(champion),
-          UTILITY: generateRoleStats(champion)
-        }
-
-        return [id, {
-          id,
-          name: champion.name,
-          image: {
-            icon: `https://ddragon.leagueoflegends.com/cdn/${currentPatch}/img/champion/${id}.png`,
-            splash: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${id}_0.jpg`,
-            loading: `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${id}_0.jpg`
-          },
-          roles,
-          difficulty: champion.info.difficulty,
-          damageType: champion.tags.includes('Assassin') ? 'Physical' : 
-                     champion.tags.includes('Mage') ? 'Magic' : 'Mixed',
-          range: champion.stats.attackrange > 300 ? 'Ranged' : 'Melee'
-        }]
-      })
-    )
+    const response = await axios.get(`${DDRAGON_BASE_URL}/api/versions.json`);
+    const version = response.data[0];
+    if (typeof version !== 'string') {
+      throw new Error('Invalid version format');
+    }
+    cachedVersion = version;
+    return version;
   } catch (error) {
-    console.error('Error fetching champion data:', error)
-    throw error
+    console.error('Error fetching latest version:', error);
+    return FALLBACK_VERSION;
   }
 }
 
-function generateRoleStats(champion: any) {
-  // Base win rate between 48-52%
-  const baseWinRate = 48 + Math.random() * 4
+export async function fetchChampionData(rank = 'PLATINUM', region = 'global') {
+  try {
+    const version = await getLatestVersion();
+    
+    // First get the list of all champions
+    const champListResponse = await axios.get(
+      `${DDRAGON_BASE_URL}/cdn/${version}/data/en_US/champion.json`
+    );
+    
+    const champions = champListResponse.data.data;
+    const championData: Record<string, any> = {};
 
-  // Adjust based on champion difficulty (easier champions tend to have higher win rates)
-  const difficultyAdjustment = (10 - champion.info.difficulty) * 0.2
-  const winRate = baseWinRate + difficultyAdjustment
+    // For each champion, get their detailed data
+    for (const [champKey, champInfo] of Object.entries<any>(champions)) {
+      try {
+        const detailResponse = await axios.get(
+          `${DDRAGON_BASE_URL}/cdn/${version}/data/en_US/champion/${champKey}.json`
+        );
+        
+        const champDetail = detailResponse.data.data[champKey];
+        
+        // Combine with mock stats data (replace with real API calls when available)
+        championData[champKey] = {
+          id: champDetail.id,
+          name: champDetail.name,
+          image: {
+            icon: `${DDRAGON_BASE_URL}/cdn/${version}/img/champion/${champDetail.image.full}`,
+            splash: `${DDRAGON_BASE_URL}/cdn/img/champion/splash/${champKey}_0.jpg`,
+            loading: `${DDRAGON_BASE_URL}/cdn/img/champion/loading/${champKey}_0.jpg`
+          },
+          roles: {
+            // Mock role data - replace with real API data
+            ...(champDetail.tags.includes('Fighter') && {
+              TOP: mockRoleStats(),
+              JUNGLE: mockRoleStats()
+            }),
+            ...(champDetail.tags.includes('Mage') && {
+              MIDDLE: mockRoleStats()
+            }),
+            ...(champDetail.tags.includes('Marksman') && {
+              BOTTOM: mockRoleStats()
+            }),
+            ...(champDetail.tags.includes('Support') && {
+              UTILITY: mockRoleStats()
+            })
+          },
+          difficulty: getDifficultyLabel(champDetail.info.difficulty),
+          damageType: getDamageType(champDetail),
+          range: champDetail.stats.attackrange > 300 ? 'Ranged' : 'Melee'
+        };
+        
+        // Add delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+      } catch (error) {
+        console.error(`Error fetching details for ${champKey}:`, error);
+      }
+    }
+    
+    return championData;
+  } catch (error) {
+    console.error('Error fetching champion data:', error);
+    throw error;
+  }
+}
 
+// Helper function to generate mock role stats
+function mockRoleStats() {
+  const winRate = 45 + Math.random() * 10;
+  const pickRate = 2 + Math.random() * 8;
+  const games = Math.floor(10000 + Math.random() * 90000);
+  
   return {
-    games: Math.floor(1000 + Math.random() * 9000),
-    wins: 0, // Will be calculated from games and winRate
+    games,
+    wins: Math.floor(games * (winRate / 100)),
     kda: {
       kills: 5 + Math.random() * 5,
       deaths: 3 + Math.random() * 3,
-      assists: 5 + Math.random() * 7
+      assists: 4 + Math.random() * 6
     },
-    winRate: Math.min(55, Math.max(45, winRate)), // Cap between 45-55%
-    pickRate: 2 + Math.random() * 8, // 2-10%
-    banRate: 1 + Math.random() * 4, // 1-5%
-    tier: calculateTier(winRate, 5) // Using average pickRate for now
-  }
+    winRate,
+    pickRate,
+    banRate: 1 + Math.random() * 5,
+    tier: getTierFromWinRate(winRate)
+  };
 }
 
-function calculateTier(winRate: number, pickRate: number): string {
-  if (winRate >= 53 && pickRate >= 10) return 'S+'
-  if (winRate >= 52 && pickRate >= 8) return 'S'
-  if (winRate >= 51 && pickRate >= 5) return 'A'
-  if (winRate >= 50 && pickRate >= 3) return 'B'
-  if (winRate >= 48) return 'C'
-  return 'D'
+function getDifficultyLabel(difficulty: number): string {
+  if (difficulty <= 3) return 'Low';
+  if (difficulty <= 7) return 'Moderate';
+  return 'High';
+}
+
+function getDamageType(champDetail: any): string {
+  const { attackdamage, attackdamageperlevel, spelldamage, spelldamageperlevel } = champDetail.stats;
+  if (attackdamage + attackdamageperlevel > spelldamage + spelldamageperlevel) {
+    return 'Physical';
+  }
+  return 'Magic';
+}
+
+function getTierFromWinRate(winRate: number): string {
+  if (winRate >= 53) return 'S';
+  if (winRate >= 51) return 'A';
+  if (winRate >= 49) return 'B';
+  if (winRate >= 47) return 'C';
+  return 'D';
 } 
