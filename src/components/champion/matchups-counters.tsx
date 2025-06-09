@@ -3,7 +3,7 @@
 import type { ChampionData, Matchup } from "@/lib/types"
 import Image from "next/image"
 import { FrostedCard } from "@/components/ui/frosted-card"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/badge"
 import { ThumbsUp, ThumbsDown } from "lucide-react"
 
 interface MatchupsCountersProps {

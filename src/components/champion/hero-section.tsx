@@ -16,7 +16,7 @@ export default function HeroSection({ champion }: HeroSectionProps) {
     <header className="relative h-[70vh] md:h-[85vh] w-full overflow-hidden">
       <motion.div style={{ y }} className="absolute inset-0 z-0">
         <Image
-          src={champion.splashArtUrl || "/placeholder.svg"}
+          src={champion.imageURLs.splash || "/placeholder.svg"}
           alt={`${champion.name} Splash Art`}
           layout="fill"
           objectFit="cover"

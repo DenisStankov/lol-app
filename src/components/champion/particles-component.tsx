@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react"
 import Particles, { initParticlesEngine } from "@tsparticles/react"
 import type { Container, ISourceOptions } from "@tsparticles/engine"
 import { loadSlim } from "@tsparticles/slim"
+import type { Engine } from "@tsparticles/engine"
 
 interface ParticlesComponentProps {
   championTheme: string
@@ -14,7 +15,7 @@ export function ParticlesComponent({ championTheme, primaryColor, secondaryColor
   const [init, setInit] = useState(false)
 
   useEffect(() => {
-    initParticlesEngine(async (engine) => {
+    initParticlesEngine(async (engine: Engine) => {
       await loadSlim(engine)
     }).then(() => {
       setInit(true)
