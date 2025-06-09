@@ -8,6 +8,7 @@ import { CardContent, CardHeader, CardTitle, CardDescription } from "@/component
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/badge"
+import useEmblaCarousel from "embla-carousel-react"
 
 interface AbilitiesShowcaseProps {
   champion: ChampionData
@@ -15,6 +16,7 @@ interface AbilitiesShowcaseProps {
 
 export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) {
   const [mounted, setMounted] = useState(false)
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: "start", loop: true })
 
   useEffect(() => {
     setMounted(true)
@@ -40,10 +42,10 @@ export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) 
       </h2>
 
       <div className="relative w-full">
-        <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-          <CarouselContent className="-ml-4">
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex -ml-4">
             {champion.abilities.map((ability, index) => (
-              <CarouselItem key={ability.id || index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+              <div key={ability.id || index} className="pl-4 min-w-0 shrink-0 grow-0 basis-full md:basis-1/2 lg:basis-1/3">
                 <FrostedCard className="h-full flex flex-col">
                   <CardHeader className="p-4">
                     <div className="flex items-center space-x-4">
@@ -78,12 +80,24 @@ export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) 
                     </CardDescription>
                   </CardContent>
                 </FrostedCard>
-              </CarouselItem>
+              </div>
             ))}
-          </CarouselContent>
-          <CarouselPrevious className="text-lol-gold bg-lol-blue-dark/80 hover:bg-lol-blue-dark border-lol-gold/50 disabled:opacity-50" />
-          <CarouselNext className="text-lol-gold bg-lol-blue-dark/80 hover:bg-lol-blue-dark border-lol-gold/50 disabled:opacity-50" />
-        </Carousel>
+          </div>
+        </div>
+        <button
+          onClick={() => emblaApi?.scrollPrev()}
+          className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full text-lol-gold bg-lol-blue-dark/80 hover:bg-lol-blue-dark border border-lol-gold/50 disabled:opacity-50 p-2"
+        >
+          <span className="sr-only">Previous slide</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <button
+          onClick={() => emblaApi?.scrollNext()}
+          className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full text-lol-gold bg-lol-blue-dark/80 hover:bg-lol-blue-dark border border-lol-gold/50 disabled:opacity-50 p-2"
+        >
+          <span className="sr-only">Next slide</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
       </div>
 
       <div className="mt-12">
