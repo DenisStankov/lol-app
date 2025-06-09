@@ -19,52 +19,50 @@ export default function AbilitiesShowcase({ champion }: AbilitiesShowcaseProps) 
         Abilities
       </h2>
 
-      <div className="relative w-full">
-        <Carousel>
-          <CarouselContent>
-            {champion.abilities.map((ability, index) => (
-              <CarouselItem key={ability.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                <FrostedCard className="h-full flex flex-col">
-                  <CardHeader className="p-4">
-                    <div className="flex items-center space-x-4">
-                      <Image
-                        src={ability.iconUrl || "/placeholder.svg"}
-                        alt={ability.name}
-                        width={64}
-                        height={64}
-                        className="rounded-md border-2 border-lol-gold/50"
-                      />
-                      <div>
-                        <CardTitle className="text-xl text-lol-gold-light">
-                          {ability.name}{" "}
-                          <Badge
-                            variant="secondary"
-                            className="ml-2 bg-lol-blue-light/20 text-lol-blue-light border-lol-blue-light/50"
-                          >
-                            {ability.keyBinding}
-                          </Badge>
-                        </CardTitle>
-                        {ability.cost && (
-                          <p className="text-xs text-lol-grey">
-                            Cost: {ability.cost}
-                          </p>
-                        )}
-                      </div>
+      <Carousel opts={{ align: "start" }} className="w-full">
+        <CarouselContent className="-ml-4">
+          {champion.abilities.map((ability, index) => (
+            <CarouselItem key={ability.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+              <FrostedCard className="h-full flex flex-col">
+                <CardHeader className="p-4">
+                  <div className="flex items-center space-x-4">
+                    <Image
+                      src={ability.iconUrl || "/placeholder.svg"}
+                      alt={ability.name}
+                      width={64}
+                      height={64}
+                      className="rounded-md border-2 border-lol-gold/50"
+                    />
+                    <div>
+                      <CardTitle className="text-xl text-lol-gold-light">
+                        {ability.name}{" "}
+                        <Badge
+                          variant="secondary"
+                          className="ml-2 bg-lol-blue-light/20 text-lol-blue-light border-lol-blue-light/50"
+                        >
+                          {ability.keyBinding}
+                        </Badge>
+                      </CardTitle>
+                      {ability.cost && (
+                        <p className="text-xs text-lol-grey">
+                          Cost: {ability.cost}
+                        </p>
+                      )}
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-4 flex-grow">
-                    <CardDescription className="text-lol-gold-light/80 text-sm mb-3">
-                      {ability.description}
-                    </CardDescription>
-                  </CardContent>
-                </FrostedCard>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="text-lol-gold bg-lol-blue-dark/80 hover:bg-lol-blue-dark border-lol-gold/50 disabled:opacity-50" />
-          <CarouselNext className="text-lol-gold bg-lol-blue-dark/80 hover:bg-lol-blue-dark border-lol-gold/50 disabled:opacity-50" />
-        </Carousel>
-      </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4 flex-grow">
+                  <CardDescription className="text-lol-gold-light/80 text-sm mb-3">
+                    {ability.description}
+                  </CardDescription>
+                </CardContent>
+              </FrostedCard>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious className="text-lol-gold bg-lol-blue-dark/80 hover:bg-lol-blue-dark border-lol-gold/50 disabled:opacity-50" />
+        <CarouselNext className="text-lol-gold bg-lol-blue-dark/80 hover:bg-lol-blue-dark border-lol-gold/50 disabled:opacity-50" />
+      </Carousel>
 
       <div className="mt-12">
         <h3 className="text-2xl font-semibold text-lol-gold mb-4 text-center">Skill Order</h3>
