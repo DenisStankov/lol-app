@@ -133,6 +133,9 @@ export default function ChampionDetailsPage() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      {/* Navigation Bar */}
+      <Navigation />
+
       {/* Hero Section with Lore */}
       <ChampionHeroSection champion={champion} />
 
