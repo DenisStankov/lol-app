@@ -91,17 +91,32 @@ export default function ChampionDetailsPage() {
         const championId = params.id as string
         const championStats = statsData[championId] || {}
 
-        // Extract and normalize meta fields
+        // Static mapping for rune icons
+        const RUNE_ICON_MAP: Record<string, string> = {
+          "Conqueror": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Conqueror/Conqueror.png",
+          "Triumph": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/Triumph/Triumph.png",
+          "Legend: Tenacity": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LegendTenacity/LegendTenacity.png",
+          "Last Stand": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Precision/LastStand/LastStand.png",
+          "Second Wind": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/SecondWind/SecondWind.png",
+          "Unflinching": "https://ddragon.leagueoflegends.com/cdn/img/perk-images/Styles/Resolve/Unflinching/Unflinching.png",
+          // Add more runes as needed
+        };
         const meta = metaData.roleSpecificData || {};
         const runes = meta.runes || {};
+        // Map runes to arrays with iconUrl, fix linter errors by casting as string
+        const getRuneIcon = (name: unknown) =>
+          typeof name === 'string' && RUNE_ICON_MAP[name] ? RUNE_ICON_MAP[name] : undefined;
         const normalizedRunes = {
-          ...runes,
-          primary: Array.isArray(runes.primary)
-            ? runes.primary
-            : Object.entries(runes.primary || {}).filter(([k]) => k !== 'name' && k !== 'keystone').map(([key, value]) => ({ id: key, name: value })),
-          secondary: Array.isArray(runes.secondary)
-            ? runes.secondary
-            : Object.entries(runes.secondary || {}).filter(([k]) => k !== 'name').map(([key, value]) => ({ id: key, name: value })),
+          primary: [
+            runes.keystone && { name: runes.keystone, iconUrl: getRuneIcon(runes.keystone) },
+            runes.row1 && { name: runes.row1, iconUrl: getRuneIcon(runes.row1) },
+            runes.row2 && { name: runes.row2, iconUrl: getRuneIcon(runes.row2) },
+            runes.row3 && { name: runes.row3, iconUrl: getRuneIcon(runes.row3) },
+          ].filter(Boolean),
+          secondary: [
+            runes.secondary?.row1 && { name: runes.secondary.row1, iconUrl: getRuneIcon(runes.secondary.row1) },
+            runes.secondary?.row2 && { name: runes.secondary.row2, iconUrl: getRuneIcon(runes.secondary.row2) },
+          ].filter(Boolean),
           shards: runes.shards || []
         };
         const combinedData = {
