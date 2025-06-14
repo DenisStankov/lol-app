@@ -94,6 +94,7 @@ export default function ChampionDetailsPage() {
         // Combine all data
         const combinedData = {
           ...detailsData,
+          ...metaData.roleSpecificData,
           meta: metaData,
           stats: championStats,
           themeColors: {
