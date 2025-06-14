@@ -68,7 +68,7 @@ export async function GET(request: Request) {
         .from('champion_stats')
         .select('*')
         .eq('cache_key', cacheKey)
-        .single()
+        .maybeSingle()
 
       if (cacheError) {
         console.error('Error fetching from cache:', cacheError)
