@@ -103,6 +103,15 @@ export default function ChampionDetailsPage() {
             particleColor: "#FFFFFF",
           }
         }
+        // Normalize runes.primary and runes.secondary to arrays
+        if (combinedData.runes) {
+          if (!Array.isArray(combinedData.runes.primary)) {
+            combinedData.runes.primary = Object.values(combinedData.runes.primary || {})
+          }
+          if (!Array.isArray(combinedData.runes.secondary)) {
+            combinedData.runes.secondary = Object.values(combinedData.runes.secondary || {})
+          }
+        }
 
         setChampion(combinedData)
       } catch (error) {
