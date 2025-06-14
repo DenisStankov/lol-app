@@ -92,23 +92,6 @@ interface SpellData {
   };
 }
 
-// Optional KV import
-let kv: KVStore | null = null;
-
-// Try to import KV at runtime with dynamic import
-const initKV = async (): Promise<void> => {
-  try {
-    // Dynamic import of @vercel/kv
-    const kvModule = await import('@vercel/kv').catch(() => null);
-    if (kvModule) {
-      kv = kvModule.kv as KVStore;
-    }
-  } catch {
-    // Silence the error - we'll use memory cache
-    console.log('Vercel KV not available, using in-memory cache');
-  }
-};
-
 // Simple in-memory cache as fallback
 const memoryCache: Record<string, CacheEntry> = {};
 
@@ -173,69 +156,34 @@ interface ChampionDataResponse {
 }
 
 export async function GET(request: Request): Promise<NextResponse> {
-  // Initialize KV if not already done
-  if (kv === null) {
-    await initKV();
-  }
-
   const { searchParams } = new URL(request.url);
   const rawChampionId = searchParams.get('id');
-  
   if (!rawChampionId) {
     return NextResponse.json(
       { error: 'Champion ID is required' },
       { status: 400 }
     );
   }
-  
   // Normalize champion ID to handle case sensitivity
   const championId = normalizeChampionId(rawChampionId);
   console.log(`Processing champion request: ${rawChampionId} (normalized to: ${championId})`);
-  
   try {
-    // Check if we have cached data
-    let cachedData: CacheEntry | null = null;
-    
-    if (kv) {
-      // Try Vercel KV first
-      try {
-        cachedData = await kv.get(`champion-meta:${championId}`);
-      } catch (error) {
-        console.log('KV store error, falling back to in-memory cache', error);
-      }
-    } else {
-      // Use in-memory cache
-      cachedData = memoryCache[`champion-meta:${championId}`] || null;
-    }
-
+    // Use in-memory cache only
+    const cachedData = memoryCache[`champion-meta:${championId}`] || null;
     if (cachedData && !isDataStale(cachedData.timestamp)) {
       console.log(`Returning cached data for ${championId}`);
       return NextResponse.json(cachedData.data);
     }
-
     // Fetch data from the primary meta source
     console.log(`Fetching fresh data for ${championId}`);
     const metaData = await fetchChampionMetaData(championId);
-    
-    // Store in cache
+    // Store in memory cache
     const cacheEntry: CacheEntry = {
       data: metaData,
       timestamp: Date.now()
     };
-    
-    try {
-      if (kv) {
-        await kv.set(`champion-meta:${championId}`, cacheEntry);
-        console.log(`Cached data for ${championId} in KV store`);
-      } 
-      
-      // Always update memory cache as fallback
-      memoryCache[`champion-meta:${championId}`] = cacheEntry;
-      console.log(`Cached data for ${championId} in memory`);
-    } catch (error) {
-      console.error('Error caching data:', error);
-    }
-
+    memoryCache[`champion-meta:${championId}`] = cacheEntry;
+    console.log(`Cached data for ${championId} in memory`);
     return NextResponse.json(metaData, { status: 200 });
   } catch (error) {
     console.error('Error fetching champion meta data:', error);
@@ -257,9 +205,9 @@ async function fetchChampionMetaData(championId: string): Promise<ChampionMetaDa
       version = versions[0];
     }
     console.log(`Fetching data for champion: ${championId} with version ${version}`);
-    
-    // Get real champion stats from our API
-    const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/champion-stats?rank=PLATINUM&patch=${version}`);
+    // Use absolute URL for /api/champion-stats
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const statsResponse = await fetch(`${baseUrl}/api/champion-stats?rank=PLATINUM&patch=${version}`);
     if (!statsResponse.ok) {
       console.error(`Error fetching champion stats: ${statsResponse.status}`);
       throw new Error(`Failed to fetch champion stats: ${statsResponse.status}`);
