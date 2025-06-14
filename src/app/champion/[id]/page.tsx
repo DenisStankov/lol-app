@@ -91,25 +91,32 @@ export default function ChampionDetailsPage() {
         const championId = params.id as string
         const championStats = statsData[championId] || {}
 
-        // Combine all data
+        // Extract and normalize meta fields
+        const meta = metaData.roleSpecificData || {};
+        const runes = meta.runes || {};
+        const normalizedRunes = {
+          ...runes,
+          primary: Array.isArray(runes.primary)
+            ? runes.primary
+            : Object.entries(runes.primary || {}).filter(([k]) => k !== 'name' && k !== 'keystone').map(([key, value]) => ({ id: key, name: value })),
+          secondary: Array.isArray(runes.secondary)
+            ? runes.secondary
+            : Object.entries(runes.secondary || {}).filter(([k]) => k !== 'name').map(([key, value]) => ({ id: key, name: value })),
+          shards: runes.shards || []
+        };
         const combinedData = {
           ...detailsData,
-          ...metaData.roleSpecificData,
+          runes: normalizedRunes,
+          build: meta.build,
+          counters: meta.counters,
+          skillOrder: meta.skillOrder,
+          skills: meta.skills,
           meta: metaData,
           stats: championStats,
           themeColors: {
             primary: "rgba(15, 23, 42, 0.8)", // slate-900 with alpha
             accent: "text-yellow-300",
             particleColor: "#FFFFFF",
-          }
-        }
-        // Normalize runes.primary and runes.secondary to arrays
-        if (combinedData.runes) {
-          if (!Array.isArray(combinedData.runes.primary)) {
-            combinedData.runes.primary = Object.values(combinedData.runes.primary || {})
-          }
-          if (!Array.isArray(combinedData.runes.secondary)) {
-            combinedData.runes.secondary = Object.values(combinedData.runes.secondary || {})
           }
         }
 
