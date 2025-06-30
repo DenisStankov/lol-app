@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { Search, ArrowUp, ArrowDown, Trophy, Filter, Star, Sparkles, Shield, Swords } from "lucide-react"
+import { Search, ArrowUp, ArrowDown, Trophy, Filter, Star, Sparkles, Shield, Swords, TrendingUp, TrendingDown, Minus, ArrowUpDown } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
@@ -11,6 +11,9 @@ import { Card, CardContent } from "@/components/card"
 import Image from "next/image"
 import { createPortal } from "react-dom"
 import { useRef } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import Link from "next/link"
 
 // Role types
 type Role = "top" | "jungle" | "mid" | "adc" | "support" | "all"
@@ -106,905 +109,536 @@ const regionMap: Record<string, string> = {
   ru: "RU",
 };
 
+// Mock tier list data
+const tierListData = [
+  {
+    id: 1,
+    name: "Jinx",
+    role: "ADC",
+    tier: "S+",
+    winrate: 54.2,
+    pickrate: 12.8,
+    banrate: 8.5,
+    games: 125420,
+    delta: 2.1,
+    image: "/placeholder.svg?height=64&width=64&text=Jinx",
+  },
+  {
+    id: 2,
+    name: "Graves",
+    role: "Jungle",
+    tier: "S+",
+    winrate: 53.8,
+    pickrate: 15.2,
+    banrate: 12.3,
+    games: 98750,
+    delta: 1.8,
+    image: "/placeholder.svg?height=64&width=64&text=Graves",
+  },
+  {
+    id: 3,
+    name: "Katarina",
+    role: "Mid",
+    tier: "S",
+    winrate: 52.9,
+    pickrate: 8.7,
+    banrate: 15.2,
+    games: 87650,
+    delta: -0.5,
+    image: "/placeholder.svg?height=64&width=64&text=Katarina",
+  },
+  {
+    id: 4,
+    name: "Thresh",
+    role: "Support",
+    tier: "S",
+    winrate: 51.8,
+    pickrate: 18.5,
+    banrate: 6.8,
+    games: 156780,
+    delta: 1.2,
+    image: "/placeholder.svg?height=64&width=64&text=Thresh",
+  },
+  {
+    id: 5,
+    name: "Darius",
+    role: "Top",
+    tier: "A",
+    winrate: 51.2,
+    pickrate: 9.8,
+    banrate: 11.5,
+    games: 76540,
+    delta: -1.1,
+    image: "/placeholder.svg?height=64&width=64&text=Darius",
+  },
+  {
+    id: 6,
+    name: "Lux",
+    role: "Support",
+    tier: "A",
+    winrate: 50.8,
+    pickrate: 14.2,
+    banrate: 4.2,
+    games: 134560,
+    delta: 0.8,
+    image: "/placeholder.svg?height=64&width=64&text=Lux",
+  },
+  {
+    id: 7,
+    name: "Yasuo",
+    role: "Mid",
+    tier: "B",
+    winrate: 49.5,
+    pickrate: 16.8,
+    banrate: 22.1,
+    games: 198760,
+    delta: -2.3,
+    image: "/placeholder.svg?height=64&width=64&text=Yasuo",
+  },
+  {
+    id: 8,
+    name: "Garen",
+    role: "Top",
+    tier: "B",
+    winrate: 49.2,
+    pickrate: 7.5,
+    banrate: 3.1,
+    games: 65430,
+    delta: 0.2,
+    image: "/placeholder.svg?height=64&width=64&text=Garen",
+  },
+  {
+    id: 9,
+    name: "Azir",
+    role: "Mid",
+    tier: "C",
+    winrate: 47.8,
+    pickrate: 3.2,
+    banrate: 1.8,
+    games: 28750,
+    delta: -1.8,
+    image: "/placeholder.svg?height=64&width=64&text=Azir",
+  },
+  {
+    id: 10,
+    name: "Kalista",
+    role: "ADC",
+    tier: "D",
+    winrate: 45.2,
+    pickrate: 1.8,
+    banrate: 0.5,
+    games: 15420,
+    delta: -3.2,
+    image: "/placeholder.svg?height=64&width=64&text=Kalista",
+  },
+]
+
+// Role color mapping for better visual differentiation
+const roleColors: Record<string, string> = {
+  "Assassin": "#E84057",
+  "Fighter": "#D75A37",
+  "Mage": "#0AC8B9",
+  "Marksman": "#FEA526", 
+  "Support": "#AA5DC9",
+  "Tank": "#5383E8"
+};
+
+const roles = [
+  { id: "all", name: "All", color: "text-white" },
+  { id: "top", name: "Top", color: "text-red-400" },
+  { id: "jungle", name: "Jungle", color: "text-green-400" },
+  { id: "mid", name: "Mid", color: "text-blue-400" },
+  { id: "adc", name: "ADC", color: "text-yellow-400" },
+  { id: "support", name: "Support", color: "text-cyan-400" },
+]
+
+const ranks = [
+  { id: "all", name: "All Ranks" },
+  { id: "iron", name: "Iron" },
+  { id: "bronze", name: "Bronze" },
+  { id: "silver", name: "Silver" },
+  { id: "gold", name: "Gold" },
+  { id: "platinum", name: "Platinum" },
+  { id: "diamond", name: "Diamond" },
+  { id: "master", name: "Master+" },
+]
+
+const tierColors = {
+  "S+": "text-[#FF4E50] bg-gradient-to-r from-[#FF4E50]/20 to-[#FF4E50]/5",
+  S: "text-[#FF9800] bg-gradient-to-r from-[#FF9800]/20 to-[#FF9800]/5",
+  A: "text-[#4CAF50] bg-gradient-to-r from-[#4CAF50]/20 to-[#4CAF50]/5",
+  B: "text-[#2196F3] bg-gradient-to-r from-[#2196F3]/20 to-[#2196F3]/5",
+  C: "text-[#9C27B0] bg-gradient-to-r from-[#9C27B0]/20 to-[#9C27B0]/5",
+  D: "text-[#607D8B] bg-gradient-to-r from-[#607D8B]/20 to-[#607D8B]/5",
+}
+
 export default function TierList() {
-  // State for filters
-  const [selectedRole, setSelectedRole] = useState<Role>("all")
-  const [selectedDivision, setSelectedDivision] = useState<Division>("grandmaster+")
+  const [selectedRole, setSelectedRole] = useState("all")
+  const [selectedRank, setSelectedRank] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [selectedRegion, setSelectedRegion] = useState<keyof typeof regionMap>("na")
-
-  // State for sorting
-  const [sortField, setSortField] = useState<SortField>(null)
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
-
-  // State for data
-  const [champions, setChampions] = useState<Champion[]>([])
-  const [loading, setLoading] = useState(true)
-  const [animateRows, setAnimateRows] = useState(false)
-
-  // Add state for patch version
-  const [patchVersion, setPatchVersion] = useState<string>("")
+  const [sortColumn, setSortColumn] = useState<string>("tier")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [isLoading, setIsLoading] = useState(false)
+  const [latestVersion, setLatestVersion] = useState("13.24.1")
 
   const router = useRouter()
 
-  const dropdownRef = useRef<HTMLButtonElement>(null)
-  const [dropdownPos, setDropdownPos] = useState<{ left: number; top: number; width: number }>({ left: 0, top: 0, width: 0 })
-
-  // Fetch current patch version on mount
+  // Fetch current patch version
   useEffect(() => {
-    const fetchPatch = async () => {
+    const fetchVersion = async () => {
       try {
         const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json")
         const data = await response.json()
-        setPatchVersion(data[0])
-      } catch (err) {
-        setPatchVersion("14.14.1") // fallback
+        setLatestVersion(data[0])
+      } catch (error) {
+        console.error("Error fetching version:", error)
       }
     }
-    fetchPatch()
+    fetchVersion()
   }, [])
 
-  // Handle sort click
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
-        } else {
-      setSortField(field)
-      setSortDirection("desc")
-    }
-    setAnimateRows(true)
-    setTimeout(() => setAnimateRows(false), 500)
-  }
-
-  // Fetch champions data
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true)
-      try {
-        // Fetch stats from our cached data endpoint
-        const res = await fetch(`/api/champion-stats?rank=${selectedDivision}&region=${selectedRegion}&role=${selectedRole}`, {
-          next: { revalidate: 3600 } // Revalidate cache every hour
-        })
-        
-        if (!res.ok) throw new Error('Failed to fetch champion stats')
-        const data = await res.json()
-        
-        // Map the data to our Champion interface
-        const mappedChampions: Champion[] = Object.entries(data)
-          .map(([id, champData]: [string, any]) => {
-            const roleMap: Record<string, string> = {
-              top: 'TOP',
-              jungle: 'JUNGLE',
-              mid: 'MIDDLE',
-              adc: 'BOTTOM',
-              support: 'UTILITY',
-            }
-            
-            const reverseRoleMap: Record<string, Role> = {
-              'TOP': 'top',
-              'JUNGLE': 'jungle',
-              'MIDDLE': 'mid',
-              'BOTTOM': 'adc',
-              'UTILITY': 'support',
-            }
-            
-            // Get the role we want to display
-            const selectedRoleKey = selectedRole !== 'all' ? roleMap[selectedRole] : null
-            let primaryRoleStats = null
-            let primaryRole: Role = 'all'
-            
-            if (selectedRole !== 'all') {
-              // If specific role selected, only include champions that can play that role
-              if (!champData.roles || !champData.roles[selectedRoleKey]) {
-                return null
-              }
-              primaryRoleStats = champData.roles[selectedRoleKey]
-              primaryRole = selectedRole
-            } else {
-              // Find the most played role
-              if (champData.roles) {
-                const entries = Object.entries(champData.roles)
-                if (entries.length > 0) {
-                  entries.sort((a, b) => b[1].games - a[1].games)
-                  const [topRole, topRoleStats] = entries[0]
-                  primaryRoleStats = topRoleStats
-                  primaryRole = reverseRoleMap[topRole] || 'all'
-                }
-              }
-            }
-            
-            if (!primaryRoleStats) return null
-            
-            // Calculate tier based on win rate and pick rate
-            let tier: Tier = 'C'
-            const winRate = primaryRoleStats.winRate
-            const pickRate = primaryRoleStats.pickRate
-            
-            if (winRate >= 53 && pickRate >= 10) tier = 'S+'
-            else if (winRate >= 52 && pickRate >= 8) tier = 'S'
-            else if (winRate >= 51 && pickRate >= 5) tier = 'A'
-            else if (winRate >= 50 && pickRate >= 3) tier = 'B'
-            else if (winRate >= 48) tier = 'C'
-            else tier = 'D'
-            
-            return {
-              id,
-              name: champData.name,
-              icon: `https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/${id}.png`,
-              primaryRole,
-              roles: champData.roles,
-              difficulty: champData.difficulty || 'Medium',
-              damageType: champData.damageType || 'Mixed',
-              range: champData.range || 'Melee',
-              tier,
-              winrate: winRate,
-              winrateDelta: primaryRoleStats.winRateDelta || 0,
-              pickrate: pickRate,
-              games: primaryRoleStats.games,
-              banrate: primaryRoleStats.banRate,
-              kda: primaryRoleStats.kda || { kills: 0, deaths: 0, assists: 0 },
-              confidence: champData.confidence || 0.5,
-              sourcesUsed: champData.sourcesUsed || []
-            }
-          })
-          .filter(Boolean) // Remove null entries
-          
-        // Sort champions if needed
-        if (sortField) {
-          mappedChampions.sort((a, b) => {
-            const aValue = a[sortField]
-            const bValue = b[sortField]
-            return sortDirection === 'asc' 
-              ? (aValue > bValue ? 1 : -1)
-              : (bValue > aValue ? 1 : -1)
-          })
-        }
-        
-        setChampions(mappedChampions)
-      } catch (error) {
-        console.error('Error fetching champion stats:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchStats()
-  }, [selectedRole, selectedDivision, selectedRegion, sortField, sortDirection])
-
-  // Filter champions based on selected filters
-  const filteredChampions = champions.filter((champion) => {
-    // Only apply search filter here since role filtering is handled by the API
-    if (searchQuery && !champion.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
-    }
-    return true
-  })
-
-  // Sort champions with memoization
-  const sortedChampions = useMemo(() => {
-    const sorted = [...filteredChampions]
-    
-    if (!sortField) {
-      const tierOrder = { "S+": 0, S: 1, A: 2, B: 3, C: 4, D: 5 }
-      return sorted.sort((a, b) => tierOrder[a.tier] - tierOrder[b.tier])
-    }
-    
-    if (sortField === "tier") {
-      const tierOrder = { "S+": 0, S: 1, A: 2, B: 3, C: 4, D: 5 }
-      return sorted.sort((a, b) => 
-        sortDirection === "asc" 
-          ? tierOrder[a.tier] - tierOrder[b.tier] 
-          : tierOrder[b.tier] - tierOrder[a.tier]
-      )
-    }
-    
-    if (sortField === "winrate" || sortField === "pickrate") {
-      return sorted.sort((a, b) => {
-        const aValue = a[sortField]
-        const bValue = b[sortField]
-        return sortDirection === "asc" ? aValue - bValue : bValue - aValue
-      })
-    }
-    
-    return sorted
-  }, [filteredChampions, sortField, sortDirection])
-
-  const navigateToChampion = (championId: string) => {
-    router.push(`/champion/${championId}`)
-  }
-
-  const getTierColor = (tier: Tier) => {
-    switch (tier) {
-      case "S+":
-        return "text-[#FF4E50] bg-gradient-to-r from-[#FF4E50]/20 to-[#FF4E50]/5"
-      case "S":
-        return "text-[#FF9800] bg-gradient-to-r from-[#FF9800]/20 to-[#FF9800]/5"
-      case "A":
-        return "text-[#4CAF50] bg-gradient-to-r from-[#4CAF50]/20 to-[#4CAF50]/5"
-      case "B":
-        return "text-[#2196F3] bg-gradient-to-r from-[#2196F3]/20 to-[#2196F3]/5"
-      case "C":
-        return "text-[#9C27B0] bg-gradient-to-r from-[#9C27B0]/20 to-[#9C27B0]/5"
-      case "D":
-        return "text-[#607D8B] bg-gradient-to-r from-[#607D8B]/20 to-[#607D8B]/5"
-      default:
-        return "text-white"
-    }
-  }
-
-  const getRoleIcon = (role: Role) => {
-    switch (role) {
-      case "top":
-        return "/images/roles/official/Top_icon.png"
-      case "jungle":
-        return "/images/roles/official/Jungle_icon.webp"
-      case "mid":
-        return "/images/roles/official/Middle_icon.webp"
-      case "adc":
-        return "/images/roles/official/Bottom_icon.webp"
-      case "support":
-        return "/images/roles/official/Support_icon.webp"
-      default:
-        return "/images/roles/official/All_roles_icon.png"
-    }
-  }
-
-  const getRankIcon = (division: Division) => {
-    const rankName = rankMap[division] || "Platinum"
-    return `/images/ranks/Rank=${rankName}.png`
-  }
-
-  // When opening the dropdown, set its position
-  const handleDropdownToggle = () => {
-    setIsDropdownOpen((open) => {
-      if (!open && dropdownRef.current) {
-        const rect = dropdownRef.current.getBoundingClientRect()
-        setDropdownPos({ left: rect.left, top: rect.bottom, width: rect.width })
-      }
-      return !open
+  const filteredData = useMemo(() => {
+    const filtered = tierListData.filter((champion) => {
+      const matchesRole = selectedRole === "all" || champion.role.toLowerCase() === selectedRole
+      const matchesSearch = champion.name.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchesRole && matchesSearch
     })
+
+    // Sort by tier first, then by other columns
+    filtered.sort((a, b) => {
+      const tierOrder = { "S+": 1, S: 2, A: 3, B: 4, C: 5, D: 6 }
+
+      if (sortColumn === "tier") {
+        const aTier = tierOrder[a.tier as keyof typeof tierOrder]
+        const bTier = tierOrder[b.tier as keyof typeof tierOrder]
+        return sortDirection === "asc" ? aTier - bTier : bTier - aTier
+      }
+
+      let aValue = a[sortColumn as keyof typeof a]
+      let bValue = b[sortColumn as keyof typeof b]
+
+      if (typeof aValue === "string") {
+        aValue = aValue.toLowerCase()
+        bValue = (bValue as string).toLowerCase()
+      }
+
+      if (sortDirection === "asc") {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
+
+    return filtered
+  }, [selectedRole, searchQuery, sortColumn, sortDirection])
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortColumn(column)
+      setSortDirection(column === "tier" ? "asc" : "desc")
+    }
   }
 
-  // Fix dropdown: close on outside click and add keyboard accessibility
-  useEffect(() => {
-    if (!isDropdownOpen) return
-    function handleClick(e: MouseEvent) {
-      if (!(e.target as HTMLElement).closest(".rank-dropdown")) {
-        setIsDropdownOpen(false)
-      }
-    }
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setIsDropdownOpen(false)
-    }
-    document.addEventListener("mousedown", handleClick)
-    document.addEventListener("keydown", handleKey)
-    return () => {
-      document.removeEventListener("mousedown", handleClick)
-      document.removeEventListener("keydown", handleKey)
-    }
-  }, [isDropdownOpen])
-
+  const getTierBadge = (tier: string) => {
     return (
+      <span className={`inline-block px-4 py-1.5 rounded-full font-bold shadow-sm ${tierColors[tier as keyof typeof tierColors]}`}>
+        {tier}
+      </span>
+    )
+  }
+
+  const getWinrateColor = (winrate: number) => {
+    if (winrate >= 52) return "text-green-400"
+    if (winrate >= 50) return "text-yellow-400"
+    return "text-red-400"
+  }
+
+  const getDeltaIcon = (delta: number) => {
+    if (delta > 0) return <TrendingUp className="w-4 h-4 text-green-400" />
+    if (delta < 0) return <TrendingDown className="w-4 h-4 text-red-400" />
+    return <Minus className="w-4 h-4 text-zinc-400" />
+  }
+
+  const getRoleColor = (role: string) => {
+    const roleData = roles.find((r) => r.id === role.toLowerCase())
+    return roleData?.color || "text-white"
+  }
+
+  return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
-      {/* Decorative Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-float-delayed"></div>
-        <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl animate-float-slow"></div>
-        {/* Particle Effects */}
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-blue-400/20 rounded-full animate-twinkle"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            />
-          ))}
+      <Navigation />
+      
+      {/* Version badge for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 bg-white/5 text-blue-400 px-3 py-1 rounded-full text-xs font-mono z-50 border border-white/10 shadow-lg">
+          Data Dragon v{latestVersion}
+        </div>
+      )}
+      
+      {/* Featured Champion Header */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-black/60 z-10"></div>
+        <div 
+          className="h-80 w-full bg-center bg-cover" 
+          style={{ 
+            backgroundImage: "url('/placeholder.svg?height=400&width=1200&text=Featured+Champion+Jinx')",
+            backgroundPosition: "center 20%"
+          }}
+        ></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+        
+        <div className="absolute bottom-0 left-0 right-0 z-20 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+          <span className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-1 block">Featured Champion</span>
+          <h1 className="text-5xl md:text-6xl font-bold text-white text-shadow-lg">Jinx</h1>
+          <p className="text-lg text-white/70 max-w-md mt-2">
+            The Loose Cannon dominates the current meta with exceptional carry potential and game-changing teamfight presence.
+          </p>
+          <Link 
+            href="/champion/jinx"
+            className="mt-4 inline-block px-6 py-2.5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded shadow transition-all duration-300"
+          >
+            View Champion Details
+          </Link>
         </div>
       </div>
-
-        <Navigation />
-
-      <div className="container mx-auto py-8 px-4 relative z-10">
-        <div className="flex flex-col items-center mb-12">
-          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 border-0 px-4 py-1 mb-4 shadow-lg shadow-blue-500/20">
-            <Sparkles className="h-4 w-4 mr-2" />
-            <span className="text-sm">Patch {patchVersion || "..."} Analysis</span>
-          </Badge>
-          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 mb-3">
-            Champion Tier List
-          </h1>
-          <p className="text-slate-400 text-center max-w-2xl mb-6">
-            Track champion performance, analyze meta picks, and stay updated with the latest patch information.
-          </p>
-
-          {/* Filter Bar moved here */}
-          <Card className="bg-white/5 border-white/10 backdrop-blur-sm mb-8 overflow-hidden w-full max-w-3xl">
-            <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-white/10 px-6 py-4">
-              <h3 className="text-lg font-medium flex items-center gap-2">
-                <Filter className="h-5 w-5 text-blue-400" />
-                Filter Options
-              </h3>
+      
+      {/* Main Content Header */}
+      <div className="bg-gradient-to-r from-slate-950/90 to-purple-950/90 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-white">Champion Tier List</h1>
+          <p className="mt-2 text-slate-400">Discover the strongest champions in the current meta, ranked by performance and impact.</p>
+        </div>
+      </div>
+      
+      {/* Filters */}
+      <div className="sticky top-16 z-30 bg-white/5 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            {/* Search */}
+            <div className="w-full md:w-auto relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input 
+                className="pl-10 bg-white/5 border-white/10 focus:border-blue-400 text-white"
+                placeholder="Search champions..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            <CardContent className="p-6">
-              <div className="flex flex-row gap-2 items-center w-full flex-wrap md:flex-nowrap mb-4">
-                {/* Role Filter */}
-                <div className="flex gap-2 md:gap-3 items-center">
-                  {(["all", "top", "jungle", "mid", "adc", "support"] as Role[]).map((role) => (
-          <button
-                      key={role}
-                      onClick={() => setSelectedRole(role)}
-                      className={cn(
-                        "flex flex-col items-center justify-center rounded-xl w-12 h-12 md:w-14 md:h-14 transition-all duration-200 border-2",
-                        selectedRole === role
-                          ? "bg-blue-500/20 border-blue-400 shadow-md"
-                          : "bg-white/5 border-transparent hover:bg-blue-400/10"
-                      )}
-                      aria-label={`Filter by ${roleLabels[role]} role`}
-                      tabIndex={0}
-                    >
-                      <Image
-                        src={getRoleIcon(role) || "/placeholder.svg"}
-                        alt={`${roleLabels[role]} role`}
-                        width={28}
-                        height={28}
-                        className={cn(
-                          "w-7 h-7 md:w-8 md:h-8",
-                          selectedRole === role ? "brightness-125" : "opacity-80 hover:opacity-100"
-                        )}
-                      />
-                      <span className={cn(
-                        "text-xs mt-1 font-medium",
-                        selectedRole === role ? "text-blue-400" : "text-slate-400"
-                      )}>
-                        {roleLabels[role]}
-                      </span>
-          </button>
-                  ))}
-        </div>
-
-                {/* Division Filter with Rank Icon */}
-                <div className="relative flex-shrink-0">
-              <button
-                    ref={dropdownRef}
-                    className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-xl border-2 transition-all duration-200 font-medium",
-                      isDropdownOpen
-                        ? "bg-blue-500/20 border-blue-400 shadow-md"
-                        : "bg-white/5 border-transparent hover:bg-blue-400/10"
-                    )}
-                    onClick={handleDropdownToggle}
-                    aria-haspopup="listbox"
-                    aria-expanded={isDropdownOpen}
-                  >
-                    <Image
-                      src={getRankIcon(selectedDivision) || "/placeholder.svg"}
-                      alt={selectedDivision}
-                      width={28}
-                      height={28}
-                      className="h-7 w-7 object-cover rounded-full"
-                    />
-                    <span>{rankMap[selectedDivision]}+</span>
-                    <ArrowDown className={cn("h-4 w-4 ml-1 transition-transform", isDropdownOpen && "rotate-180")} />
-              </button>
-                  {isDropdownOpen && typeof window !== "undefined" && createPortal(
-                    <div
-                      className="z-50 min-w-[180px] bg-slate-900 border border-white/10 rounded-xl shadow-xl py-1 backdrop-blur-sm"
-                      style={{
-                        position: "fixed",
-                        left: dropdownPos.left,
-                        top: dropdownPos.top,
-                        width: dropdownPos.width,
-                      }}
-                      role="listbox"
-                      tabIndex={-1}
-                    >
-                      {supportedDivisions.map((division) => (
-                        <button
-                          key={division}
-                          className={cn(
-                            "w-full flex items-center gap-2 px-4 py-2 rounded-lg transition-colors",
-                            selectedDivision === division ? "bg-blue-500/10 text-blue-400" : "hover:bg-blue-400/10 text-white"
-                          )}
-                          onMouseDown={() => {
-                            setSelectedDivision(division as Division)
-                            setIsDropdownOpen(false)
-                          }}
-                        >
-                          <Image
-                            src={getRankIcon(division) || "/placeholder.svg"}
-                            alt={rankMap[division]}
-                            width={24}
-                            height={24}
-                            className="h-6 w-6 object-cover rounded-full"
-                          />
-                          <span>{rankMap[division]}+</span>
-                        </button>
-                      ))}
-                    </div>,
-                    document.body
-                  )}
-        </div>
-
-                {/* Region dropdown */}
-                <select
-                  value={selectedRegion}
-                  onChange={e => setSelectedRegion(e.target.value as keyof typeof regionMap)}
-                  className="rounded-xl border-2 px-3 py-1 bg-slate-900 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  aria-label="Select region"
+            
+            {/* Sort options */}
+            <div className="flex items-center gap-2 text-sm text-slate-400">
+              <span>Sort by:</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleSort("tier")}
+                className={`px-2 py-1 ${sortColumn === "tier" ? "text-blue-400" : "text-slate-400"}`}
+              >
+                Tier
+                {sortColumn === "tier" && (
+                  <ArrowUpDown size={14} className="ml-1" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleSort("winrate")}
+                className={`px-2 py-1 ${sortColumn === "winrate" ? "text-blue-400" : "text-slate-400"}`}
+              >
+                Win Rate
+                {sortColumn === "winrate" && (
+                  <ArrowUpDown size={14} className="ml-1" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleSort("pickrate")}
+                className={`px-2 py-1 ${sortColumn === "pickrate" ? "text-blue-400" : "text-slate-400"}`}
+              >
+                Pick Rate
+                {sortColumn === "pickrate" && (
+                  <ArrowUpDown size={14} className="ml-1" />
+                )}
+              </Button>
+            </div>
+            
+            {/* Role filters */}
+            <div className="flex flex-wrap gap-2 w-full md:w-auto">
+              {roles.map(role => (
+                <Button
+                  key={role.id}
+                  onClick={() => setSelectedRole(role.id)}
+                  variant="outline"
+                  className={`px-3 py-1 text-sm ${
+                    (role.id === "all" && selectedRole === "all") || selectedRole === role.id
+                      ? role.id === "all" 
+                        ? "bg-white/10 text-blue-400 border-white/20"
+                        : `bg-${role.color}/10 text-${role.color} border-${role.color}/20`
+                      : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"
+                  }`}
                 >
-                  {Object.entries(regionMap).map(([key, label]) => (
-                    <option key={key} value={key}>{label}</option>
-                  ))}
-                </select>
-
-                {/* Search Bar */}
-                <div className="relative flex-1 max-w-xs ml-auto">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400 h-4 w-4" />
-                  <input
-                    type="text"
-                    placeholder="Search champions..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 focus:border-blue-400/30 transition-all"
-                  />
-              </div>
+                  {role.name}
+                </Button>
+              ))}
             </div>
-            </CardContent>
-          </Card>
-
-          {/* Stats Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-8">
-            <Card className="bg-gradient-to-br from-blue-500/10 to-purple-500/5 border-white/10 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                    <Trophy className="h-5 w-5 text-blue-400" />
-              </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-400">Top Tier</h3>
-                    <p className="text-lg font-bold text-white">
-                      {champions.filter((c) => c.tier === "S+" || c.tier === "S").length} Champions
-                    </p>
-            </div>
-              </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/5 border-white/10 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-                    <Swords className="h-5 w-5 text-purple-400" />
-            </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-slate-400">Highest Winrate</h3>
-                    <p className="text-lg font-bold text-white">
-                      {champions.length > 0
-                        ? `${Math.max(...champions.map((c) => c.winrate)).toFixed(1)}%`
-                        : "Loading..."}
-                    </p>
           </div>
-            </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-gradient-to-br from-blue-500/5 to-purple-500/10 border-white/10 backdrop-blur-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-indigo-400" />
+        </div>
+      </div>
+      
+      {/* Champions Table */}
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="w-12 h-12 border-4 border-[#C89B3C]/30 border-t-[#C89B3C] rounded-full animate-spin"></div>
           </div>
-            <div>
-                    <h3 className="text-sm font-medium text-slate-400">Most Banned</h3>
-                    <p className="text-lg font-bold text-white">
-                      {champions.length > 0 && champions.some((c) => c.banrate)
-                        ? champions.reduce((prev, current) => {
-                            return (prev.banrate || 0) > (current.banrate || 0) ? prev : current
-                          }).name
-                        : "Loading..."}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-              </div>
-            </div>
-
-        {/* Champion Table */}
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-white/10 px-6 py-4">
-            <h3 className="text-lg font-medium flex items-center gap-2">
-              <Star className="h-5 w-5 text-blue-400" />
-              Champion Rankings
-            </h3>
-          </div>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-slate-900/80 backdrop-blur-sm sticky top-0 z-10">
-                  <TableRow className="border-b border-white/10">
-                    <TableHead className="w-16 text-center text-blue-400 font-medium">Rank</TableHead>
-                    <TableHead className="w-64 text-blue-400 font-medium">Champion</TableHead>
-                    <TableHead className="w-24 text-center text-blue-400 font-medium">Lane</TableHead>
-                    <TableHead
-                      className="w-24 text-center cursor-pointer hover:bg-white/5 transition-colors text-blue-400 font-medium"
-                      onClick={() => handleSort("tier")}
-                    >
-                      <div className="flex items-center justify-center">
-                        Tier
-                        {sortField === "tier" &&
-                          (sortDirection === "asc" ? (
-                            <ArrowUp className="ml-1 h-4 w-4" />
-                          ) : (
-                            <ArrowDown className="ml-1 h-4 w-4" />
-                ))}
-              </div>
-                    </TableHead>
-                    <TableHead
-                      className="w-28 text-center cursor-pointer hover:bg-white/5 transition-colors text-blue-400 font-medium"
-                      onClick={() => handleSort("winrate")}
-                    >
-                      <div className="flex items-center justify-center">
-                        Winrate
-                        {sortField === "winrate" &&
-                          (sortDirection === "asc" ? (
-                            <ArrowUp className="ml-1 h-4 w-4" />
-                          ) : (
-                            <ArrowDown className="ml-1 h-4 w-4" />
-                          ))}
-            </div>
-                    </TableHead>
-                    <TableHead
-                      className="w-28 text-center cursor-pointer hover:bg-white/5 transition-colors text-blue-400 font-medium"
-                      onClick={() => handleSort("pickrate")}
-                    >
-                      <div className="flex items-center justify-center">
-                        Pickrate
-                        {sortField === "pickrate" &&
-                          (sortDirection === "asc" ? (
-                            <ArrowUp className="ml-1 h-4 w-4" />
-                          ) : (
-                            <ArrowDown className="ml-1 h-4 w-4" />
-                ))}
-              </div>
-                    </TableHead>
-                    <TableHead className="w-24 text-right text-blue-400 font-medium">Games</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="h-96 text-center">
-                        <div className="flex flex-col items-center justify-center h-full">
-                          <div className="w-16 h-16 rounded-full border-4 border-blue-500/30 border-t-blue-500 animate-spin mb-6"></div>
-                          <p className="text-slate-400 text-lg">Loading champion data...</p>
-            </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : sortedChampions.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="h-96 text-center">
-                        <div className="flex flex-col items-center justify-center h-full">
-                          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                            <Search className="h-8 w-8 text-slate-500" />
-          </div>
-                          <p className="text-slate-400 mb-4 text-lg">No champions found</p>
-                   <button
-                            onClick={() => {
-                              setSearchQuery("")
-                              setSelectedRole("all")
-                            }}
-                            className="px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-colors"
-                          >
-                            Clear filters
-                   </button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    sortedChampions.map((champion, index) => (
-                      <TableRow
-                        key={champion.id}
-                        className={`border-b border-white/5 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-transparent cursor-pointer transition-all duration-300 ${
-                          animateRows ? "animate-fadeIn" : ""
-                        }`}
-                        style={{ animationDelay: `${index * 30}ms` }}
-                        onClick={() => navigateToChampion(champion.id)}
+        ) : (
+          <>
+            <p className="text-zinc-400 mb-6">
+              Showing {filteredData.length} champions {selectedRole !== "all" ? `in ${selectedRole} role` : ""}
+            </p>
+            
+            <div className="bg-white/5 border-white/10 backdrop-blur-sm rounded-lg overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gradient-to-r from-slate-950/90 to-purple-950/90 border-b border-white/10">
+                    <tr>
+                      <th className="text-left px-6 py-4 text-white font-semibold">Rank</th>
+                      <th className="text-left px-6 py-4 text-white font-semibold">Champion</th>
+                      <th className="text-left px-6 py-4 text-white font-semibold">Role</th>
+                      <th
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        onClick={() => handleSort("tier")}
                       >
-                        <TableCell className="text-center font-medium">
-                          {index < 3 ? (
-                            <div className="relative mx-auto w-8 h-8 flex items-center justify-center">
-                              {index === 0 && (
-                                <div className="absolute -inset-1 bg-yellow-400/30 rounded-full blur-sm animate-pulse"></div>
-                              )}
-                              <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                  index === 0
-                                    ? "bg-gradient-to-br from-yellow-400/20 to-amber-600/20 text-yellow-400"
-                                    : index === 1
-                                      ? "bg-gradient-to-br from-slate-300/20 to-slate-500/20 text-slate-300"
-                                      : "bg-gradient-to-br from-amber-700/20 to-amber-900/20 text-amber-700"
-                                }`}
-                              >
-                                {index + 1}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-slate-400">{index + 1}</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="h-12 w-12 rounded-full overflow-hidden mr-3 bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5">
-                              <div className="h-full w-full rounded-full overflow-hidden">
-                                <Image
-                                  src={champion.icon || "/placeholder.svg"}
-                                  alt={champion.name}
-                                  width={48}
-                                  height={48}
-                                  className="h-full w-full object-cover"
-                                />
-                              </div>
-                            </div>
-                            <span className="font-bold text-white group-hover:text-blue-300 transition-colors">
-                              {champion.name}
-                            </span>
+                        Tier
+                      </th>
+                      <th
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        onClick={() => handleSort("winrate")}
+                      >
+                        Win Rate
+                      </th>
+                      <th
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        onClick={() => handleSort("pickrate")}
+                      >
+                        Pick Rate
+                      </th>
+                      <th
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        onClick={() => handleSort("banrate")}
+                      >
+                        Ban Rate
+                      </th>
+                      <th
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        onClick={() => handleSort("games")}
+                      >
+                        Games
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.map((champion, index) => (
+                      <tr
+                        key={champion.id}
+                        className="border-b border-white/5 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-transparent transition-all duration-300 cursor-pointer"
+                      >
+                        <td className="px-6 py-4">
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                              index < 3
+                                ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
+                                : "bg-white/10 text-slate-400"
+                            }`}
+                          >
+                            {index + 1}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col items-center">
-                            <div className="h-10 w-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500/10 to-purple-500/10 p-0.5 flex items-center justify-center">
-                              <Image
-                                src={getRoleIcon(champion.primaryRole) || "/placeholder.svg"}
-                                alt={champion.primaryRole}
-                                width={32}
-                                height={32}
-                                className="h-8 w-8 opacity-90"
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 p-0.5">
+                              <div
+                                className="w-full h-full rounded-full aspect-square overflow-hidden bg-cover bg-center"
+                                style={{ backgroundImage: `url(${champion.image})` }}
                               />
                             </div>
-                            <span className="text-xs text-slate-400 mt-1">
-                              {typeof champion.primaryRolePercentage === "number"
-                                ? champion.primaryRolePercentage.toFixed(1) + "%"
-                                : "—"}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span
-                            className={cn(
-                              "inline-block px-4 py-1.5 rounded-full font-bold shadow-sm",
-                              getTierColor(champion.tier),
-                            )}
-                          >
-                            {champion.tier}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col items-center">
-                            <div className="w-full max-w-[100px] h-1.5 bg-white/10 rounded-full mb-1.5 overflow-hidden">
-                              <div
-                                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                                style={{ width: `${champion.confidence * 100}%` }}
-                              ></div>
+                            <div>
+                              <div className="font-semibold text-white">{champion.name}</div>
                             </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`font-medium ${getRoleColor(champion.role)}`}>{champion.role}</span>
+                        </td>
+                        <td className="px-6 py-4">{getTierBadge(champion.tier)}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-semibold ${getWinrateColor(champion.winrate)}`}>
+                              {champion.winrate}%
+                            </span>
                             <div className="flex items-center gap-1">
-                              <span className="text-xs text-slate-400">
-                                Sources: {champion.sourcesUsed?.length || 0}
+                              {getDeltaIcon(champion.delta)}
+                              <span
+                                className={`text-sm ${
+                                  champion.delta > 0
+                                    ? "text-green-400"
+                                    : champion.delta < 0
+                                      ? "text-red-400"
+                                      : "text-zinc-400"
+                                }`}
+                              >
+                                {champion.delta > 0 ? "+" : ""}
+                                {champion.delta}%
                               </span>
-                              <div className="flex -space-x-2">
-                                {champion.sourcesUsed?.map((source, i) => (
-                                  <div
-                                    key={source}
-                                    className="w-4 h-4 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center"
-                                    title={source}
-                                  >
-                                    <span className="text-[10px] font-bold">
-                                      {source.charAt(0).toUpperCase()}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col items-center">
-                            <span className={cn(
-                              "font-bold",
-                              champion.confidence >= 0.75 ? "text-white" : "text-slate-400"
-                            )}>
-                              {typeof champion.winrate === "number"
-                                ? champion.winrate.toFixed(1) + "%"
-                                : "—"}
-                            </span>
-                            <span
-                              className={cn(
-                                "text-xs flex items-center",
-                                champion.winrateDelta > 0
-                                  ? "text-emerald-400"
-                                  : champion.winrateDelta < 0
-                                    ? "text-red-400"
-                                    : "text-slate-400",
-                              )}
-                            >
-                              {champion.winrateDelta > 0 ? (
-                                <ArrowUp className="h-3 w-3 mr-0.5" />
-                              ) : champion.winrateDelta < 0 ? (
-                                <ArrowDown className="h-3 w-3 mr-0.5" />
-                              ) : null}
-                              {champion.winrateDelta > 0 ? "+" : ""}
-                              {typeof champion.winrateDelta === "number"
-                                ? champion.winrateDelta.toFixed(1) + "%"
-                                : "—"}
-                            </span>
-                            {champion.confidence < 0.5 && (
-                              <span className="text-xs text-amber-400">Low confidence</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col items-center">
-                            <div className="w-full max-w-[100px] h-1.5 bg-white/10 rounded-full mb-1.5 overflow-hidden">
-                              <div
-                                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                                style={{ width: `${Math.min(champion.pickrate * 5, 100)}%` }}
-                              ></div>
-                            </div>
-                            <div className="flex items-center justify-between w-full max-w-[100px]">
-                              <span className="font-bold text-white">
-                                {typeof champion.pickrate === "number"
-                                  ? champion.pickrate.toFixed(1) + "%"
-                                  : "—"}
-                              </span>
-                              {champion.banrate && (
-                                <span className="text-xs text-slate-400 flex items-center">
-                                  <Shield className="h-3 w-3 mr-0.5 opacity-75" />
-                                  {champion.banrate && (
-                                    typeof champion.banrate === "number"
-                                      ? champion.banrate.toFixed(1) + "%"
-                                      : "—"
-                                  )}
-                                </span>
-           )}
-        </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right text-slate-400">
-                          {typeof champion.games === "number"
-                            ? champion.games.toLocaleString()
-                            : "—"}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tier Explanation */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[
-            {
-              tier: "S+",
-              description: "Extremely strong champions that dominate the meta",
-              icon: <Star className="h-5 w-5" />,
-              color: "from-[#FF4E50]/20 to-[#FF4E50]/5",
-              textColor: "text-[#FF4E50]",
-            },
-            {
-              tier: "S",
-              description: "Very strong champions that excel in the current meta",
-              icon: <Star className="h-5 w-5" />,
-              color: "from-[#FF9800]/20 to-[#FF9800]/5",
-              textColor: "text-[#FF9800]",
-            },
-            {
-              tier: "A",
-              description: "Strong champions that perform well consistently",
-              icon: <Star className="h-5 w-5" />,
-              color: "from-[#4CAF50]/20 to-[#4CAF50]/5",
-              textColor: "text-[#4CAF50]",
-            },
-            {
-              tier: "B",
-              description: "Balanced champions with good performance",
-              icon: <Star className="h-5 w-5" />,
-              color: "from-[#2196F3]/20 to-[#2196F3]/5",
-              textColor: "text-[#2196F3]",
-            },
-            {
-              tier: "C",
-              description: "Average champions that may need specific conditions",
-              icon: <Star className="h-5 w-5" />,
-              color: "from-[#9C27B0]/20 to-[#9C27B0]/5",
-              textColor: "text-[#9C27B0]",
-            },
-            {
-              tier: "D",
-              description: "Weaker champions that struggle in the current meta",
-              icon: <Star className="h-5 w-5" />,
-              color: "from-[#607D8B]/20 to-[#607D8B]/5",
-              textColor: "text-[#607D8B]",
-            },
-          ].map((tierInfo) => (
-            <Card
-              key={tierInfo.tier}
-              className={`bg-gradient-to-br ${tierInfo.color} border-white/10 backdrop-blur-sm hover:translate-y-[-2px] transition-all duration-300`}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${tierInfo.color} ${tierInfo.textColor}`}
-                  >
-                    {tierInfo.icon}
-                    </div>
-                    <div>
-                    <h3 className={`text-lg font-bold ${tierInfo.textColor}`}>Tier {tierInfo.tier}</h3>
-                    <p className="text-sm text-slate-400">{tierInfo.description}</p>
-                    </div>
-                  </div>
-              </CardContent>
-            </Card>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-slate-300">{champion.pickrate}%</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-slate-300">{champion.banrate}%</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-slate-300">{champion.games.toLocaleString()}</span>
+                        </td>
+                      </tr>
                     ))}
-                  </div>
-                </div>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
 
-      <footer className="border-t border-white/10 mt-16 bg-black/20 backdrop-blur-sm relative z-10">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-center text-slate-400 text-sm">
-              LoLytics isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions of Riot Games or
-              anyone officially involved in producing or managing League of Legends.
-            </p>
-            <div className="flex items-center gap-4">
-              <a href="#" className="text-sm text-slate-400 hover:text-blue-400 transition-colors">
-                Terms
-              </a>
-              <a href="#" className="text-sm text-slate-400 hover:text-blue-400 transition-colors">
-                Privacy
-              </a>
-              <a href="#" className="text-sm text-slate-400 hover:text-blue-400 transition-colors">
-                Contact
-              </a>
+        {filteredData.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <p className="text-zinc-400 text-lg mb-4">No champions found matching your criteria.</p>
+            <Button
+              onClick={() => {
+                setSelectedRole("all")
+                setSelectedRank("all")
+                setSearchQuery("")
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              Clear Filters
+            </Button>
           </div>
+        )}
       </div>
+      
+      {/* Footer */}
+      <footer className="border-t border-zinc-800/50 mt-16">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          <p className="text-center text-zinc-500 text-sm">
+            LoLytics isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.
+          </p>
         </div>
       </footer>
-
-      <style jsx global>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(180deg); }
-        }
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-30px) rotate(-180deg); }
-        }
-        @keyframes float-slow {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-15px) rotate(90deg); }
-        }
-        @keyframes twinkle {
-          0%, 100% { opacity: 0; transform: scale(0.5); }
-          50% { opacity: 1; transform: scale(1); }
-        }
-        .animate-float { animation: float 6s ease-in-out infinite; }
-        .animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
-        .animate-float-slow { animation: float-slow 10s ease-in-out infinite; }
-        .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(5px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
-      `}</style>
     </div>
   )
 }
