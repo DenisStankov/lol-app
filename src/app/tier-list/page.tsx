@@ -1,55 +1,25 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
-import { Search, ArrowUp, ArrowDown, Trophy, Filter, Star, Sparkles, Shield, Swords, TrendingUp, TrendingDown, Minus, ArrowUpDown } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
-import { useRouter } from "next/navigation"
+import { useState, useMemo, useEffect } from "react"
 import Navigation from "@/components/navigation"
-import { Badge } from "@/components/badge"
-import { Card, CardContent } from "@/components/card"
-import Image from "next/image"
-import { createPortal } from "react-dom"
-import { useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Search, TrendingUp, TrendingDown, Minus, ArrowUpDown } from "lucide-react"
 import Link from "next/link"
-
-// Role types
-type Role = "top" | "jungle" | "mid" | "adc" | "support" | "all"
-
-// Division types
-type Division =
-  | "iron+"
-  | "bronze+"
-  | "silver+"
-  | "gold+"
-  | "platinum+"
-  | "emerald+"
-  | "diamond+"
-  | "master+"
-  | "grandmaster+"
-  | "challenger+"
-
-// Tier types
-type Tier = "S+" | "S" | "A" | "B" | "C" | "D"
-
-// Sort types
-type SortField = "tier" | "winrate" | "pickrate" | null
-type SortDirection = "asc" | "desc"
+import axios from "axios"
 
 // Champion data type
 interface Champion {
   id: string
   name: string
   icon: string
-  primaryRole: Role
-  secondaryRole?: Role
+  primaryRole: string
   roles: {
     [key: string]: {
       games: number
       wins: number
-      tier: Tier
+      tier: string
       winRate: number
       pickRate: number
       banRate: number
@@ -64,174 +34,7 @@ interface Champion {
   difficulty: string
   damageType: string
   range: string
-  confidence: number
-  sourcesUsed: string[]
 }
-
-// Define rank map for use in multiple places
-const rankMap: Record<Division, string> = {
-  "iron+": "Iron",
-  "bronze+": "Bronze",
-  "silver+": "Silver",
-  "gold+": "Gold",
-  "platinum+": "Platinum",
-  "emerald+": "Emerald",
-  "diamond+": "Diamond",
-  "master+": "Master",
-  "grandmaster+": "Grandmaster",
-  "challenger+": "Challenger",
-}
-
-// Add a mapping for role labels
-const roleLabels: Record<Role, string> = {
-  all: "All",
-  top: "Top",
-  jungle: "Jungle",
-  mid: "Mid",
-  adc: "ADC",
-  support: "Support",
-};
-
-// Define supported divisions for real data
-const supportedDivisions: Division[] = ["challenger+", "grandmaster+", "master+"];
-
-const regionMap: Record<string, string> = {
-  na: "NA",
-  euw: "EUW",
-  eune: "EUNE",
-  kr: "KR",
-  br: "BR",
-  jp: "JP",
-  lan: "LAN",
-  las: "LAS",
-  oce: "OCE",
-  tr: "TR",
-  ru: "RU",
-};
-
-// Mock tier list data
-const tierListData = [
-  {
-    id: 1,
-    name: "Jinx",
-    role: "ADC",
-    tier: "S+",
-    winrate: 54.2,
-    pickrate: 12.8,
-    banrate: 8.5,
-    games: 125420,
-    delta: 2.1,
-    image: "/placeholder.svg?height=64&width=64&text=Jinx",
-  },
-  {
-    id: 2,
-    name: "Graves",
-    role: "Jungle",
-    tier: "S+",
-    winrate: 53.8,
-    pickrate: 15.2,
-    banrate: 12.3,
-    games: 98750,
-    delta: 1.8,
-    image: "/placeholder.svg?height=64&width=64&text=Graves",
-  },
-  {
-    id: 3,
-    name: "Katarina",
-    role: "Mid",
-    tier: "S",
-    winrate: 52.9,
-    pickrate: 8.7,
-    banrate: 15.2,
-    games: 87650,
-    delta: -0.5,
-    image: "/placeholder.svg?height=64&width=64&text=Katarina",
-  },
-  {
-    id: 4,
-    name: "Thresh",
-    role: "Support",
-    tier: "S",
-    winrate: 51.8,
-    pickrate: 18.5,
-    banrate: 6.8,
-    games: 156780,
-    delta: 1.2,
-    image: "/placeholder.svg?height=64&width=64&text=Thresh",
-  },
-  {
-    id: 5,
-    name: "Darius",
-    role: "Top",
-    tier: "A",
-    winrate: 51.2,
-    pickrate: 9.8,
-    banrate: 11.5,
-    games: 76540,
-    delta: -1.1,
-    image: "/placeholder.svg?height=64&width=64&text=Darius",
-  },
-  {
-    id: 6,
-    name: "Lux",
-    role: "Support",
-    tier: "A",
-    winrate: 50.8,
-    pickrate: 14.2,
-    banrate: 4.2,
-    games: 134560,
-    delta: 0.8,
-    image: "/placeholder.svg?height=64&width=64&text=Lux",
-  },
-  {
-    id: 7,
-    name: "Yasuo",
-    role: "Mid",
-    tier: "B",
-    winrate: 49.5,
-    pickrate: 16.8,
-    banrate: 22.1,
-    games: 198760,
-    delta: -2.3,
-    image: "/placeholder.svg?height=64&width=64&text=Yasuo",
-  },
-  {
-    id: 8,
-    name: "Garen",
-    role: "Top",
-    tier: "B",
-    winrate: 49.2,
-    pickrate: 7.5,
-    banrate: 3.1,
-    games: 65430,
-    delta: 0.2,
-    image: "/placeholder.svg?height=64&width=64&text=Garen",
-  },
-  {
-    id: 9,
-    name: "Azir",
-    role: "Mid",
-    tier: "C",
-    winrate: 47.8,
-    pickrate: 3.2,
-    banrate: 1.8,
-    games: 28750,
-    delta: -1.8,
-    image: "/placeholder.svg?height=64&width=64&text=Azir",
-  },
-  {
-    id: 10,
-    name: "Kalista",
-    role: "ADC",
-    tier: "D",
-    winrate: 45.2,
-    pickrate: 1.8,
-    banrate: 0.5,
-    games: 15420,
-    delta: -3.2,
-    image: "/placeholder.svg?height=64&width=64&text=Kalista",
-  },
-]
 
 // Role color mapping for better visual differentiation
 const roleColors: Record<string, string> = {
@@ -272,34 +75,103 @@ const tierColors = {
   D: "text-[#607D8B] bg-gradient-to-r from-[#607D8B]/20 to-[#607D8B]/5",
 }
 
-export default function TierList() {
+export default function TierListPage() {
   const [selectedRole, setSelectedRole] = useState("all")
   const [selectedRank, setSelectedRank] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [sortColumn, setSortColumn] = useState<string>("tier")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [latestVersion, setLatestVersion] = useState("13.24.1")
+  const [champions, setChampions] = useState<Champion[]>([])
+  const [featured, setFeatured] = useState<Champion | null>(null)
 
-  const router = useRouter()
-
-  // Fetch current patch version
+  // Fetch current patch version and champion data
   useEffect(() => {
-    const fetchVersion = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("https://ddragon.leagueoflegends.com/api/versions.json")
-        const data = await response.json()
-        setLatestVersion(data[0])
+        setIsLoading(true)
+        
+        // Get latest version
+        const versionResponse = await axios.get("https://ddragon.leagueoflegends.com/api/versions.json")
+        const fetchedVersion = versionResponse.data[0]
+        setLatestVersion(fetchedVersion)
+        
+        // Fetch champions data
+        const response = await axios.get(
+          `https://ddragon.leagueoflegends.com/cdn/${fetchedVersion}/data/en_US/champion.json`
+        )
+        
+        // Convert object of champions to array
+        const championsArray = Object.values(response.data.data) as any[]
+        
+        // Fetch champion stats from our API
+        const statsResponse = await axios.get('/api/champion-stats')
+        const statsData = statsResponse.data || {}
+        
+        // Combine champion data with stats
+        const championsWithStats: Champion[] = championsArray.map((champ: any) => {
+          const stats = statsData[champ.key] || {}
+          
+          // Calculate tier based on win rate and pick rate
+          let tier = "C"
+          const winRate = stats.winRate || 50
+          const pickRate = stats.pickRate || 5
+          
+          if (winRate >= 53 && pickRate >= 10) tier = "S+"
+          else if (winRate >= 52 && pickRate >= 8) tier = "S"
+          else if (winRate >= 51 && pickRate >= 5) tier = "A"
+          else if (winRate >= 50 && pickRate >= 3) tier = "B"
+          else if (winRate >= 48) tier = "C"
+          else tier = "D"
+          
+          return {
+            id: champ.id,
+            name: champ.name,
+            icon: `https://ddragon.leagueoflegends.com/cdn/${fetchedVersion}/img/champion/${champ.id}.png`,
+            primaryRole: champ.tags?.[0] || "Fighter",
+            roles: stats.roles || {},
+            difficulty: getDifficultyLabel(champ.info?.difficulty || 3),
+            damageType: getDamageType(champ),
+            range: champ.stats?.attackrange > 300 ? "Ranged" : "Melee"
+          }
+        })
+        
+        setChampions(championsWithStats)
+        
+        // Set a random featured champion
+        const randomIndex = Math.floor(Math.random() * championsWithStats.length)
+        setFeatured(championsWithStats[randomIndex])
+        
+        setIsLoading(false)
       } catch (error) {
-        console.error("Error fetching version:", error)
+        console.error("Error fetching champions:", error)
+        setIsLoading(false)
       }
     }
-    fetchVersion()
+
+    fetchData()
   }, [])
 
+  // Helper functions
+  const getDifficultyLabel = (difficulty: number) => {
+    if (difficulty <= 2) return "Easy"
+    if (difficulty <= 4) return "Medium"
+    return "Hard"
+  }
+
+  const getDamageType = (champ: any) => {
+    const tags = champ.tags || []
+    if (tags.includes("Mage")) return "Magic"
+    if (tags.includes("Marksman") || tags.includes("Fighter")) return "Physical"
+    return "Mixed"
+  }
+
   const filteredData = useMemo(() => {
-    const filtered = tierListData.filter((champion) => {
-      const matchesRole = selectedRole === "all" || champion.role.toLowerCase() === selectedRole
+    const filtered = champions.filter((champion) => {
+      const matchesRole = selectedRole === "all" || 
+        champion.primaryRole.toLowerCase() === selectedRole ||
+        champion.roles[selectedRole.toUpperCase()]
       const matchesSearch = champion.name.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesRole && matchesSearch
     })
@@ -309,28 +181,53 @@ export default function TierList() {
       const tierOrder = { "S+": 1, S: 2, A: 3, B: 4, C: 5, D: 6 }
 
       if (sortColumn === "tier") {
-        const aTier = tierOrder[a.tier as keyof typeof tierOrder]
-        const bTier = tierOrder[b.tier as keyof typeof tierOrder]
+        const aTier = tierOrder[a.tier as keyof typeof tierOrder] || 5
+        const bTier = tierOrder[b.tier as keyof typeof tierOrder] || 5
         return sortDirection === "asc" ? aTier - bTier : bTier - aTier
       }
 
-      let aValue = a[sortColumn as keyof typeof a]
-      let bValue = b[sortColumn as keyof typeof b]
+      // Get the primary role stats for comparison
+      const aRoleKey = selectedRole !== "all" ? selectedRole.toUpperCase() : Object.keys(a.roles)[0]
+      const bRoleKey = selectedRole !== "all" ? selectedRole.toUpperCase() : Object.keys(b.roles)[0]
+      
+      const aStats = a.roles[aRoleKey] || { winRate: 50, pickRate: 5, banRate: 5, games: 0 }
+      const bStats = b.roles[bRoleKey] || { winRate: 50, pickRate: 5, banRate: 5, games: 0 }
+
+      let aValue: any, bValue: any
+
+      switch (sortColumn) {
+        case "winrate":
+          aValue = aStats.winRate
+          bValue = bStats.winRate
+          break
+        case "pickrate":
+          aValue = aStats.pickRate
+          bValue = bStats.pickRate
+          break
+        case "banrate":
+          aValue = aStats.banRate
+          bValue = bStats.banRate
+          break
+        case "games":
+          aValue = aStats.games
+          bValue = bStats.games
+          break
+        default:
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+      }
 
       if (typeof aValue === "string") {
-        aValue = aValue.toLowerCase()
-        bValue = (bValue as string).toLowerCase()
+        return sortDirection === "asc" 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue)
       }
 
-      if (sortDirection === "asc") {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
-      }
+      return sortDirection === "asc" ? aValue - bValue : bValue - aValue
     })
 
     return filtered
-  }, [selectedRole, searchQuery, sortColumn, sortDirection])
+  }, [champions, selectedRole, searchQuery, sortColumn, sortDirection])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -343,7 +240,7 @@ export default function TierList() {
 
   const getTierBadge = (tier: string) => {
     return (
-      <span className={`inline-block px-4 py-1.5 rounded-full font-bold shadow-sm ${tierColors[tier as keyof typeof tierColors]}`}>
+      <span className={`inline-block px-4 py-1.5 rounded-full font-bold shadow-sm ${tierColors[tier as keyof typeof tierColors] || tierColors.C}`}>
         {tier}
       </span>
     )
@@ -366,6 +263,12 @@ export default function TierList() {
     return roleData?.color || "text-white"
   }
 
+  // Get champion stats for display
+  const getChampionStats = (champion: Champion) => {
+    const roleKey = selectedRole !== "all" ? selectedRole.toUpperCase() : Object.keys(champion.roles)[0]
+    return champion.roles[roleKey] || { winRate: 50, pickRate: 5, banRate: 5, games: 0, winRateDelta: 0 }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
       <Navigation />
@@ -378,31 +281,33 @@ export default function TierList() {
       )}
       
       {/* Featured Champion Header */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-black/60 z-10"></div>
-        <div 
-          className="h-80 w-full bg-center bg-cover" 
-          style={{ 
-            backgroundImage: "url('/placeholder.svg?height=400&width=1200&text=Featured+Champion+Jinx')",
-            backgroundPosition: "center 20%"
-          }}
-        ></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
-        
-        <div className="absolute bottom-0 left-0 right-0 z-20 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-          <span className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-1 block">Featured Champion</span>
-          <h1 className="text-5xl md:text-6xl font-bold text-white text-shadow-lg">Jinx</h1>
-          <p className="text-lg text-white/70 max-w-md mt-2">
-            The Loose Cannon dominates the current meta with exceptional carry potential and game-changing teamfight presence.
-          </p>
-          <Link 
-            href="/champion/jinx"
-            className="mt-4 inline-block px-6 py-2.5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded shadow transition-all duration-300"
-          >
-            View Champion Details
-          </Link>
+      {featured && !isLoading && (
+        <div className="relative">
+          <div className="absolute inset-0 bg-black/60 z-10"></div>
+          <div 
+            className="h-80 w-full bg-center bg-cover" 
+            style={{ 
+              backgroundImage: `url(https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${featured.id}_0.jpg)`,
+              backgroundPosition: "center 20%"
+            }}
+          ></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+          
+          <div className="absolute bottom-0 left-0 right-0 z-20 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <span className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-1 block">Featured Champion</span>
+            <h1 className="text-5xl md:text-6xl font-bold text-white text-shadow-lg">{featured.name}</h1>
+            <p className="text-lg text-white/70 max-w-md mt-2">
+              {featured.name} dominates the current meta with exceptional performance and game-changing presence.
+            </p>
+            <Link 
+              href={`/champion/${featured.id}`}
+              className="mt-4 inline-block px-6 py-2.5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded shadow transition-all duration-300"
+            >
+              View Champion Details
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Main Content Header */}
       <div className="bg-gradient-to-r from-slate-950/90 to-purple-950/90 border-b border-white/10">
@@ -541,72 +446,77 @@ export default function TierList() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredData.map((champion, index) => (
-                      <tr
-                        key={champion.id}
-                        className="border-b border-white/5 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-transparent transition-all duration-300 cursor-pointer"
-                      >
-                        <td className="px-6 py-4">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-                              index < 3
-                                ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
-                                : "bg-white/10 text-slate-400"
-                            }`}
-                          >
-                            {index + 1}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 p-0.5">
-                              <div
-                                className="w-full h-full rounded-full aspect-square overflow-hidden bg-cover bg-center"
-                                style={{ backgroundImage: `url(${champion.image})` }}
-                              />
+                    {filteredData.map((champion, index) => {
+                      const stats = getChampionStats(champion)
+                      return (
+                        <tr
+                          key={champion.id}
+                          className="border-b border-white/5 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-transparent transition-all duration-300 cursor-pointer"
+                        >
+                          <td className="px-6 py-4">
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                                index < 3
+                                  ? "bg-gradient-to-r from-yellow-400 to-orange-500 text-white"
+                                  : "bg-white/10 text-slate-400"
+                              }`}
+                            >
+                              {index + 1}
                             </div>
-                            <div>
-                              <div className="font-semibold text-white">{champion.name}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 p-0.5">
+                                <div
+                                  className="w-full h-full rounded-full aspect-square overflow-hidden bg-cover bg-center"
+                                  style={{ backgroundImage: `url(${champion.icon})` }}
+                                />
+                              </div>
+                              <div>
+                                <div className="font-semibold text-white">{champion.name}</div>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`font-medium ${getRoleColor(champion.role)}`}>{champion.role}</span>
-                        </td>
-                        <td className="px-6 py-4">{getTierBadge(champion.tier)}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className={`font-semibold ${getWinrateColor(champion.winrate)}`}>
-                              {champion.winrate}%
-                            </span>
-                            <div className="flex items-center gap-1">
-                              {getDeltaIcon(champion.delta)}
-                              <span
-                                className={`text-sm ${
-                                  champion.delta > 0
-                                    ? "text-green-400"
-                                    : champion.delta < 0
-                                      ? "text-red-400"
-                                      : "text-zinc-400"
-                                }`}
-                              >
-                                {champion.delta > 0 ? "+" : ""}
-                                {champion.delta}%
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className={`font-medium ${getRoleColor(champion.primaryRole)}`}>{champion.primaryRole}</span>
+                          </td>
+                          <td className="px-6 py-4">{getTierBadge(stats.tier || "C")}</td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <span className={`font-semibold ${getWinrateColor(stats.winRate)}`}>
+                                {stats.winRate?.toFixed(1) || "50.0"}%
                               </span>
+                              {stats.winRateDelta !== undefined && (
+                                <div className="flex items-center gap-1">
+                                  {getDeltaIcon(stats.winRateDelta)}
+                                  <span
+                                    className={`text-sm ${
+                                      stats.winRateDelta > 0
+                                        ? "text-green-400"
+                                        : stats.winRateDelta < 0
+                                          ? "text-red-400"
+                                          : "text-zinc-400"
+                                    }`}
+                                  >
+                                    {stats.winRateDelta > 0 ? "+" : ""}
+                                    {stats.winRateDelta.toFixed(1)}%
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-slate-300">{champion.pickrate}%</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-slate-300">{champion.banrate}%</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-slate-300">{champion.games.toLocaleString()}</span>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-slate-300">{stats.pickRate?.toFixed(1) || "5.0"}%</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-slate-300">{stats.banRate?.toFixed(1) || "5.0"}%</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="text-slate-300">{stats.games?.toLocaleString() || "0"}</span>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
