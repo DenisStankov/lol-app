@@ -5,11 +5,13 @@ import axios from 'axios';
  * API route to fetch summoner profile data by Riot ID or PUUID
  */
 export async function GET(request: NextRequest) {
-  console.log("📞 fetchSummoner API called", new Date().toISOString());
+  // Minimal logging without exposing secrets
+  console.log("fetchSummoner GET", new Date().toISOString());
   try {
-    // Verify API key is available
-    console.log("RIOT_API_KEY available:", !!process.env.RIOT_API_KEY);
-    console.log("RIOT_API_KEY first few chars:", process.env.RIOT_API_KEY ? process.env.RIOT_API_KEY.substring(0, 4) + "..." : "not set");
+    // Verify API key presence without printing it
+    if (!process.env.RIOT_API_KEY) {
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
     
     // Get query parameters
     const params = request.nextUrl.searchParams;

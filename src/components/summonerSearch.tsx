@@ -28,7 +28,7 @@ interface SummonerSearchProps {
 
 export default function SummonerSearch({ showRecentSearches = false }: SummonerSearchProps) {
   const [query, setQuery] = useState("");
-  const [region, setRegion] = useState("euw1"); // Default region
+  const [region, setRegion] = useState("euw1"); // Default preferred region (hint only)
   const [results, setResults] = useState<Summoner[]>([]);
   const [recentSearches, setRecentSearches] = useState<RecentSummoner[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,7 +61,8 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
     try {
       const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(query)}&region=${region}`);
-      setResults([res.data]); // Store results
+      const data = Array.isArray(res.data) ? res.data : [res.data];
+      setResults(data);
       setShowResults(true);
     } catch (err) {
       console.error("❌ Search Error:", err);
@@ -79,7 +80,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
   }, [query, fetchSummoners]);
 
   // Save to recent searches and navigate
-  const handleSelect = (summoner: Summoner, selectedRegion = region) => {
+  const handleSelect = (summoner: Summoner, selectedRegion = summoner.region || region) => {
     const formattedName = `${summoner.summonerName}-${summoner.tagLine}`;
     
     // Save to recent searches
