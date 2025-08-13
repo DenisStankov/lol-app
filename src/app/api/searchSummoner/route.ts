@@ -50,12 +50,24 @@ export async function GET(req: Request) {
   // Search all platforms concurrently and collect successful results
   const results = await Promise.allSettled(
     platforms.map(async (platform) => {
-      const summonerRes = await fetchWith429Retry(() =>
-        axios.get(
-          `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(nameOnly!)}`,
-          { headers: { "X-Riot-Token": RIOT_API_KEY } }
-        )
-      );
+      // Try exact then lowercase variant
+      let summonerRes: any;
+      try {
+        summonerRes = await fetchWith429Retry(() =>
+          axios.get(
+            `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(nameOnly!)}`,
+            { headers: { "X-Riot-Token": RIOT_API_KEY } }
+          )
+        );
+      } catch (e1: any) {
+        // Retry with lowercase variant
+        summonerRes = await fetchWith429Retry(() =>
+          axios.get(
+            `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(nameOnly!.toLowerCase())}`,
+            { headers: { "X-Riot-Token": RIOT_API_KEY } }
+          )
+        );
+      }
       const summ = (summonerRes as any).data || summonerRes;
       return {
         summonerName: summ.name,
@@ -78,6 +90,19 @@ export async function GET(req: Request) {
   const list = Object.values(uniqueByPuuid);
 
   if (list.length === 0) {
+    // Optional diagnostics when debug=1
+    const debug = searchParams.get("debug") === "1";
+    if (debug) {
+      const errors: Record<string, string> = {};
+      for (let i = 0; i < results.length; i++) {
+        const r: any = results[i];
+        if (r.status === "rejected") {
+          const res = r.reason?.response;
+          errors[platforms[i]] = res ? `${res.status} ${res.statusText}` : (r.reason?.message || 'error');
+        }
+      }
+      return NextResponse.json({ results: [], errors }, { status: 200 });
+    }
     return NextResponse.json([], { status: 200 });
   }
   return NextResponse.json(list);
