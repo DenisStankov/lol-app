@@ -125,8 +125,68 @@ export async function GET(req: Request) {
     }
   }
 
-  // Name-only search: probe all platforms for an exact name match, then enrich with Riot ID via Account-V1
+  // Name-only search path
   const platforms = preferredRegion ? [preferredRegion, ...PLATFORMS.filter(p => p !== preferredRegion)] : PLATFORMS;
+
+  // 1) Try an educated guess: many users have tagLine equal to their cluster (EUW/EUNE/NA1, ...)
+  const PLATFORM_TO_DEFAULT_TAG: Record<string, string> = {
+    euw1: "EUW",
+    eun1: "EUNE",
+    na1: "NA1",
+    br1: "BR1",
+    la1: "LA1",
+    la2: "LA2",
+    kr: "KR",
+    jp1: "JP1",
+    oc1: "OC1",
+    tr1: "TR1",
+    ru: "RU",
+  };
+
+  if (preferredRegion) {
+    const guessedTag = PLATFORM_TO_DEFAULT_TAG[preferredRegion] || undefined;
+    if (guessedTag) {
+      try {
+        const regionalBases: Array<"americas" | "europe" | "asia"> = ["europe", "americas", "asia"];
+        // try accounts/by-riot-id using guessed tagline
+        for (const reg of regionalBases) {
+          try {
+            const accRes = await fetchWith429Retry(() =>
+              axios.get(
+                `https://${reg}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(query)}/${encodeURIComponent(guessedTag)}`,
+                { headers: { "X-Riot-Token": RIOT_API_KEY } }
+              )
+            );
+            const account = (accRes as any).data || accRes;
+            // find a matching platform profile
+            const order = [preferredRegion, ...PLATFORMS.filter((p) => p !== preferredRegion)];
+            for (const platform of order) {
+              try {
+                const summ = await fetchWith429Retry(() =>
+                  axios.get(
+                    `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${account.puuid}`,
+                    { headers: { "X-Riot-Token": RIOT_API_KEY } }
+                  )
+                );
+                return NextResponse.json([
+                  {
+                    summonerName: account.gameName || (summ as any).data?.name,
+                    tagLine: account.tagLine || guessedTag,
+                    puuid: account.puuid,
+                    profileIconId: (summ as any).data?.profileIconId ?? 29,
+                    summonerLevel: (summ as any).data?.summonerLevel ?? 0,
+                    region: platform,
+                  },
+                ]);
+              } catch {}
+            }
+          } catch (e: any) {
+            if (e?.response?.status === 404) continue;
+          }
+        }
+      } catch {}
+    }
+  }
 
   // Search all platforms concurrently
   const results = await Promise.allSettled(
