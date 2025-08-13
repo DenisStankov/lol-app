@@ -3,21 +3,6 @@ import axios from "axios";
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-// Mappings between platform routing (for Summoner-V4) and regional routing (for Account-V1)
-const PLATFORM_TO_REGIONAL: Record<string, "americas" | "europe" | "asia"> = {
-  na1: "americas",
-  br1: "americas",
-  la1: "americas",
-  la2: "americas",
-  euw1: "europe",
-  eun1: "europe",
-  tr1: "europe",
-  ru: "europe",
-  kr: "asia",
-  jp1: "asia",
-  oc1: "americas", // closest for League endpoints
-};
-
 const PLATFORMS: string[] = [
   "euw1",
   "na1",
@@ -58,157 +43,23 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Query is required" }, { status: 400 });
   }
 
-  // If the user provided a Riot ID (name#tag), do a direct lookup across account regions
-  if (query.includes("#")) {
-    const [gameNameRaw, tagLineRaw] = query.split("#");
-    const gameName = (gameNameRaw || "").trim();
-    const tagLine = (tagLineRaw || "").trim();
-    if (!gameName || !tagLine) {
-      return NextResponse.json({ error: "Invalid Riot ID format" }, { status: 400 });
-    }
-
-    // Try the three regional routes; return first hit with its platform data (by probing platforms)
-    const regionalBases: Array<"americas" | "europe" | "asia"> = ["europe", "americas", "asia"];
-    try {
-      const account = await fetchWith429Retry(async () => {
-        for (const reg of regionalBases) {
-          try {
-            const res = await axios.get(
-              `https://${reg}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
-              { headers: { "X-Riot-Token": RIOT_API_KEY } }
-            );
-            return res.data;
-          } catch (e: any) {
-            if (e?.response?.status === 404) continue;
-            if (e?.response?.status === 429) throw e; // handled by retry wrapper
-          }
-        }
-        throw new Error("Not found");
-      });
-
-      // Probe platforms to find a matching Summoner profile to attach platform and icon info
-      const platformsToTry = preferredRegion ? [preferredRegion, ...PLATFORMS.filter(p => p !== preferredRegion)] : PLATFORMS;
-      for (const platform of platformsToTry) {
-        try {
-          const summ = await fetchWith429Retry(() =>
-            axios.get(
-              `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${account.puuid}`,
-              { headers: { "X-Riot-Token": RIOT_API_KEY } }
-            )
-          );
-          return NextResponse.json([
-            {
-              summonerName: account.gameName || summ.data.name,
-              tagLine: account.tagLine || undefined,
-              puuid: account.puuid,
-              profileIconId: summ.data.profileIconId,
-              summonerLevel: summ.data.summonerLevel,
-              region: platform,
-            },
-          ]);
-        } catch {}
-      }
-
-      // If we cannot resolve a platform profile, still return the account
-      return NextResponse.json([
-        {
-          summonerName: account.gameName || undefined,
-          tagLine: account.tagLine || undefined,
-          puuid: account.puuid,
-          profileIconId: 29,
-          summonerLevel: 0,
-          region: preferredRegion || "euw1",
-        },
-      ]);
-    } catch (e) {
-      return NextResponse.json({ error: "Summoner not found" }, { status: 404 });
-    }
-  }
-
-  // Name-only search path
+  // Unified name search (Summoner-V4 only). If query contains '#', ignore the tag and use the name part.
+  const nameOnly = query.includes("#") ? query.split("#")[0].trim() : query;
   const platforms = preferredRegion ? [preferredRegion, ...PLATFORMS.filter(p => p !== preferredRegion)] : PLATFORMS;
 
-  // 1) Try an educated guess: many users have tagLine equal to their cluster (EUW/EUNE/NA1, ...)
-  const PLATFORM_TO_DEFAULT_TAG: Record<string, string> = {
-    euw1: "EUW",
-    eun1: "EUNE",
-    na1: "NA1",
-    br1: "BR1",
-    la1: "LA1",
-    la2: "LA2",
-    kr: "KR",
-    jp1: "JP1",
-    oc1: "OC1",
-    tr1: "TR1",
-    ru: "RU",
-  };
-
-  if (preferredRegion) {
-    const guessedTag = PLATFORM_TO_DEFAULT_TAG[preferredRegion] || undefined;
-    if (guessedTag) {
-      try {
-        const regionalBases: Array<"americas" | "europe" | "asia"> = ["europe", "americas", "asia"];
-        // try accounts/by-riot-id using guessed tagline
-        for (const reg of regionalBases) {
-          try {
-            const accRes = await fetchWith429Retry(() =>
-              axios.get(
-                `https://${reg}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(query)}/${encodeURIComponent(guessedTag)}`,
-                { headers: { "X-Riot-Token": RIOT_API_KEY } }
-              )
-            );
-            const account = (accRes as any).data || accRes;
-            // find a matching platform profile
-            const order = [preferredRegion, ...PLATFORMS.filter((p) => p !== preferredRegion)];
-            for (const platform of order) {
-              try {
-                const summ = await fetchWith429Retry(() =>
-                  axios.get(
-                    `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${account.puuid}`,
-                    { headers: { "X-Riot-Token": RIOT_API_KEY } }
-                  )
-                );
-                return NextResponse.json([
-                  {
-                    summonerName: account.gameName || (summ as any).data?.name,
-                    tagLine: account.tagLine || guessedTag,
-                    puuid: account.puuid,
-                    profileIconId: (summ as any).data?.profileIconId ?? 29,
-                    summonerLevel: (summ as any).data?.summonerLevel ?? 0,
-                    region: platform,
-                  },
-                ]);
-              } catch {}
-            }
-          } catch (e: any) {
-            if (e?.response?.status === 404) continue;
-          }
-        }
-      } catch {}
-    }
-  }
-
-  // Search all platforms concurrently
+  // Search all platforms concurrently and collect successful results
   const results = await Promise.allSettled(
     platforms.map(async (platform) => {
       const summonerRes = await fetchWith429Retry(() =>
         axios.get(
-          `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(query!)}`,
+          `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(nameOnly!)}`,
           { headers: { "X-Riot-Token": RIOT_API_KEY } }
         )
       );
-      const summ = summonerRes.data;
-      const regional = PLATFORM_TO_REGIONAL[platform as keyof typeof PLATFORM_TO_REGIONAL];
-      const accountRes = await fetchWith429Retry(() =>
-        axios.get(
-          `https://${regional}.api.riotgames.com/riot/account/v1/accounts/by-puuid/${encodeURIComponent(summ.puuid)}`,
-          { headers: { "X-Riot-Token": RIOT_API_KEY } }
-        )
-      );
-      const acc = accountRes.data || {};
+      const summ = (summonerRes as any).data || summonerRes;
       return {
-        summonerName: acc.gameName || summ.name,
-        tagLine: acc.tagLine || undefined,
+        summonerName: summ.name,
+        tagLine: undefined,
         puuid: summ.puuid,
         profileIconId: summ.profileIconId,
         summonerLevel: summ.summonerLevel,
