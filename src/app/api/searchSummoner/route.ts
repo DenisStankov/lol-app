@@ -98,8 +98,8 @@ export async function GET(req: Request) {
           );
           return NextResponse.json([
             {
-              summonerName: account.gameName,
-              tagLine: account.tagLine,
+              summonerName: account.gameName || summ.data.name,
+              tagLine: account.tagLine || undefined,
               puuid: account.puuid,
               profileIconId: summ.data.profileIconId,
               summonerLevel: summ.data.summonerLevel,
@@ -112,8 +112,8 @@ export async function GET(req: Request) {
       // If we cannot resolve a platform profile, still return the account
       return NextResponse.json([
         {
-          summonerName: account.gameName,
-          tagLine: account.tagLine,
+          summonerName: account.gameName || undefined,
+          tagLine: account.tagLine || undefined,
           puuid: account.puuid,
           profileIconId: 29,
           summonerLevel: 0,
@@ -145,10 +145,10 @@ export async function GET(req: Request) {
           { headers: { "X-Riot-Token": RIOT_API_KEY } }
         )
       );
-      const acc = accountRes.data;
+      const acc = accountRes.data || {};
       return {
-        summonerName: acc.gameName,
-        tagLine: acc.tagLine,
+        summonerName: acc.gameName || summ.name,
+        tagLine: acc.tagLine || undefined,
         puuid: summ.puuid,
         profileIconId: summ.profileIconId,
         summonerLevel: summ.summonerLevel,
