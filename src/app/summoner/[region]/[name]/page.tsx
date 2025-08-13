@@ -40,25 +40,41 @@ export default function SummonerProfile() {
 
   const [summoner, setSummoner] = useState<Summoner | null>(null);
 
-  // ✅ Extract gameName and tagLine from name (e.g., "KIRETOE-PEKAR")
+  // Accept either /name?puuid=... or legacy /name-tag routing
   const nameStr = Array.isArray(name) ? name[0] : name; // Ensure `name` is a string
   const gameName = nameStr?.split("-")[0];
-  const tagLine = nameStr?.split("-")[1];
+  const tagLine = nameStr?.includes("-") ? nameStr.split("-")[1] : undefined;
 
   useEffect(() => {
-    if (!gameName || !tagLine || !region) {
-      console.log("❌ Missing query params!");
+    if (!region) {
       setLoading(false);
+      setError("Missing region");
       return;
     }
 
-    console.log("🔍 Fetching Summoner Data:", { gameName, tagLine, region });
+    const urlParams = new URLSearchParams(window.location.search);
+    const puuid = urlParams.get('puuid');
+
+    // Prefer PUUID direct lookup when provided (from name-only search selection)
+    let requestUrl = '';
+    if (puuid) {
+      requestUrl = `/api/fetchSummoner?puuid=${encodeURIComponent(puuid)}&region=${region}&isSearched=true`;
+    } else if (gameName && tagLine) {
+      requestUrl = `/api/fetchSummoner?gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}&isSearched=true`;
+    } else if (gameName) {
+      // Fallback: try by-name in region directly
+      requestUrl = `/api/searchSummoner?query=${encodeURIComponent(gameName)}&region=${region}`;
+    } else {
+      setLoading(false);
+      setError('Missing summoner name');
+      return;
+    }
 
     axios
-      .get(`/api/fetchSummoner?gameName=${gameName}&tagLine=${tagLine}&region=${region}&isSearched=true`)
+      .get(requestUrl)
       .then((res) => {
-        console.log("✅ Summoner data received:", res.data);
-        setSummoner(res.data);
+        const data = Array.isArray(res.data) ? res.data[0] : res.data;
+        setSummoner(data);
         setLoading(false);
       })
       .catch((err) => {
@@ -97,7 +113,9 @@ export default function SummonerProfile() {
                 {summoner?.summonerName}
               </h1>
               <div className="flex items-center justify-center gap-3">
-                <span className="text-zinc-400">#{summoner?.tagLine}</span>
+                {summoner?.tagLine && (
+                  <span className="text-zinc-400">#{summoner.tagLine}</span>
+                )}
                 <div className="px-3 py-1 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm font-medium">
                   Level {summoner?.summonerLevel}
                 </div>

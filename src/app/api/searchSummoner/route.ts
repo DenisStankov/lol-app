@@ -59,6 +59,7 @@ export async function GET(req: Request) {
       const summ = (summonerRes as any).data || summonerRes;
       return {
         summonerName: summ.name,
+        name: summ.name,
         tagLine: undefined,
         puuid: summ.puuid,
         profileIconId: summ.profileIconId,

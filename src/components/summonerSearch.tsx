@@ -11,10 +11,11 @@ import ProfileIcon from "@/components/ProfileIcon";
 
 interface Summoner {
   summonerName: string;
-  tagLine: string;
+  tagLine?: string;
   puuid: string;
   profileIconId: number;
   region?: string;
+  name?: string;
 }
 
 interface RecentSummoner extends Summoner {
@@ -81,7 +82,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
   // Save to recent searches and navigate
   const handleSelect = (summoner: Summoner, selectedRegion = summoner.region || region) => {
-    const formattedName = `${summoner.summonerName}-${summoner.tagLine}`;
+    const safeName = encodeURIComponent(summoner.summonerName || summoner.name || "");
     
     // Save to recent searches
     try {
@@ -108,7 +109,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
       console.error("Failed to save recent search", err);
     }
     
-    router.push(`/summoner/${selectedRegion}/${formattedName}`);
+    router.push(`/summoner/${selectedRegion}/${safeName}?puuid=${encodeURIComponent(summoner.puuid)}`);
   };
 
   const formatTimeAgo = (dateString: string) => {
@@ -199,7 +200,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                         className="rounded-full border-2 border-accent/40"
                       />
                       <div className="absolute -bottom-1 -right-1 bg-bg-card text-xs font-bold px-1.5 py-0.5 rounded border border-accent/30 text-accent">
-                        {region.toUpperCase().replace(/[0-9]/g, '')}
+                        {(summoner.region || region).toUpperCase().replace(/[0-9]/g, '')}
                       </div>
                     </div>
                     <div className="flex-1">
