@@ -204,7 +204,7 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="font-semibold text-text-main text-lg">{summoner.summonerName}</div>
+                      <div className="font-semibold text-text-main text-lg">{summoner.summonerName || summoner.name}</div>
                       {summoner.tagLine && (
                         <div className="text-sm text-text-secondary">#{summoner.tagLine}</div>
                       )}
