@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   console.log("fetchSummoner GET", new Date().toISOString());
   try {
     // Verify API key presence without printing it
-    if (!process.env.RIOT_API_KEY) {
+    const API_KEY = process.env.RIOT_SUMMONER_V4_KEY || process.env.RIOT_API_KEY;
+    if (!API_KEY) {
       return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
     }
     
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
               `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
               {
                 headers: {
-                  'X-Riot-Token': process.env.RIOT_API_KEY || ''
+                  'X-Riot-Token': API_KEY || ''
                 }
               }
             );
@@ -92,7 +93,7 @@ export async function GET(request: NextRequest) {
                     `https://${regionToTry}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${riotIdLookupResponse.data.puuid}`,
                     {
                       headers: {
-                        'X-Riot-Token': process.env.RIOT_API_KEY || ''
+                        'X-Riot-Token': API_KEY || ''
                       }
                     }
                   );
@@ -152,7 +153,7 @@ export async function GET(request: NextRequest) {
           `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`,
           {
             headers: {
-              'X-Riot-Token': process.env.RIOT_API_KEY || ''
+              'X-Riot-Token': API_KEY || ''
             }
           }
         );
@@ -175,7 +176,7 @@ export async function GET(request: NextRequest) {
             `https://${accountRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
             {
               headers: {
-                'X-Riot-Token': process.env.RIOT_API_KEY || ''
+                'X-Riot-Token': API_KEY || ''
               }
             }
           );
@@ -186,7 +187,7 @@ export async function GET(request: NextRequest) {
               `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountResponse.data.puuid}`,
               {
                 headers: {
-                  'X-Riot-Token': process.env.RIOT_API_KEY || ''
+                  'X-Riot-Token': API_KEY || ''
                 }
               }
             );

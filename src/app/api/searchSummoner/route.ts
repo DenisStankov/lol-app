@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
 
-const RIOT_API_KEY = process.env.RIOT_API_KEY;
+// Prefer a dedicated key for Summoner-V4 if available, fallback to generic key
+const RIOT_API_KEY = process.env.RIOT_SUMMONER_V4_KEY || process.env.RIOT_API_KEY;
+
+// Ensure Node.js runtime and disable caching for this endpoint
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const PLATFORMS: string[] = [
   "euw1",
