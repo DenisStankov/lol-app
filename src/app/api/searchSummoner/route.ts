@@ -89,8 +89,8 @@ export async function GET(req: Request) {
         await upsertSummonerIndex({
           puuid: account.puuid,
           region: platform,
-          gameName,
-          tagLine,
+          gameName: account.gameName || gameName,
+          tagLine: account.tagLine || tagLine,
           profileIconId: s.data.profileIconId,
           summonerLevel: s.data.summonerLevel,
           source: 'riot-id-seed',
@@ -98,8 +98,8 @@ export async function GET(req: Request) {
 
         return NextResponse.json([
           {
-            summonerName: gameName,
-            tagLine,
+            summonerName: (account.gameName || gameName || s.data?.name || '').trim(),
+            tagLine: (account.tagLine || tagLine || '').trim(),
             puuid: account.puuid,
             profileIconId: s.data.profileIconId,
             summonerLevel: s.data.summonerLevel,
@@ -115,14 +115,14 @@ export async function GET(req: Request) {
     await upsertSummonerIndex({
       puuid: account.puuid,
       region: preferredRegion || 'euw1',
-      gameName,
-      tagLine,
+      gameName: account.gameName || gameName,
+      tagLine: account.tagLine || tagLine,
       source: 'riot-id-seed',
     });
     return NextResponse.json([
       {
-        summonerName: gameName,
-        tagLine,
+        summonerName: (account.gameName || gameName || '').trim(),
+        tagLine: (account.tagLine || tagLine || '').trim(),
         puuid: account.puuid,
         profileIconId: 29,
         summonerLevel: 0,
