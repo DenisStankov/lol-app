@@ -204,10 +204,12 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="font-semibold text-text-main text-lg">{summoner.summonerName || summoner.name}</div>
-                      {summoner.tagLine && (
-                        <div className="text-sm text-text-secondary">#{summoner.tagLine}</div>
-                      )}
+                      <div className="font-semibold text-text-main text-lg">{summoner.summonerName || summoner.name || 'Unknown'}</div>
+                      {(summoner.tagLine !== undefined) ? (
+                        summoner.tagLine ? (
+                          <div className="text-sm text-text-secondary">#{summoner.tagLine}</div>
+                        ) : null
+                      ) : null}
                     </div>
                     <ChevronRight className="h-5 w-5 text-accent/70" />
                   </div>
