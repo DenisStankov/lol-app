@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
+import { searchSummonerIndex, upsertSummonerIndex } from "@/lib/summoner-index";
 
 // Prefer a dedicated key for Summoner-V4 if available, fallback to generic key
 const RIOT_API_KEY = process.env.RIOT_SUMMONER_V4_KEY || process.env.RIOT_API_KEY;
@@ -48,67 +49,97 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Query is required" }, { status: 400 });
   }
 
-  // Unified name search (Summoner-V4 only). If query contains '#', ignore the tag and use the name part.
-  const nameOnly = query.includes("#") ? query.split("#")[0].trim() : query;
-  const platforms = preferredRegion ? [preferredRegion, ...PLATFORMS.filter(p => p !== preferredRegion)] : PLATFORMS;
+  // If Riot ID provided, resolve via Account-V1 and seed index for future name-only search
+  if (query.includes('#')) {
+    const [namePart, tagPart] = query.split('#');
+    const gameName = (namePart || '').trim();
+    const tagLine = (tagPart || '').trim();
+    if (!gameName || !tagLine) {
+      return NextResponse.json({ error: 'Invalid Riot ID' }, { status: 400 });
+    }
 
-  // Search all platforms concurrently and collect successful results
-  const results = await Promise.allSettled(
-    platforms.map(async (platform) => {
-      // Try exact then lowercase variant
-      let summonerRes: any;
+    const regionalBases: Array<'europe' | 'americas' | 'asia'> = ['europe', 'americas', 'asia'];
+    let account: any = null;
+    for (const reg of regionalBases) {
       try {
-        summonerRes = await fetchWith429Retry(() =>
+        const res = await fetchWith429Retry(() =>
           axios.get(
-            `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(nameOnly!)}`,
-            { headers: { "X-Riot-Token": RIOT_API_KEY } }
+            `https://${reg}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+            { headers: { 'X-Riot-Token': RIOT_API_KEY } }
           )
         );
-      } catch (e1: any) {
-        // Retry with lowercase variant
-        summonerRes = await fetchWith429Retry(() =>
+        account = (res as any).data || res;
+        break;
+      } catch (e: any) {
+        if (e?.response?.status === 404) continue;
+      }
+    }
+    if (!account?.puuid) return NextResponse.json([], { status: 200 });
+
+    const platforms = preferredRegion ? [preferredRegion, ...PLATFORMS.filter((p) => p !== preferredRegion)] : PLATFORMS;
+    for (const platform of platforms) {
+      try {
+        const s = await fetchWith429Retry(() =>
           axios.get(
-            `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(nameOnly!.toLowerCase())}`,
-            { headers: { "X-Riot-Token": RIOT_API_KEY } }
+            `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${account.puuid}`,
+            { headers: { 'X-Riot-Token': RIOT_API_KEY } }
           )
         );
-      }
-      const summ = (summonerRes as any).data || summonerRes;
-      return {
-        summonerName: summ.name,
-        name: summ.name,
-        tagLine: undefined,
-        puuid: summ.puuid,
-        profileIconId: summ.profileIconId,
-        summonerLevel: summ.summonerLevel,
-        region: platform,
-      };
-    })
-  );
 
-  const uniqueByPuuid: Record<string, any> = {};
-  for (const r of results) {
-    if (r.status === "fulfilled" && r.value?.puuid) {
-      uniqueByPuuid[r.value.puuid] = r.value;
-    }
-  }
-  const list = Object.values(uniqueByPuuid);
+        await upsertSummonerIndex({
+          puuid: account.puuid,
+          region: platform,
+          gameName,
+          tagLine,
+          profileIconId: s.data.profileIconId,
+          summonerLevel: s.data.summonerLevel,
+          source: 'riot-id-seed',
+        });
 
-  if (list.length === 0) {
-    // Optional diagnostics when debug=1
-    const debug = searchParams.get("debug") === "1";
-    if (debug) {
-      const errors: Record<string, string> = {};
-      for (let i = 0; i < results.length; i++) {
-        const r: any = results[i];
-        if (r.status === "rejected") {
-          const res = r.reason?.response;
-          errors[platforms[i]] = res ? `${res.status} ${res.statusText}` : (r.reason?.message || 'error');
-        }
+        return NextResponse.json([
+          {
+            summonerName: gameName,
+            tagLine,
+            puuid: account.puuid,
+            profileIconId: s.data.profileIconId,
+            summonerLevel: s.data.summonerLevel,
+            region: platform,
+          },
+        ]);
+      } catch {
+        // try next platform
       }
-      return NextResponse.json({ results: [], errors }, { status: 200 });
     }
-    return NextResponse.json([], { status: 200 });
+
+    // Seed minimal record if we couldn't get platform-specific data
+    await upsertSummonerIndex({
+      puuid: account.puuid,
+      region: preferredRegion || 'euw1',
+      gameName,
+      tagLine,
+      source: 'riot-id-seed',
+    });
+    return NextResponse.json([
+      {
+        summonerName: gameName,
+        tagLine,
+        puuid: account.puuid,
+        profileIconId: 29,
+        summonerLevel: 0,
+        region: preferredRegion || 'euw1',
+      },
+    ]);
   }
-  return NextResponse.json(list);
+
+  // Name-only: search our index (works after first seed with Riot ID)
+  const hits = await searchSummonerIndex(query, preferredRegion, 10);
+  const mapped = hits.map((r) => ({
+    summonerName: r.gameName || r.summonerName || '',
+    tagLine: r.tagLine || undefined,
+    puuid: r.puuid,
+    profileIconId: r.profileIconId ?? 29,
+    summonerLevel: r.summonerLevel ?? 0,
+    region: r.region,
+  }));
+  return NextResponse.json(mapped, { status: 200 });
 }
