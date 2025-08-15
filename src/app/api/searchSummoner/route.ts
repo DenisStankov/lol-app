@@ -74,7 +74,20 @@ export async function GET(req: Request) {
         if (e?.response?.status === 404) continue;
       }
     }
-    if (!account?.puuid) return NextResponse.json([], { status: 200 });
+    if (!account?.puuid) {
+      // Could not resolve via Account-V1 (e.g., key lacks permission). Return a minimal item
+      // so the UI can still navigate using Riot ID (name#tag) and fetch on the profile page.
+      return NextResponse.json([
+        {
+          summonerName: gameName,
+          tagLine,
+          puuid: `riotid:${gameName}#${tagLine}`,
+          profileIconId: 29,
+          summonerLevel: 0,
+          region: preferredRegion || 'eun1',
+        },
+      ], { status: 200 });
+    }
 
     const platforms = preferredRegion ? [preferredRegion, ...PLATFORMS.filter((p) => p !== preferredRegion)] : PLATFORMS;
     for (const platform of platforms) {
