@@ -185,7 +185,12 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
             {!loading && results.length > 0 && (
               <div className="p-3">
                 <p className="px-4 py-2 text-sm text-accent/80 uppercase font-semibold">Search Results</p>
-                {results.map((summoner) => (
+                {results.map((summoner) => {
+                  const namePart = query.includes('#') ? query.split('#')[0] : query;
+                  const tagPart = query.includes('#') ? query.split('#')[1] : undefined;
+                  const displayName = summoner.summonerName || summoner.name || namePart || 'Unknown';
+                  const displayTag = summoner.tagLine ?? tagPart;
+                  return (
                   <div 
                     key={summoner.puuid} 
                     className="flex items-center gap-4 p-4 cursor-pointer hover:bg-accent/20 rounded-lg transition-colors"
@@ -204,16 +209,14 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="font-semibold text-text-main text-lg">{summoner.summonerName || summoner.name || 'Unknown'}</div>
-                      {(summoner.tagLine !== undefined) ? (
-                        summoner.tagLine ? (
-                          <div className="text-sm text-text-secondary">#{summoner.tagLine}</div>
-                        ) : null
+                      <div className="font-semibold text-text-main text-lg">{displayName}</div>
+                      {displayTag ? (
+                        <div className="text-sm text-text-secondary">#{displayTag}</div>
                       ) : null}
                     </div>
                     <ChevronRight className="h-5 w-5 text-accent/70" />
                   </div>
-                ))}
+                )})}
               </div>
             )}
 
