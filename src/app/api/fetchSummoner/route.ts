@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 import axios from 'axios';
 
 /**
@@ -9,7 +11,7 @@ export async function GET(request: NextRequest) {
   console.log("fetchSummoner GET", new Date().toISOString());
   try {
     // Verify API key presence without printing it
-    const API_KEY = process.env.RIOT_SUMMONER_V4_KEY || process.env.RIOT_API_KEY;
+    const API_KEY = process.env.RIOT_API_KEY;
     if (!API_KEY) {
       return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
     }
@@ -242,7 +244,21 @@ export async function GET(request: NextRequest) {
               { status: 404 }
             );
           }
-        } catch (error) {
+        } catch (error: any) {
+          const status = error?.response?.status;
+          if (status === 403) {
+            return NextResponse.json(
+              { error: 'Forbidden', details: 'Riot API key is invalid or lacks permission for this endpoint' },
+              { status: 403 }
+            );
+          }
+          if (status === 429) {
+            const retryAfter = parseInt(error.response.headers?.['retry-after']) || 1;
+            return NextResponse.json(
+              { error: 'Rate limited', details: `Retry after ${retryAfter}s` },
+              { status: 429 }
+            );
+          }
           console.error('❌ Error fetching by Riot ID flow:', error instanceof Error ? error.message : String(error));
           return NextResponse.json(
             { error: 'Summoner not found', details: 'Riot API lookup failed' },
