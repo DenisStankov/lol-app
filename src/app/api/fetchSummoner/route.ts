@@ -181,10 +181,29 @@ export async function GET(request: NextRequest) {
           }
 
           if (!puuidFound) {
-            return NextResponse.json(
-              { error: 'Summoner not found', details: 'Could not resolve Riot ID to PUUID' },
-              { status: 404 }
-            );
+            // Fallback: try by-name across all platform shards to discover PUUID
+            const namePlatforms = ['euw1','na1','kr','eun1','br1','jp1','la1','la2','oc1','tr1','ru'];
+            for (const p of [region, ...namePlatforms.filter(x => x !== region)]) {
+              try {
+                const byNameResp = await axios.get(
+                  `https://${p}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(gameName)}`,
+                  { headers: { 'X-Riot-Token': API_KEY || '' } }
+                );
+                if (byNameResp.data?.puuid) {
+                  puuidFound = byNameResp.data.puuid;
+                  break;
+                }
+              } catch (e) {
+                // try next platform
+              }
+            }
+
+            if (!puuidFound) {
+              return NextResponse.json(
+                { error: 'Summoner not found', details: 'Could not resolve Riot ID to PUUID' },
+                { status: 404 }
+              );
+            }
           }
 
           const platforms = ['euw1','na1','kr','eun1','br1','jp1','la1','la2','oc1','tr1','ru'];
