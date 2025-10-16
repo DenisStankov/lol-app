@@ -160,62 +160,73 @@ export async function GET(request: NextRequest) {
         summonerData = response.data;
         console.log("📊 Summoner data by PUUID:", summonerData);
       } else if (gameName && tagLine) {
-        // Fetch by gameName and tagLine
-        console.log(`🔎 Fetching by Riot ID: ${gameName}#${tagLine} in region ${region}`);
+        // Fetch by Riot ID across all account regions, then try all platform shards for Summoner-V4
+        console.log(`🔎 Fetching by Riot ID: ${gameName}#${tagLine} (start region ${region})`);
         try {
-          // First get the account info to get PUUID
-          const accountRegion = region.startsWith('euw') || region.startsWith('eun') || region === 'tr1' || region === 'ru'
-            ? 'europe'
-            : region.startsWith('na') || region.startsWith('br') || region.startsWith('la')
-              ? 'americas'
-              : 'asia';
-              
-          console.log(`🌐 Using account region: ${accountRegion}`);
-          
-          const accountResponse = await axios.get(
-            `https://${accountRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
-            {
-              headers: {
-                'X-Riot-Token': API_KEY || ''
+          const accountRegions = ['europe', 'americas', 'asia'];
+          let puuidFound: string | null = null;
+          for (const accRegion of accountRegions) {
+            try {
+              const accountResponse = await axios.get(
+                `https://${accRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+                { headers: { 'X-Riot-Token': API_KEY || '' } }
+              );
+              if (accountResponse.data?.puuid) {
+                puuidFound = accountResponse.data.puuid;
+                break;
               }
-            }
-          );
-          
-          if (accountResponse.data && accountResponse.data.puuid) {
-            // Now get the summoner data using the PUUID
-            const summonerResponse = await axios.get(
-              `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountResponse.data.puuid}`,
-              {
-                headers: {
-                  'X-Riot-Token': API_KEY || ''
-                }
-              }
-            );
-            
-            summonerData = {
-              ...summonerResponse.data,
-              summonerName: gameName,
-              tagLine: tagLine,
-              puuid: accountResponse.data.puuid
-            };
-            
-            console.log("📊 Summoner data by gameName/tagLine:", summonerData);
-            console.log("🖼️ Profile Icon ID:", summonerData.profileIconId);
-            
-            // Ensure profileIconId exists and is a valid number (default to 29 if missing or invalid)
-            if (!summonerData.profileIconId || typeof summonerData.profileIconId !== 'number' || isNaN(summonerData.profileIconId)) {
-              console.log("⚠️ Invalid profileIconId found, using default");
-              summonerData.profileIconId = 29;
-            } else {
-              // Ensure it's a number, not a string
-              summonerData.profileIconId = Number(summonerData.profileIconId);
+            } catch (e) {
+              // try next account region
             }
           }
+
+          if (!puuidFound) {
+            return NextResponse.json(
+              { error: 'Summoner not found', details: 'Could not resolve Riot ID to PUUID' },
+              { status: 404 }
+            );
+          }
+
+          const platforms = ['euw1','na1','kr','eun1','br1','jp1','la1','la2','oc1','tr1','ru'];
+          for (const platform of [region, ...platforms.filter(p => p !== region)]) {
+            try {
+              const summonerResponse = await axios.get(
+                `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuidFound}`,
+                { headers: { 'X-Riot-Token': API_KEY || '' } }
+              );
+
+              const data = summonerResponse.data;
+              summonerData = {
+                ...data,
+                summonerName: gameName,
+                tagLine: tagLine,
+                puuid: puuidFound,
+                region: platform,
+              };
+
+              // Ensure profileIconId is a number
+              if (!summonerData.profileIconId || typeof summonerData.profileIconId !== 'number' || isNaN(summonerData.profileIconId)) {
+                summonerData.profileIconId = 29;
+              } else {
+                summonerData.profileIconId = Number(summonerData.profileIconId);
+              }
+
+              break;
+            } catch (e) {
+              // try next platform
+            }
+          }
+
+          if (!summonerData) {
+            return NextResponse.json(
+              { error: 'Summoner not found', details: 'Could not find summoner in any platform' },
+              { status: 404 }
+            );
+          }
         } catch (error) {
-          console.error("❌ Error fetching by gameName/tagLine:", error instanceof Error ? error.message : String(error));
-          // Return an error response for this specific case
+          console.error('❌ Error fetching by Riot ID flow:', error instanceof Error ? error.message : String(error));
           return NextResponse.json(
-            { error: 'Summoner not found', details: 'Could not find summoner with the provided name and tag' },
+            { error: 'Summoner not found', details: 'Riot API lookup failed' },
             { status: 404 }
           );
         }

@@ -189,5 +189,55 @@ export async function GET(req: Request) {
     }
   }
 
+  // Ultimate fallback: try by-name across all platforms and return first few matches
+  if (mapped.length === 0) {
+    const tried = new Set<string>();
+    const results: Array<any> = [];
+    const platforms = preferredRegion
+      ? [preferredRegion, ...PLATFORMS.filter((p) => p !== preferredRegion)]
+      : PLATFORMS;
+
+    for (const platform of platforms) {
+      try {
+        const s = await fetchWith429Retry(() =>
+          axios.get(
+            `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(query)}`,
+            { headers: { 'X-Riot-Token': RIOT_API_KEY } }
+          )
+        );
+        const summ = (s as any).data || s;
+
+        if (!summ?.puuid || tried.has(summ.puuid)) continue;
+        tried.add(summ.puuid);
+
+        await upsertSummonerIndex({
+          puuid: summ.puuid,
+          region: platform,
+          summonerId: summ.id,
+          summonerName: summ.name,
+          profileIconId: summ.profileIconId,
+          summonerLevel: summ.summonerLevel,
+          source: 'by-name-fallback-all',
+        });
+
+        results.push({
+          summonerName: summ.name,
+          puuid: summ.puuid,
+          profileIconId: summ.profileIconId,
+          summonerLevel: summ.summonerLevel,
+          region: platform,
+        });
+      } catch {
+        // try next platform
+      }
+
+      if (results.length >= 5) break;
+    }
+
+    if (results.length > 0) {
+      return NextResponse.json(results, { status: 200 });
+    }
+  }
+
   return NextResponse.json(mapped, { status: 200 });
 }
