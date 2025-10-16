@@ -154,5 +154,40 @@ export async function GET(req: Request) {
     summonerLevel: r.summonerLevel ?? 0,
     region: r.region,
   }));
+  // Fallback: if no hits in our index and a region hint is provided, try exact by-name lookup on Summoner-V4
+  if (mapped.length === 0 && preferredRegion) {
+    try {
+      const s = await fetchWith429Retry(() =>
+        axios.get(
+          `https://${preferredRegion}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(query)}`,
+          { headers: { 'X-Riot-Token': RIOT_API_KEY } }
+        )
+      );
+      const summ = (s as any).data || s;
+
+      await upsertSummonerIndex({
+        puuid: summ.puuid,
+        region: preferredRegion,
+        summonerId: summ.id,
+        summonerName: summ.name,
+        profileIconId: summ.profileIconId,
+        summonerLevel: summ.summonerLevel,
+        source: 'by-name-fallback',
+      });
+
+      return NextResponse.json([
+        {
+          summonerName: summ.name,
+          puuid: summ.puuid,
+          profileIconId: summ.profileIconId,
+          summonerLevel: summ.summonerLevel,
+          region: preferredRegion,
+        },
+      ], { status: 200 });
+    } catch {
+      // ignore and fall through to empty array below
+    }
+  }
+
   return NextResponse.json(mapped, { status: 200 });
 }

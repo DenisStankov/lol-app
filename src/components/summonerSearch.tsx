@@ -82,8 +82,10 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
 
   // Save to recent searches and navigate
   const handleSelect = (summoner: Summoner, selectedRegion = summoner.region || region) => {
-    const safeName = encodeURIComponent(summoner.summonerName || summoner.name || "");
-    
+    const displayName = summoner.summonerName || summoner.name || "";
+    const safeName = encodeURIComponent(displayName);
+    const isPseudoRiotId = typeof summoner.puuid === 'string' && summoner.puuid.startsWith('riotid:');
+
     // Save to recent searches
     try {
       const newSearch: RecentSummoner = {
@@ -108,7 +110,17 @@ export default function SummonerSearch({ showRecentSearches = false }: SummonerS
     } catch (err) {
       console.error("Failed to save recent search", err);
     }
-    
+
+    // If the result is a pseudo Riot ID (no verified PUUID yet), navigate using name-tag so profile page can resolve
+    if (isPseudoRiotId) {
+      const parts = summoner.puuid.replace('riotid:', '').split('#');
+      const gameName = parts[0] || displayName;
+      const tagLine = parts[1] || summoner.tagLine || '';
+      const routeName = encodeURIComponent(`${gameName}-${tagLine}`);
+      router.push(`/summoner/${selectedRegion}/${routeName}`);
+      return;
+    }
+
     router.push(`/summoner/${selectedRegion}/${safeName}?puuid=${encodeURIComponent(summoner.puuid)}`);
   };
 
