@@ -18,9 +18,9 @@ import ProfileIcon from "@/components/ProfileIcon"
 
 interface Summoner {
   summonerName: string;
-  tagLine: string;
-  puuid: string;
-  profileIconId: number;
+  tagLine?: string;
+  puuid?: string;
+  profileIconId?: number;
   region?: string;
 }
 
@@ -91,7 +91,8 @@ export default function Home() {
 
     try {
       const res = await axios.get(`/api/searchSummoner?query=${encodeURIComponent(summonerName)}&region=${region}`);
-      setResults([res.data]); // Store results
+      const payload = Array.isArray(res.data) ? res.data : [res.data];
+      setResults(payload);
       setShowResults(true);
     } catch (err) {
       console.error("❌ Search Error:", err);
@@ -120,13 +121,30 @@ export default function Home() {
   }, [showResults, summonerName]);
 
   const handleSelect = (summoner: Summoner) => {
-    const formattedName = `${summoner.summonerName}-${summoner.tagLine}`;
-    router.push(`/summoner/${region}/${formattedName}`);
+    const targetRegion = summoner.region || region;
+    const formattedName = summoner.tagLine
+      ? `${summoner.summonerName}-${summoner.tagLine}`
+      : summoner.summonerName;
+    const params = new URLSearchParams();
+    if (summoner.puuid) {
+      params.set("puuid", summoner.puuid);
+    }
+
+    const search = params.toString();
+    router.push(
+      `/summoner/${targetRegion}/${encodeURIComponent(formattedName)}${search ? `?${search}` : ""}`
+    );
   };
 
   const handleSearch = () => {
-    if (!summonerName.trim()) return;
-    router.push(`/summoner/${region}/${encodeURIComponent(summonerName.trim())}`);
+    const trimmed = summonerName.trim();
+    if (!trimmed) return;
+
+    const formattedName = trimmed.includes("#")
+      ? trimmed.replace("#", "-")
+      : trimmed;
+
+    router.push(`/summoner/${region}/${encodeURIComponent(formattedName)}`);
   };
 
   const getTierColor = (tier: string) => {
@@ -212,24 +230,30 @@ export default function Home() {
                             ) : results.length > 0 ? (
                               <div>
                                 <p className="px-4 py-2 text-xs text-blue-400/80 uppercase font-semibold tracking-wider">Search Results</p>
-                                {results.map((summoner) => (
-                                  <div 
-                                    key={summoner.puuid} 
+                                {results.map((summoner, idx) => (
+                                  <div
+                                    key={summoner.puuid ?? `${summoner.summonerName}-${idx}`}
                                     className="flex items-center gap-4 p-3 cursor-pointer hover:bg-blue-400/10 rounded-lg transition-colors"
                                     onClick={() => handleSelect(summoner)}
                                   >
-                                    <ProfileIcon 
-                                      iconId={summoner.profileIconId}
-                                      alt="Profile Icon" 
-                                      width={40} 
-                                      height={40} 
+                                    <ProfileIcon
+                                      iconId={summoner.profileIconId ?? 29}
+                                      alt="Profile Icon"
+                                      width={40}
+                                      height={40}
                                       className="rounded-full border border-blue-400/40"
                                     />
                                     <div className="flex flex-col">
                                       <span className="text-white font-semibold leading-tight">{summoner.summonerName}</span>
-                                      <span className="text-slate-400 text-xs leading-tight">#{summoner.tagLine}</span>
+                                      {summoner.tagLine ? (
+                                        <span className="text-slate-400 text-xs leading-tight">#{summoner.tagLine}</span>
+                                      ) : (
+                                        <span className="text-slate-500 text-xs leading-tight">No tag line</span>
+                                      )}
                                     </div>
-                                    <span className="ml-auto px-2 py-0.5 text-xs rounded bg-blue-400/10 text-blue-400 font-medium">{region.toUpperCase().replace(/[0-9]/g, '')}</span>
+                                    <span className="ml-auto px-2 py-0.5 text-xs rounded bg-blue-400/10 text-blue-400 font-medium">
+                                      {(summoner.region || region).toUpperCase().replace(/[0-9]/g, "")}
+                                    </span>
                                   </div>
                                 ))}
                               </div>
