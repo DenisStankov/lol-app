@@ -25,25 +25,28 @@ export default function SummonerProfile() {
   const [error, setError] = useState("");
 
   interface Summoner {
-    summonerName: string;
-    tagLine: string;
-    summonerLevel: number;
-    profileIconId: number;
-    rank: string;
-    division: string;
-    leaguePoints: number;
-    winRate: number;
-    wins: number;
-    loses: number;
-    matchHistory: { matchId: string; champion: string; result: string; kills: number; deaths: number; assists: number }[];
+    summonerName?: string;
+    tagLine?: string;
+    summonerLevel?: number;
+    profileIconId?: number;
+    rank?: string;
+    division?: string;
+    leaguePoints?: number;
+    winRate?: number;
+    wins?: number;
+    loses?: number;
+    matchHistory?: { matchId: string; champion: string; result: string; kills: number; deaths: number; assists: number }[];
   }
 
   const [summoner, setSummoner] = useState<Summoner | null>(null);
 
   // Accept either /name?puuid=... or legacy /name-tag routing
-  const nameStr = Array.isArray(name) ? name[0] : name; // Ensure `name` is a string
-  const gameName = nameStr?.split("-")[0];
-  const tagLine = nameStr?.includes("-") ? nameStr.split("-")[1] : undefined;
+  const nameParam = Array.isArray(name) ? name[0] : name;
+  const decodedName = nameParam ? decodeURIComponent(nameParam) : "";
+  const delimiter = decodedName.includes("-") ? "-" : decodedName.includes("#") ? "#" : null;
+  const [gameNamePart, ...rest] = delimiter ? decodedName.split(delimiter) : [decodedName];
+  const gameName = gameNamePart?.trim();
+  const tagLine = rest.length > 0 ? rest.join(delimiter ?? "").trim() : undefined;
 
   useEffect(() => {
     if (!region) {
@@ -52,36 +55,81 @@ export default function SummonerProfile() {
       return;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const puuid = urlParams.get('puuid');
+    let isMounted = true;
 
-    // Prefer PUUID direct lookup when provided (from name-only search selection)
-    let requestUrl = '';
-    if (puuid) {
-      requestUrl = `/api/fetchSummoner?puuid=${encodeURIComponent(puuid)}&region=${region}&isSearched=true`;
-    } else if (gameName && tagLine) {
-      requestUrl = `/api/fetchSummoner?gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}&isSearched=true`;
-    } else if (gameName) {
-      // Fallback: try by-name in region directly
-      requestUrl = `/api/searchSummoner?query=${encodeURIComponent(gameName)}&region=${region}`;
-    } else {
-      setLoading(false);
-      setError('Missing summoner name');
-      return;
-    }
+    const fetchSummonerProfile = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const puuid = urlParams.get("puuid");
 
-    axios
-      .get(requestUrl)
-      .then((res) => {
-        const data = Array.isArray(res.data) ? res.data[0] : res.data;
-        setSummoner(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+      let requestUrl = "";
+      if (puuid) {
+        requestUrl = `/api/fetchSummoner?puuid=${encodeURIComponent(puuid)}&region=${region}&isSearched=true`;
+      } else if (gameName && tagLine) {
+        requestUrl = `/api/fetchSummoner?gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}&isSearched=true`;
+      } else if (gameName) {
+        // Fallback: try by-name in region directly
+        requestUrl = `/api/searchSummoner?query=${encodeURIComponent(gameName)}&region=${region}`;
+      } else {
+        if (isMounted) {
+          setLoading(false);
+          setError("Missing summoner name");
+        }
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const res = await axios.get(requestUrl);
+        if (requestUrl.includes("/api/searchSummoner")) {
+          const list = Array.isArray(res.data) ? res.data : [res.data];
+          const first = list[0];
+
+          if (!first) {
+            throw new Error("Summoner not found");
+          }
+
+          if (first.puuid) {
+            try {
+              const detailRes = await axios.get(
+                `/api/fetchSummoner?puuid=${encodeURIComponent(first.puuid)}&region=${encodeURIComponent(first.region || region)}&isSearched=true`
+              );
+              const detailData = Array.isArray(detailRes.data) ? detailRes.data[0] : detailRes.data;
+              if (isMounted) {
+                setSummoner(detailData);
+              }
+              return;
+            } catch (detailErr) {
+              console.error("❌ Detail fetch error:", detailErr);
+            }
+          }
+
+          if (isMounted) {
+            setSummoner(first);
+          }
+        } else {
+          const data = Array.isArray(res.data) ? res.data[0] : res.data;
+          if (isMounted) {
+            setSummoner(data);
+          }
+        }
+      } catch (err) {
         console.log("❌ API Fetch Error:", err);
-        setError("Summoner not found.");
-        setLoading(false);
-      });
+        if (isMounted) {
+          setError("Summoner not found.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchSummonerProfile();
+
+    return () => {
+      isMounted = false;
+    };
   }, [gameName, tagLine, region]);
 
   if (loading) return <div className="text-center text-[#C89B3C]">Still Loading...</div>;
