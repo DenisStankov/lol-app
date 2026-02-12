@@ -38,21 +38,24 @@ type ChampionData = {
   range: string
 }
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables')
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey)
-
 // Cache duration in milliseconds
 const CACHE_DURATION = 6 * 60 * 60 * 1000 // 6 hours
 
+// Lazy-initialize Supabase client to avoid build-time crashes when env vars are missing
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    return null
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
+}
+
 export async function GET(request: Request) {
   try {
+    const supabase = getSupabaseClient()
     const url = new URL(request.url)
     const rank = url.searchParams.get('rank') || 'PLATINUM'
     const region = url.searchParams.get('region') || 'global'
@@ -62,26 +65,28 @@ export async function GET(request: Request) {
     // Create a cache key that includes all parameters
     const cacheKey = `${rank}-${region}-${role}-${championId || 'all'}`.toLowerCase()
 
-    try {
-      // Check cache first
-      const { data: cachedStats, error: cacheError } = await supabase
-        .from('champion_stats')
-        .select('*')
-        .eq('cache_key', cacheKey)
-        .maybeSingle()
+    if (supabase) {
+      try {
+        // Check cache first
+        const { data: cachedStats, error: cacheError } = await supabase
+          .from('champion_stats')
+          .select('*')
+          .eq('cache_key', cacheKey)
+          .maybeSingle()
 
-      if (cacheError) {
-        console.error('Error fetching from cache:', cacheError)
-        // Continue execution - we'll fetch fresh data
-      } else if (cachedStats) {
-        const cacheAge = Date.now() - new Date(cachedStats.updated_at).getTime()
-        if (cacheAge < CACHE_DURATION) {
-          return NextResponse.json(cachedStats.stats)
+        if (cacheError) {
+          console.error('Error fetching from cache:', cacheError)
+          // Continue execution - we'll fetch fresh data
+        } else if (cachedStats) {
+          const cacheAge = Date.now() - new Date(cachedStats.updated_at).getTime()
+          if (cacheAge < CACHE_DURATION) {
+            return NextResponse.json(cachedStats.stats)
+          }
         }
+      } catch (cacheError) {
+        console.error('Cache error:', cacheError)
+        // Continue execution - we'll fetch fresh data
       }
-    } catch (cacheError) {
-      console.error('Cache error:', cacheError)
-      // Continue execution - we'll fetch fresh data
     }
 
     // If cache miss or stale, fetch fresh data
@@ -116,21 +121,23 @@ export async function GET(request: Request) {
       }
     }
 
-    try {
-      // Update cache with fresh data
-      await supabase
-        .from('champion_stats')
-        .upsert({
-          cache_key: cacheKey,
-          rank,
-          region,
-          role,
-          stats: filteredData,
-          updated_at: new Date().toISOString()
-        })
-    } catch (updateError) {
-      console.error('Cache update error:', updateError)
-      // Continue execution - we'll return the fresh data anyway
+    if (supabase) {
+      try {
+        // Update cache with fresh data
+        await supabase
+          .from('champion_stats')
+          .upsert({
+            cache_key: cacheKey,
+            rank,
+            region,
+            role,
+            stats: filteredData,
+            updated_at: new Date().toISOString()
+          })
+      } catch (updateError) {
+        console.error('Cache update error:', updateError)
+        // Continue execution - we'll return the fresh data anyway
+      }
     }
 
     return NextResponse.json(filteredData)

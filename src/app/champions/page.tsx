@@ -129,12 +129,12 @@ export default function ChampionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
+    <div className="min-h-screen bg-[#09090b] text-white">
       <Navigation />
       
       {/* Version badge for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-white/5 text-blue-400 px-3 py-1 rounded-full text-xs font-mono z-50 border border-white/10 shadow-lg">
+        <div className="fixed bottom-4 right-4 bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full text-xs font-mono z-50 border border-purple-500/20 shadow-lg">
           Data Dragon v{latestVersion}
         </div>
       )}
@@ -150,15 +150,15 @@ export default function ChampionsPage() {
               backgroundPosition: "center 20%"
             }}
           ></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10"></div>
           
           <div className="absolute bottom-0 left-0 right-0 z-20 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-            <span className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-1 block">Featured Champion</span>
-            <h1 className="text-5xl md:text-6xl font-bold text-white text-shadow-lg">{featured.name}</h1>
+            <span className="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-1 block">Featured Champion</span>
+            <h1 className="text-5xl md:text-6xl font-bold text-white">{featured.name}</h1>
             <p className="text-lg text-white/70 max-w-md mt-2">{featured.title}</p>
-            <Link 
+            <Link
               href={`/champion/${featured.id}`}
-              className="mt-4 inline-block px-6 py-2.5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded shadow transition-all duration-300"
+              className="mt-4 inline-block px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-lg shadow transition-all duration-300"
             >
               View Champion Details
             </Link>
@@ -167,22 +167,22 @@ export default function ChampionsPage() {
       )}
       
       {/* Main Content Header */}
-      <div className="bg-gradient-to-r from-slate-950/90 to-purple-950/90 border-b border-white/10">
+      <div className="border-b border-purple-500/10">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-white">Champion Roster</h1>
-          <p className="mt-2 text-slate-400">Explore the full lineup of League of Legends champions</p>
+          <p className="mt-2 text-zinc-400">Explore the full lineup of League of Legends champions</p>
         </div>
       </div>
       
       {/* Filters */}
-      <div className="sticky top-16 z-30 bg-white/5 backdrop-blur-md border-b border-white/10">
+      <div className="sticky top-16 z-30 bg-black/80 backdrop-blur-md border-b border-purple-500/10">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             {/* Search */}
             <div className="w-full md:w-auto relative flex-1 max-w-md">
               <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input 
-                className="pl-10 bg-white/5 border-white/10 focus:border-blue-400 text-white"
+                className="pl-10 bg-purple-500/5 border-purple-500/15 focus:border-purple-400 text-white"
                 placeholder="Search champions or roles..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -196,7 +196,7 @@ export default function ChampionsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSort("name")}
-                className={`px-2 py-1 ${sortBy === "name" ? "text-blue-400" : "text-slate-400"}`}
+                className={`px-2 py-1 ${sortBy === "name" ? "text-purple-400" : "text-zinc-400"}`}
               >
                 Name
                 {sortBy === "name" && (
@@ -207,7 +207,7 @@ export default function ChampionsPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSort("role")}
-                className={`px-2 py-1 ${sortBy === "role" ? "text-blue-400" : "text-slate-400"}`}
+                className={`px-2 py-1 ${sortBy === "role" ? "text-purple-400" : "text-zinc-400"}`}
               >
                 Role
                 {sortBy === "role" && (
@@ -225,14 +225,12 @@ export default function ChampionsPage() {
                   variant="outline"
                   className={`px-3 py-1 text-sm ${
                     (role === "All" && !filter) || filter === role
-                      ? role === "All" 
-                        ? "bg-white/10 text-blue-400 border-white/20"
-                        : `bg-${roleColors[role]}/10 text-${roleColors[role]} border-${roleColors[role]}/20`
-                      : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"
+                      ? "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                      : "bg-purple-500/5 text-zinc-400 border-purple-500/10 hover:bg-purple-500/10"
                   }`}
                   style={
-                    (role !== "All" && filter === role) 
-                      ? { backgroundColor: `${roleColors[role]}10`, color: roleColors[role], borderColor: `${roleColors[role]}20` }
+                    (role !== "All" && filter === role)
+                      ? { backgroundColor: `${roleColors[role]}15`, color: roleColors[role], borderColor: `${roleColors[role]}30` }
                       : undefined
                   }
                 >
@@ -248,7 +246,7 @@ export default function ChampionsPage() {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="w-12 h-12 border-4 border-[#C89B3C]/30 border-t-[#C89B3C] rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
           </div>
         ) : (
           <>
@@ -270,14 +268,14 @@ export default function ChampionsPage() {
                       backgroundPosition: "center 20%"
                     }}
                   >
-                    <div className="w-full h-full bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent group-hover:from-zinc-950/90 group-hover:via-zinc-950/50 transition-all duration-300">
-                      <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#C89B3C]/70 rounded-lg transition-all duration-300"></div>
+                    <div className="w-full h-full bg-gradient-to-t from-black via-black/60 to-transparent group-hover:from-black/90 group-hover:via-black/50 transition-all duration-300">
+                      <div className="absolute inset-0 border-2 border-transparent group-hover:border-purple-500/50 rounded-lg transition-all duration-300"></div>
                       
                       <div className="absolute top-2 right-2">
                         {champion.tags.map(tag => (
                           <span 
                             key={tag} 
-                            className="inline-block px-1.5 py-0.5 mb-1 bg-zinc-900/80 backdrop-blur-sm rounded text-[10px] text-right"
+                            className="inline-block px-1.5 py-0.5 mb-1 bg-black/80 backdrop-blur-sm rounded text-[10px] text-right"
                             style={{ color: roleColors[tag] }}
                           >
                             {tag}
@@ -286,10 +284,10 @@ export default function ChampionsPage() {
                       </div>
                       
                       <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <h3 className="font-bold text-[#C89B3C] text-lg truncate group-hover:text-[#F0C05A] transition-colors">
+                        <h3 className="font-bold text-purple-400 text-lg truncate group-hover:text-purple-300 transition-colors">
                           {champion.name}
                         </h3>
-                        <p className="text-xs text-zinc-300 truncate">{champion.title}</p>
+                        <p className="text-xs text-zinc-400 truncate">{champion.title}</p>
                       </div>
                     </div>
                   </div>
@@ -301,9 +299,9 @@ export default function ChampionsPage() {
       </div>
       
       {/* Footer */}
-      <footer className="border-t border-zinc-800/50 mt-16">
+      <footer className="border-t border-purple-500/10 mt-16">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <p className="text-center text-zinc-500 text-sm">
+          <p className="text-center text-zinc-600 text-sm">
             LoLytics isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.
           </p>
         </div>

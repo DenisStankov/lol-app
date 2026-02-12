@@ -102,10 +102,10 @@ export default function RecentMatches() {
   }
 
   return (
-    <div className="p-6 bg-zinc-950 rounded-xl">
+    <div className="p-6 bg-transparent rounded-xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-zinc-100">Recent Searches</h2>
+          <h2 className="text-2xl font-bold text-white">Recent Searches</h2>
           <p className="text-zinc-400 text-sm mt-1">Last 5 summoners looked up</p>
         </div>
         {isLoading && <Loader2 className="w-5 h-5 text-zinc-400 animate-spin" />}
@@ -117,16 +117,16 @@ export default function RecentMatches() {
             <Card
               key={summoner.id}
               className={cn(
-                "group relative overflow-hidden border-0 bg-zinc-900/50 backdrop-blur-sm cursor-pointer",
-                "transition-all duration-300 ease-out hover:bg-zinc-900/80",
-                hoveredSummoner === summoner.id ? "scale-[1.02] ring-1 ring-[#C89B3C]/50" : "scale-100"
+                "group relative overflow-hidden border-0 bg-purple-500/5 backdrop-blur-sm cursor-pointer",
+                "transition-all duration-300 ease-out hover:bg-purple-500/10",
+                hoveredSummoner === summoner.id ? "scale-[1.02] ring-1 ring-purple-500/50" : "scale-100"
               )}
               onMouseEnter={() => setHoveredSummoner(summoner.id)}
               onMouseLeave={() => setHoveredSummoner(null)}
               onClick={() => handleSummonerClick(summoner)}
             >
               {/* Glowing effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#C89B3C]/0 via-[#C89B3C]/10 to-[#C89B3C]/0 
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 
                 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
               <div className="relative p-4">
@@ -153,7 +153,7 @@ export default function RecentMatches() {
                   {/* Summoner Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-zinc-100 group-hover:text-[#C89B3C] transition-colors">
+                      <h3 className="text-lg font-bold text-white group-hover:text-purple-400 transition-colors">
                         {summoner.name}
                       </h3>
                       <div 
@@ -170,7 +170,7 @@ export default function RecentMatches() {
                     {/* Stats */}
                     <div className="flex items-center gap-4 mt-2">
                       <div className="flex items-center gap-1.5">
-                        <Trophy className="w-4 h-4 text-[#C89B3C]" />
+                        <Trophy className="w-4 h-4 text-purple-400" />
                         <span className="text-sm text-zinc-300">{summoner.lp} LP</span>
                       </div>
                       <div className="flex items-center gap-1.5">
