@@ -3,6 +3,20 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 import axios from 'axios';
 
+// Map platform IDs to Account-V1 / Match-V5 regional routing values
+function platformToAccountRegion(platform: string): string {
+  const mapping: Record<string, string> = {
+    na1: 'americas', br1: 'americas', la1: 'americas', la2: 'americas',
+    euw1: 'europe', eun1: 'europe', tr1: 'europe', ru: 'europe',
+    kr: 'asia', jp1: 'asia',
+    oc1: 'sea', ph2: 'sea', sg2: 'sea', th2: 'sea', tw2: 'sea', vn2: 'sea',
+  };
+  return mapping[platform.toLowerCase()] || 'europe';
+}
+
+const ALL_PLATFORMS = ['euw1', 'na1', 'kr', 'eun1', 'br1', 'la1', 'la2', 'oc1', 'tr1', 'ru', 'jp1', 'ph2', 'sg2', 'th2', 'tw2', 'vn2'];
+const ACCOUNT_REGIONS = ['europe', 'americas', 'asia', 'sea'];
+
 /**
  * API route to fetch summoner profile data by Riot ID or PUUID
  */
@@ -53,8 +67,9 @@ export async function GET(request: NextRequest) {
       // Only use auth token if we're not explicitly looking for a searched summoner
       try {
         console.log("🔐 Using authenticated endpoint");
-        // Get user data from authenticated endpoint
-        const accountResponse = await axios.get('https://europe.api.riotgames.com/riot/account/v1/accounts/me', {
+        // Get user data from authenticated endpoint - try region based on user's platform preference
+        const accountRegion = platformToAccountRegion(region);
+        const accountResponse = await axios.get(`https://${accountRegion}.api.riotgames.com/riot/account/v1/accounts/me`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`
           }
@@ -68,14 +83,12 @@ export async function GET(request: NextRequest) {
           const tagLine = accountResponse.data.tagLine;
           console.log("🎮 Riot ID found:", `${gameName}#${tagLine}`);
           
-          // IMPORTANT: We need to test all regions since we don't know which one the user's account is in
-          const regions = ['euw1', 'na1', 'kr', 'eun1', 'br1', 'la1', 'la2', 'oc1', 'tr1', 'ru', 'jp1'];
           let foundSummoner = false;
-          
+
           try {
-            // First get the PUUID using the Account v1 API
+            // First get the PUUID using the Account v1 API with correct regional routing
             const riotIdLookupResponse = await axios.get(
-              `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
+              `https://${accountRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
               {
                 headers: {
                   'X-Riot-Token': API_KEY || ''
@@ -86,8 +99,9 @@ export async function GET(request: NextRequest) {
             console.log("🔎 Riot ID lookup response:", riotIdLookupResponse.data);
             
             if (riotIdLookupResponse.data && riotIdLookupResponse.data.puuid) {
-              // Try to find summoner data in each region
-              for (const regionToTry of regions) {
+              // Try to find summoner data in each platform, prioritizing user's region
+              const platformsToTry = [region, ...ALL_PLATFORMS.filter(p => p !== region)];
+              for (const regionToTry of platformsToTry) {
                 console.log(`🌐 Trying region ${regionToTry} for summoner data...`);
                 try {
                   // Now get the summoner data using the PUUID
@@ -165,9 +179,9 @@ export async function GET(request: NextRequest) {
         // Fetch by Riot ID across all account regions, then try all platform shards for Summoner-V4
         console.log(`🔎 Fetching by Riot ID: ${gameName}#${tagLine} (start region ${region})`);
         try {
-          const accountRegions = ['europe', 'americas', 'asia'];
           let puuidFound: string | null = null;
-          for (const accRegion of accountRegions) {
+          // Try Account-V1 in all regional routing clusters
+          for (const accRegion of ACCOUNT_REGIONS) {
             try {
               const accountResponse = await axios.get(
                 `https://${accRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
@@ -183,33 +197,13 @@ export async function GET(request: NextRequest) {
           }
 
           if (!puuidFound) {
-            // Fallback: try by-name across all platform shards to discover PUUID
-            const namePlatforms = ['euw1','na1','kr','eun1','br1','jp1','la1','la2','oc1','tr1','ru'];
-            for (const p of [region, ...namePlatforms.filter(x => x !== region)]) {
-              try {
-                const byNameResp = await axios.get(
-                  `https://${p}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(gameName)}`,
-                  { headers: { 'X-Riot-Token': API_KEY || '' } }
-                );
-                if (byNameResp.data?.puuid) {
-                  puuidFound = byNameResp.data.puuid;
-                  break;
-                }
-              } catch (e) {
-                // try next platform
-              }
-            }
-
-            if (!puuidFound) {
-              return NextResponse.json(
-                { error: 'Summoner not found', details: 'Could not resolve Riot ID to PUUID' },
-                { status: 404 }
-              );
-            }
+            return NextResponse.json(
+              { error: 'Summoner not found', details: 'Could not resolve Riot ID to PUUID via Account-V1' },
+              { status: 404 }
+            );
           }
 
-          const platforms = ['euw1','na1','kr','eun1','br1','jp1','la1','la2','oc1','tr1','ru'];
-          for (const platform of [region, ...platforms.filter(p => p !== region)]) {
+          for (const platform of [region, ...ALL_PLATFORMS.filter(p => p !== region)]) {
             try {
               const summonerResponse = await axios.get(
                 `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuidFound}`,
@@ -265,20 +259,45 @@ export async function GET(request: NextRequest) {
             { status: 404 }
           );
         }
+      } else if (riotId) {
+        // Parse riotId format "name#tag" and resolve via Account-V1
+        const parts = riotId.split('#');
+        if (parts.length === 2) {
+          const [name, tag] = parts;
+          const accRegion = platformToAccountRegion(region);
+          try {
+            const accountResponse = await axios.get(
+              `https://${accRegion}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+              { headers: { 'X-Riot-Token': API_KEY || '' } }
+            );
+            if (accountResponse.data?.puuid) {
+              const summonerResponse = await axios.get(
+                `https://${region}.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${accountResponse.data.puuid}`,
+                { headers: { 'X-Riot-Token': API_KEY || '' } }
+              );
+              summonerData = {
+                ...summonerResponse.data,
+                riotId,
+                region,
+              };
+            }
+          } catch (e) {
+            return NextResponse.json(
+              { error: 'Summoner not found', details: 'Could not resolve Riot ID' },
+              { status: 404 }
+            );
+          }
+        } else {
+          return NextResponse.json(
+            { error: 'Invalid Riot ID format', details: 'Use format: name#tag' },
+            { status: 400 }
+          );
+        }
       } else {
-        // We don't have a direct endpoint for Riot ID from query params, so let's at least return the Riot ID
-        console.log("⚠️ Using mock data for Riot ID:", riotId);
-        // In a real app, you would implement proper logic to get the summoner from Riot ID
-        summonerData = {
-          id: riotId || '123456',
-          accountId: riotId || '123456',
-          puuid: riotId || '123456',
-          name: riotId || 'LoLytics User',
-          profileIconId: 29, // Default profile icon as fallback
-          revisionDate: Date.now(),
-          summonerLevel: 30
-        };
-        console.log("📊 Mock summoner data:", summonerData);
+        return NextResponse.json(
+          { error: 'Missing required parameters' },
+          { status: 400 }
+        );
       }
     }
     

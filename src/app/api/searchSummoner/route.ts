@@ -21,6 +21,11 @@ const PLATFORMS: string[] = [
   "oc1",
   "tr1",
   "ru",
+  "ph2",
+  "sg2",
+  "th2",
+  "tw2",
+  "vn2",
 ];
 
 async function fetchWith429Retry<T>(fn: () => Promise<T>, retries = 2): Promise<T> {
@@ -58,7 +63,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Invalid Riot ID' }, { status: 400 });
     }
 
-    const regionalBases: Array<'europe' | 'americas' | 'asia'> = ['europe', 'americas', 'asia'];
+    const regionalBases: Array<'europe' | 'americas' | 'asia' | 'sea'> = ['europe', 'americas', 'asia', 'sea'];
     let account: any = null;
     for (const reg of regionalBases) {
       try {

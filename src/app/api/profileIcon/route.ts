@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-// Recent versions to try in order of preference
-const VERSIONS = ['14.8.1', '14.7.1', '14.6.1', '14.5.1', '13.24.1', '13.23.1', '13.22.1', '13.10.1'];
+// Fallback versions to try in order of preference
+const FALLBACK_VERSIONS = ['14.8.1', '14.7.1', '14.6.1', '14.5.1', '13.24.1', '13.23.1', '13.22.1', '13.10.1'];
 
 // Common default profile icons that are known to exist across versions
 const DEFAULT_ICONS = ['1', '29', '0', '4', '7'];
@@ -10,29 +10,25 @@ const DEFAULT_ICONS = ['1', '29', '0', '4', '7'];
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   let iconId = searchParams.get('iconId') || '1'; // Default to icon 1 if none provided
-  
+
   // Validate iconId - ensure it's a number
   if (!/^\d+$/.test(iconId)) {
     iconId = '1'; // Use default if not a valid number
   }
-  
-  // Get latest version first
-  let latestVersion;
+
+  // Build version list starting with latest (use local copy to avoid mutating module-level array)
+  const versions = [...FALLBACK_VERSIONS];
   try {
     const versionsResponse = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
-    if (versionsResponse.data && Array.isArray(versionsResponse.data) && versionsResponse.data.length > 0) {
-      latestVersion = versionsResponse.data[0];
-      // Add latestVersion to the beginning of our versions array if it's not already there
-      if (!VERSIONS.includes(latestVersion)) {
-        VERSIONS.unshift(latestVersion);
-      }
+    if (versionsResponse.data?.[0] && !versions.includes(versionsResponse.data[0])) {
+      versions.unshift(versionsResponse.data[0]);
     }
   } catch {
-    // Continue with hardcoded versions if we can't fetch the latest
+    // Continue with fallback versions
   }
-  
+
   // Try fetching from different versions until one works
-  for (const version of VERSIONS) {
+  for (const version of versions) {
     try {
       const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${iconId}.png`;
       
@@ -58,7 +54,7 @@ export async function GET(req: NextRequest) {
     if (defaultIcon === iconId) continue; // Skip if it's the same as the requested icon we already failed to fetch
     
     try {
-      const fallbackUrl = `https://ddragon.leagueoflegends.com/cdn/${VERSIONS[0]}/img/profileicon/${defaultIcon}.png`;
+      const fallbackUrl = `https://ddragon.leagueoflegends.com/cdn/${versions[0]}/img/profileicon/${defaultIcon}.png`;
       
       const fallbackResponse = await axios.get(fallbackUrl, { 
         responseType: 'arraybuffer',
