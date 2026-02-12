@@ -129,9 +129,9 @@ export default function ChampionDetailsPage() {
           meta: metaData,
           stats: championStats,
           themeColors: {
-            primary: "rgba(15, 23, 42, 0.8)", // slate-900 with alpha
-            accent: "text-yellow-300",
-            particleColor: "#FFFFFF",
+            primary: "rgba(9, 9, 11, 0.8)",
+            accent: "text-purple-400",
+            particleColor: "#a855f7",
           }
         }
 
@@ -148,23 +148,23 @@ export default function ChampionDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-yellow-300"></div>
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500/30 border-t-purple-500"></div>
       </div>
     )
   }
 
   if (!champion) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
-        <h1 className="text-2xl text-yellow-300 mb-4">Champion not found</h1>
-        <p className="text-slate-400">Unable to load champion data</p>
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center text-white">
+        <h1 className="text-2xl text-purple-400 mb-4">Champion not found</h1>
+        <p className="text-zinc-400">Unable to load champion data</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-[#09090b]">
       {/* Navigation Bar */}
       <Navigation />
 
@@ -173,7 +173,7 @@ export default function ChampionDetailsPage() {
 
       {/* Stats Section - Overlapping with Hero */}
       <section className="relative z-10 -mt-32 container mx-auto px-4">
-        <div className="bg-slate-900/80 backdrop-blur-sm border border-slate-800/50 rounded-xl p-6 shadow-xl">
+        <div className="bg-black/60 backdrop-blur-sm border border-purple-500/15 rounded-xl p-6 shadow-xl">
           <StatsVisualization champion={champion} />
         </div>
       </section>
@@ -183,7 +183,7 @@ export default function ChampionDetailsPage() {
         <AbilitiesSection champion={champion} />
       </section>
 
-      <Separator className="container mx-auto bg-slate-800/50" />
+      <Separator className="container mx-auto bg-purple-500/10" />
 
       {/* Gameplay Information - Tabbed interface */}
       <section className="container mx-auto px-4 py-16">

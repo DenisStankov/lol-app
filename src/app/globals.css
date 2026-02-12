@@ -3,31 +3,32 @@
 @tailwind utilities;
 
 :root {
-  /* Main colors */
-  --color-bg-main: #020617;
-  --color-bg-purple: #2e1065;
-  --color-bg-card: rgba(255, 255, 255, 0.05);
-  --color-bg-card-hover: rgba(255, 255, 255, 0.1);
-  
+  /* Main colors - Black & Purple theme */
+  --color-bg-main: #09090b;
+  --color-bg-secondary: #18181b;
+  --color-bg-purple: #1e1033;
+  --color-bg-card: rgba(139, 92, 246, 0.06);
+  --color-bg-card-hover: rgba(139, 92, 246, 0.12);
+
   /* Text colors */
-  --color-text-main: #fff;
-  --color-text-secondary: #94a3b8;
-  
-  /* Accent colors */
-  --color-badge-blue: #93c5fd;
-  --color-icon-blue: #60a5fa;
-  --color-gradient-purple: #a855f7;
-  --color-gradient-blue: #3b82f6;
-  
+  --color-text-main: #fafafa;
+  --color-text-secondary: #a1a1aa;
+
+  /* Accent colors - Purple */
+  --color-accent: #a855f7;
+  --color-accent-light: #c084fc;
+  --color-accent-dark: #7c3aed;
+  --color-accent-muted: rgba(168, 85, 247, 0.15);
+
   /* Status colors */
   --color-win-bg: rgba(16, 185, 129, 0.1);
   --color-win-text: #34d399;
   --color-loss-bg: rgba(239, 68, 68, 0.1);
   --color-loss-text: #f87171;
-  
+
   /* UI colors */
-  --color-footer-bg: rgba(0, 0, 0, 0.2);
-  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border: rgba(139, 92, 246, 0.15);
+  --color-border-hover: rgba(139, 92, 246, 0.3);
 }
 
 body {
@@ -39,20 +40,13 @@ body {
 /* Utility classes */
 .glass-card {
   background: var(--color-bg-card);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
   border: 1px solid var(--color-border);
 }
 
 .glass-card:hover {
   background: var(--color-bg-card-hover);
-}
-
-.gradient-bg {
-  background: linear-gradient(to bottom right, var(--color-bg-main), var(--color-bg-purple), var(--color-bg-main));
-}
-
-.gradient-border {
-  background: linear-gradient(to right, var(--color-gradient-purple), var(--color-gradient-blue));
+  border-color: var(--color-border-hover);
 }
 
 /* Status classes */
@@ -89,36 +83,28 @@ body {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(180deg); }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
 }
 @keyframes float-delayed {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-30px) rotate(-180deg); }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-30px); }
 }
 @keyframes float-slow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-15px) rotate(90deg); }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
 }
 @keyframes twinkle {
   0%, 100% { opacity: 0; transform: scale(0.5); }
   50% { opacity: 1; transform: scale(1); }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+  0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.6); }
 }
 @keyframes gradient-x {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
-}
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-@keyframes spin-reverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
 }
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
@@ -137,8 +123,6 @@ body {
   animation: gradient-x 3s ease infinite;
   background-size: 200% 200%;
 }
-.animate-spin-slow { animation: spin-slow 3s linear infinite; }
-.animate-spin-reverse { animation: spin-reverse 2s linear infinite; }
 .animate-slideDown { animation: slideDown 0.3s ease-out; }
 .animate-slideInUp { animation: slideInUp 0.5s ease-out; }
 .animate-fadeIn { animation: fadeIn 0.3s ease-out; }

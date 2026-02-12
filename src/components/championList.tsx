@@ -319,43 +319,43 @@ export default function TopChampions() {
 
   if (loading) {
     return (
-      <div className="p-6 bg-bg-main rounded-xl min-h-[400px] flex items-center justify-center">
+      <div className="p-6 rounded-xl min-h-[400px] flex items-center justify-center">
         <div className="flex flex-col items-center">
-          <Loader2 className="w-8 h-8 text-accent animate-spin" />
-          <p className="mt-4 text-text-secondary">Loading champions...</p>
+          <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+          <p className="mt-4 text-zinc-400">Loading champions...</p>
         </div>
       </div>
     )
   }
-  
+
   if (error) {
     return (
-      <div className="p-6 bg-bg-main rounded-xl">
+      <div className="p-6 rounded-xl">
         <div className="text-red-400">{error}</div>
       </div>
     )
   }
 
   return (
-    <div className="p-6 bg-bg-main rounded-xl space-y-4">
+    <div className="p-6 rounded-xl space-y-4">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-text-main">Top Champions</h2>
-          <p className="text-text-secondary text-sm mt-1">Best performing champions by role</p>
+          <h2 className="text-2xl font-bold text-white">Top Champions</h2>
+          <p className="text-zinc-400 text-sm mt-1">Best performing champions by role</p>
         </div>
       </div>
 
       {/* Position Selector */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-6 flex-wrap">
         {POSITIONS.map((position) => (
           <button
             key={position.key}
             onClick={() => setSelectedPosition(position.key)}
             className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors",
+              "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200",
               selectedPosition === position.key
-                ? "bg-accent/20 text-accent"
-                : "bg-bg-card text-text-secondary hover:bg-bg-card-hover"
+                ? "bg-purple-500/20 text-purple-400 ring-1 ring-purple-500/30"
+                : "bg-purple-500/5 text-zinc-400 hover:bg-purple-500/10 hover:text-zinc-300"
             )}
           >
             {position.icon}
@@ -367,11 +367,11 @@ export default function TopChampions() {
       {/* Champions List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {getTopChampionsByPosition(selectedPosition).map((champion) => (
-          <Card key={champion.id} className="bg-bg-card p-4 rounded-lg">
+          <Card key={champion.id} className="bg-purple-500/5 border-purple-500/10 p-4 rounded-lg hover:bg-purple-500/10 hover:border-purple-500/20 transition-all duration-200">
             <div className="flex items-center gap-4">
-              <div className="relative w-16 h-16 rounded-md overflow-hidden">
+              <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-purple-500/20">
                 <Image
-                  src={champion.image.replace('splash', 'champion').replace('_0.jpg', '.png') || "/placeholder.svg"}
+                  src={champion.image || "/placeholder.svg"}
                   alt={champion.name}
                   width={64}
                   height={64}
@@ -380,33 +380,32 @@ export default function TopChampions() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-lg font-bold text-text-main">{champion.name}</h4>
+                  <h4 className="text-lg font-bold text-white">{champion.name}</h4>
                   <span className={cn(
-                    "px-2 py-0.5 text-xs rounded-full",
-                    champion.tier === 'S' ? "bg-accent/20 text-accent" :
-                    champion.tier === 'A' ? "bg-green-500/20 text-green-500" :
-                    champion.tier === 'B' ? "bg-blue-500/20 text-blue-500" :
-                    "bg-text-secondary/20 text-text-secondary"
+                    "px-2 py-0.5 text-xs rounded-full font-medium",
+                    champion.tier === 'S' ? "bg-purple-500/20 text-purple-400" :
+                    champion.tier === 'A' ? "bg-green-500/20 text-green-400" :
+                    champion.tier === 'B' ? "bg-violet-500/20 text-violet-400" :
+                    "bg-zinc-500/20 text-zinc-400"
                   )}>
                     {champion.tier} Tier
                   </span>
                 </div>
-                <div className="flex gap-2 text-sm text-text-secondary">
-                  <span>Win Rate: {champion.winRate}%</span>
-                  <span>Pick Rate: {champion.pickRate}%</span>
-                  <span>Ban Rate: {champion.banRate}%</span>
+                <div className="flex gap-3 text-sm text-zinc-400 mt-1">
+                  <span>{champion.winRate}% WR</span>
+                  <span>{champion.pickRate}% PR</span>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={cn(
                     "text-xs",
-                    champion.trend === 'up' ? "text-green-500" :
-                    champion.trend === 'down' ? "text-red-500" :
-                    "text-text-secondary"
+                    champion.trend === 'up' ? "text-green-400" :
+                    champion.trend === 'down' ? "text-red-400" :
+                    "text-zinc-500"
                   )}>
                     {champion.winRateChange}
                   </span>
-                  <span className="text-xs text-text-secondary">•</span>
-                  <span className="text-xs text-text-secondary">{champion.difficulty}</span>
+                  <span className="text-xs text-zinc-600">|</span>
+                  <span className="text-xs text-zinc-500">{champion.difficulty}</span>
                 </div>
               </div>
             </div>

@@ -55,17 +55,6 @@ const roles = [
   { id: "support", name: "Support", color: "text-cyan-400" },
 ]
 
-const ranks = [
-  { id: "all", name: "All Ranks" },
-  { id: "iron", name: "Iron" },
-  { id: "bronze", name: "Bronze" },
-  { id: "silver", name: "Silver" },
-  { id: "gold", name: "Gold" },
-  { id: "platinum", name: "Platinum" },
-  { id: "diamond", name: "Diamond" },
-  { id: "master", name: "Master+" },
-]
-
 const tierColors = {
   "S+": "text-[#FF4E50] bg-gradient-to-r from-[#FF4E50]/20 to-[#FF4E50]/5",
   S: "text-[#FF9800] bg-gradient-to-r from-[#FF9800]/20 to-[#FF9800]/5",
@@ -77,7 +66,6 @@ const tierColors = {
 
 export default function TierListPage() {
   const [selectedRole, setSelectedRole] = useState("all")
-  const [selectedRank, setSelectedRank] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [sortColumn, setSortColumn] = useState<string>("tier")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
@@ -112,25 +100,47 @@ export default function TierListPage() {
         // Combine champion data with stats
         const championsWithStats: Champion[] = championsArray.map((champ: any) => {
           const stats = statsData[champ.key] || {}
-          
-          // Calculate tier based on win rate and pick rate
-          let tier = "C"
           const winRate = stats.winRate || 50
           const pickRate = stats.pickRate || 5
-          
+          const banRate = stats.banRate || 5
+
+          // Calculate tier based on win rate and pick rate
+          let tier = "C"
           if (winRate >= 53 && pickRate >= 10) tier = "S+"
           else if (winRate >= 52 && pickRate >= 8) tier = "S"
           else if (winRate >= 51 && pickRate >= 5) tier = "A"
           else if (winRate >= 50 && pickRate >= 3) tier = "B"
           else if (winRate >= 48) tier = "C"
           else tier = "D"
-          
+
+          // Build roles object with the computed tier
+          const computedRoles = stats.roles || {}
+          // Ensure each role entry has a tier
+          for (const roleKey of Object.keys(computedRoles)) {
+            if (!computedRoles[roleKey].tier) {
+              computedRoles[roleKey].tier = tier
+            }
+          }
+          // If no roles exist, create a default one based on champion class
+          if (Object.keys(computedRoles).length === 0) {
+            const defaultRoleKey = champ.tags?.[0]?.toUpperCase() || "MIDDLE"
+            computedRoles[defaultRoleKey] = {
+              games: 0,
+              wins: 0,
+              kda: { kills: 0, deaths: 0, assists: 0 },
+              winRate,
+              pickRate,
+              banRate,
+              tier,
+            }
+          }
+
           return {
             id: champ.id,
             name: champ.name,
             icon: `https://ddragon.leagueoflegends.com/cdn/${fetchedVersion}/img/champion/${champ.id}.png`,
             primaryRole: champ.tags?.[0] || "Fighter",
-            roles: stats.roles || {},
+            roles: computedRoles,
             difficulty: getDifficultyLabel(champ.info?.difficulty || 3),
             damageType: getDamageType(champ),
             range: champ.stats?.attackrange > 300 ? "Ranged" : "Melee"
@@ -167,11 +177,19 @@ export default function TierListPage() {
     return "Mixed"
   }
 
+  // Map UI role IDs to Riot API role keys
+  const roleIdToKey: Record<string, string> = {
+    top: "TOP",
+    jungle: "JUNGLE",
+    mid: "MIDDLE",
+    adc: "BOTTOM",
+    support: "UTILITY",
+  }
+
   const filteredData = useMemo(() => {
     const filtered = champions.filter((champion) => {
-      const matchesRole = selectedRole === "all" || 
-        champion.primaryRole.toLowerCase() === selectedRole ||
-        champion.roles[selectedRole.toUpperCase()]
+      const matchesRole = selectedRole === "all" ||
+        !!champion.roles[roleIdToKey[selectedRole] || selectedRole.toUpperCase()]
       const matchesSearch = champion.name.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesRole && matchesSearch
     })
@@ -181,8 +199,10 @@ export default function TierListPage() {
       const tierOrder = { "S+": 1, S: 2, A: 3, B: 4, C: 5, D: 6 }
 
       if (sortColumn === "tier") {
-        const aTier = tierOrder[a.tier as keyof typeof tierOrder] || 5
-        const bTier = tierOrder[b.tier as keyof typeof tierOrder] || 5
+        const aStats = getChampionStats(a)
+        const bStats = getChampionStats(b)
+        const aTier = tierOrder[(aStats.tier || "C") as keyof typeof tierOrder] || 5
+        const bTier = tierOrder[(bStats.tier || "C") as keyof typeof tierOrder] || 5
         return sortDirection === "asc" ? aTier - bTier : bTier - aTier
       }
 
@@ -265,17 +285,18 @@ export default function TierListPage() {
 
   // Get champion stats for display
   const getChampionStats = (champion: Champion) => {
-    const roleKey = selectedRole !== "all" ? selectedRole.toUpperCase() : Object.keys(champion.roles)[0]
-    return champion.roles[roleKey] || { winRate: 50, pickRate: 5, banRate: 5, games: 0, winRateDelta: 0 }
+    const roleKeys = Object.keys(champion.roles)
+    const roleKey = selectedRole !== "all" ? selectedRole.toUpperCase() : (roleKeys[0] || "MIDDLE")
+    return champion.roles[roleKey] || champion.roles[roleKeys[0]] || { winRate: 50, pickRate: 5, banRate: 5, games: 0, winRateDelta: 0, tier: "C" }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
+    <div className="min-h-screen bg-[#09090b] text-white">
       <Navigation />
       
       {/* Version badge for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 bg-white/5 text-blue-400 px-3 py-1 rounded-full text-xs font-mono z-50 border border-white/10 shadow-lg">
+        <div className="fixed bottom-4 right-4 bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full text-xs font-mono z-50 border border-purple-500/20 shadow-lg">
           Data Dragon v{latestVersion}
         </div>
       )}
@@ -291,17 +312,17 @@ export default function TierListPage() {
               backgroundPosition: "center 20%"
             }}
           ></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent z-10"></div>
           
           <div className="absolute bottom-0 left-0 right-0 z-20 max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-            <span className="text-sm font-semibold text-blue-300 uppercase tracking-wider mb-1 block">Featured Champion</span>
-            <h1 className="text-5xl md:text-6xl font-bold text-white text-shadow-lg">{featured.name}</h1>
+            <span className="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-1 block">Featured Champion</span>
+            <h1 className="text-5xl md:text-6xl font-bold text-white">{featured.name}</h1>
             <p className="text-lg text-white/70 max-w-md mt-2">
               {featured.name} dominates the current meta with exceptional performance and game-changing presence.
             </p>
             <Link 
               href={`/champion/${featured.id}`}
-              className="mt-4 inline-block px-6 py-2.5 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded shadow transition-all duration-300"
+              className="mt-4 inline-block px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded shadow transition-all duration-300"
             >
               View Champion Details
             </Link>
@@ -310,22 +331,22 @@ export default function TierListPage() {
       )}
       
       {/* Main Content Header */}
-      <div className="bg-gradient-to-r from-slate-950/90 to-purple-950/90 border-b border-white/10">
+      <div className="border-b border-purple-500/10">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-white">Champion Tier List</h1>
-          <p className="mt-2 text-slate-400">Discover the strongest champions in the current meta, ranked by performance and impact.</p>
+          <p className="mt-2 text-zinc-400">Discover the strongest champions in the current meta, ranked by performance and impact.</p>
         </div>
       </div>
       
       {/* Filters */}
-      <div className="sticky top-16 z-30 bg-white/5 backdrop-blur-md border-b border-white/10">
+      <div className="sticky top-16 z-30 bg-black/80 backdrop-blur-md border-b border-purple-500/10">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             {/* Search */}
             <div className="w-full md:w-auto relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input 
-                className="pl-10 bg-white/5 border-white/10 focus:border-blue-400 text-white"
+                className="pl-10 bg-purple-500/5 border-purple-500/15 focus:border-purple-400 text-white"
                 placeholder="Search champions..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -339,7 +360,7 @@ export default function TierListPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSort("tier")}
-                className={`px-2 py-1 ${sortColumn === "tier" ? "text-blue-400" : "text-slate-400"}`}
+                className={`px-2 py-1 ${sortColumn === "tier" ? "text-purple-400" : "text-zinc-400"}`}
               >
                 Tier
                 {sortColumn === "tier" && (
@@ -350,7 +371,7 @@ export default function TierListPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSort("winrate")}
-                className={`px-2 py-1 ${sortColumn === "winrate" ? "text-blue-400" : "text-slate-400"}`}
+                className={`px-2 py-1 ${sortColumn === "winrate" ? "text-purple-400" : "text-zinc-400"}`}
               >
                 Win Rate
                 {sortColumn === "winrate" && (
@@ -361,7 +382,7 @@ export default function TierListPage() {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleSort("pickrate")}
-                className={`px-2 py-1 ${sortColumn === "pickrate" ? "text-blue-400" : "text-slate-400"}`}
+                className={`px-2 py-1 ${sortColumn === "pickrate" ? "text-purple-400" : "text-zinc-400"}`}
               >
                 Pick Rate
                 {sortColumn === "pickrate" && (
@@ -378,11 +399,9 @@ export default function TierListPage() {
                   onClick={() => setSelectedRole(role.id)}
                   variant="outline"
                   className={`px-3 py-1 text-sm ${
-                    (role.id === "all" && selectedRole === "all") || selectedRole === role.id
-                      ? role.id === "all" 
-                        ? "bg-white/10 text-blue-400 border-white/20"
-                        : `bg-${role.color}/10 text-${role.color} border-${role.color}/20`
-                      : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"
+                    selectedRole === role.id
+                      ? "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                      : "bg-purple-500/5 text-zinc-400 border-purple-500/10 hover:bg-purple-500/10"
                   }`}
                 >
                   {role.name}
@@ -397,7 +416,7 @@ export default function TierListPage() {
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {isLoading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="w-12 h-12 border-4 border-[#C89B3C]/30 border-t-[#C89B3C] rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
           </div>
         ) : (
           <>
@@ -405,40 +424,40 @@ export default function TierListPage() {
               Showing {filteredData.length} champions {selectedRole !== "all" ? `in ${selectedRole} role` : ""}
             </p>
             
-            <div className="bg-white/5 border-white/10 backdrop-blur-sm rounded-lg overflow-hidden">
+            <div className="bg-purple-500/5 border border-purple-500/10 backdrop-blur-sm rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gradient-to-r from-slate-950/90 to-purple-950/90 border-b border-white/10">
+                  <thead className="bg-black/50 border-b border-purple-500/10">
                     <tr>
                       <th className="text-left px-6 py-4 text-white font-semibold">Rank</th>
                       <th className="text-left px-6 py-4 text-white font-semibold">Champion</th>
                       <th className="text-left px-6 py-4 text-white font-semibold">Role</th>
                       <th
-                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-purple-400 transition-colors"
                         onClick={() => handleSort("tier")}
                       >
                         Tier
                       </th>
                       <th
-                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-purple-400 transition-colors"
                         onClick={() => handleSort("winrate")}
                       >
                         Win Rate
                       </th>
                       <th
-                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-purple-400 transition-colors"
                         onClick={() => handleSort("pickrate")}
                       >
                         Pick Rate
                       </th>
                       <th
-                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-purple-400 transition-colors"
                         onClick={() => handleSort("banrate")}
                       >
                         Ban Rate
                       </th>
                       <th
-                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-blue-400 transition-colors"
+                        className="text-left px-6 py-4 text-white font-semibold cursor-pointer hover:text-purple-400 transition-colors"
                         onClick={() => handleSort("games")}
                       >
                         Games
@@ -451,7 +470,7 @@ export default function TierListPage() {
                       return (
                         <tr
                           key={champion.id}
-                          className="border-b border-white/5 hover:bg-gradient-to-r hover:from-blue-500/5 hover:to-transparent transition-all duration-300 cursor-pointer"
+                          className="border-b border-purple-500/5 hover:bg-purple-500/5 transition-all duration-300 cursor-pointer"
                         >
                           <td className="px-6 py-4">
                             <div
@@ -466,7 +485,7 @@ export default function TierListPage() {
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-purple-500 p-0.5">
+                              <div className="relative w-12 h-12 rounded-full overflow-hidden bg-gradient-to-r from-purple-600 to-violet-500 p-0.5">
                                 <div
                                   className="w-full h-full rounded-full aspect-square overflow-hidden bg-cover bg-center"
                                   style={{ backgroundImage: `url(${champion.icon})` }}
@@ -530,10 +549,9 @@ export default function TierListPage() {
             <Button
               onClick={() => {
                 setSelectedRole("all")
-                setSelectedRank("all")
                 setSearchQuery("")
               }}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
+              className="bg-purple-600 hover:bg-purple-500 text-white"
             >
               Clear Filters
             </Button>
@@ -542,9 +560,9 @@ export default function TierListPage() {
       </div>
       
       {/* Footer */}
-      <footer className="border-t border-zinc-800/50 mt-16">
+      <footer className="border-t border-purple-500/10 mt-16">
         <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <p className="text-center text-zinc-500 text-sm">
+          <p className="text-center text-zinc-600 text-sm">
             LoLytics isn&apos;t endorsed by Riot Games and doesn&apos;t reflect the views or opinions of Riot Games or anyone officially involved in producing or managing League of Legends.
           </p>
         </div>

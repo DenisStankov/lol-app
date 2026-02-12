@@ -48,7 +48,7 @@ const getRankIcon = (rank: number) => {
       </div>
     )
   }
-  return <span className="text-slate-400 font-medium">{rank}</span>
+  return <span className="text-zinc-400 font-medium">{rank}</span>
 }
 
 export default function GlassyLeaderboard() {
@@ -60,6 +60,7 @@ export default function GlassyLeaderboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState("")
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
     setLoading(true)
@@ -83,7 +84,7 @@ export default function GlassyLeaderboard() {
         setError("Could not load leaderboard. Try again later.")
         setLoading(false)
       })
-  }, [selectedRegion])
+  }, [selectedRegion, refreshKey])
 
   useEffect(() => {
     setAnimateRows(true)
@@ -125,33 +126,33 @@ export default function GlassyLeaderboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white">
+    <div className="min-h-screen bg-[#09090b] text-white">
       <Navigation searchValue={search} onSearchChange={setSearch} />
       {/* Decorative Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-purple-600/8 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-64 h-64 bg-purple-500/6 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-violet-500/5 rounded-full blur-3xl"></div>
       </div>
 
       {/* Header */}
-      <div className="relative w-full bg-gradient-to-b from-black/50 to-transparent border-b border-white/10 backdrop-blur-sm z-10">
+      <div className="relative w-full bg-black/50 border-b border-purple-500/10 backdrop-blur-sm z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="absolute -inset-1 bg-blue-500/30 rounded-full blur-sm"></div>
-                <Trophy className="h-7 w-7 text-blue-400" />
+                <div className="absolute -inset-1 bg-purple-500/30 rounded-full blur-sm"></div>
+                <Trophy className="h-7 w-7 text-purple-400" />
               </div>
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-violet-300">
                 LoL Leaderboards
               </span>
             </div>
             <div className="relative max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
               <Input
                 placeholder="Search summoner..."
-                className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20"
+                className="pl-9 bg-purple-500/5 border-purple-500/10 text-white placeholder:text-zinc-400 focus:border-blue-400/50 focus:ring-blue-400/20"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -162,23 +163,23 @@ export default function GlassyLeaderboard() {
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         <header className="text-center mb-12">
-          <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white/5 text-blue-400 text-sm font-medium mb-4">
+          <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white/5 text-purple-400 text-sm font-medium mb-4">
             <Sparkles className="h-4 w-4" />
             <span>Live Rankings</span>
           </div>
-          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 mb-3">
+          <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-violet-300 to-purple-400 mb-3">
             Challenger Leaderboard
           </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto">
+          <p className="text-zinc-400 max-w-2xl mx-auto">
             Track the top ranked summoners across all regions and see who dominates the Challenger tier
           </p>
         </header>
 
         {/* Filters */}
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm mb-8 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-white/10 px-6 py-4">
+        <Card className="bg-purple-500/5 border-purple-500/10 backdrop-blur-sm mb-8 overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-b border-purple-500/10 px-6 py-4">
             <h3 className="text-lg font-medium flex items-center gap-2">
-              <Shield className="h-5 w-5 text-blue-400" />
+              <Shield className="h-5 w-5 text-purple-400" />
               Filter Options
             </h3>
           </div>
@@ -186,10 +187,10 @@ export default function GlassyLeaderboard() {
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <div className="flex gap-4">
                 <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                  <SelectTrigger className="w-[180px] bg-white/5 border-white/10 text-white focus:ring-blue-400/20 focus:border-blue-400/50">
+                  <SelectTrigger className="w-[180px] bg-purple-500/5 border-purple-500/10 text-white focus:ring-blue-400/20 focus:border-blue-400/50">
                     <SelectValue placeholder="Select Region" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-white/10">
+                  <SelectContent className="bg-zinc-950 border-purple-500/20">
                     {regions.map((region) => (
                       <SelectItem key={region.code} value={region.code} className="text-white">
                         <div className="flex items-center gap-2">
@@ -208,8 +209,8 @@ export default function GlassyLeaderboard() {
                 </Select>
               </div>
               <Button
-                className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 border-0 text-white shadow-lg shadow-blue-500/20"
-                onClick={() => setSelectedRegion(selectedRegion)}
+                className="bg-purple-600 hover:bg-purple-500 border-0 text-white shadow-lg shadow-purple-500/20"
+                onClick={() => setRefreshKey(prev => prev + 1)}
                 disabled={loading}
               >
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -220,30 +221,30 @@ export default function GlassyLeaderboard() {
         </Card>
 
         {/* Leaderboard */}
-        <Card className="bg-white/5 border-white/10 backdrop-blur-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-b border-white/10 px-6 py-4">
+        <Card className="bg-purple-500/5 border-purple-500/10 backdrop-blur-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-b border-purple-500/10 px-6 py-4">
             <h3 className="text-lg font-medium flex items-center gap-2">
-              <Swords className="h-5 w-5 text-blue-400" />
+              <Swords className="h-5 w-5 text-purple-400" />
               Top Challenger Players
             </h3>
           </div>
           <CardContent className="p-0">
             {loading ? (
-              <div className="p-8 text-center text-blue-400">Loading leaderboard...</div>
+              <div className="p-8 text-center text-purple-400">Loading leaderboard...</div>
             ) : error ? (
               <div className="p-8 text-center text-red-400">{error}</div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="hover:bg-white/5 border-b-white/10">
-                      <TableHead className="text-slate-400 w-16">Rank</TableHead>
-                      <TableHead className="text-slate-400">Summoner</TableHead>
-                      <TableHead className="text-slate-400">Region</TableHead>
-                      <TableHead className="text-slate-400 cursor-pointer" onClick={() => handleSort("lp")}> <div className="flex items-center gap-1">LP {renderSortIndicator("lp")}</div></TableHead>
-                      <TableHead className="text-slate-400 cursor-pointer" onClick={() => handleSort("winrate")}> <div className="flex items-center gap-1">Winrate {renderSortIndicator("winrate")}</div></TableHead>
-                      <TableHead className="text-slate-400 cursor-pointer" onClick={() => handleSort("gamesPlayed")}> <div className="flex items-center gap-1">Games {renderSortIndicator("gamesPlayed")}</div></TableHead>
-                      <TableHead className="text-slate-400">Status</TableHead>
+                    <TableRow className="hover:bg-white/5 border-b-purple-500/10">
+                      <TableHead className="text-zinc-400 w-16">Rank</TableHead>
+                      <TableHead className="text-zinc-400">Summoner</TableHead>
+                      <TableHead className="text-zinc-400">Region</TableHead>
+                      <TableHead className="text-zinc-400 cursor-pointer" onClick={() => handleSort("lp")}> <div className="flex items-center gap-1">LP {renderSortIndicator("lp")}</div></TableHead>
+                      <TableHead className="text-zinc-400 cursor-pointer" onClick={() => handleSort("winrate")}> <div className="flex items-center gap-1">Winrate {renderSortIndicator("winrate")}</div></TableHead>
+                      <TableHead className="text-zinc-400 cursor-pointer" onClick={() => handleSort("gamesPlayed")}> <div className="flex items-center gap-1">Games {renderSortIndicator("gamesPlayed")}</div></TableHead>
+                      <TableHead className="text-zinc-400">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -251,9 +252,9 @@ export default function GlassyLeaderboard() {
                       <TableRow
                         key={player.id}
                         className={`
-                          group hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-transparent border-b-white/10 transition-all duration-300
+                          group hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-transparent border-b-purple-500/10 transition-all duration-300
                           ${animateRows ? "animate-fadeIn" : ""}
-                          ${player.rank <= 3 ? "bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-transparent" : ""}
+                          ${player.rank <= 3 ? "bg-gradient-to-r from-purple-500/5 via-violet-500/5 to-transparent" : ""}
                         `}
                         style={{ animationDelay: `${index * 50}ms` }}
                       >
@@ -262,20 +263,20 @@ export default function GlassyLeaderboard() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-sm font-bold group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-300">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500/20 to-violet-500/20 flex items-center justify-center text-sm font-bold group-hover:from-purple-500/30 group-hover:to-violet-500/30 transition-all duration-300">
                               {player.summonerName.charAt(0)}
                             </div>
                             <div>
                               <div
                                 className={`font-semibold ${
                                   player.rank <= 3
-                                    ? "text-blue-400 group-hover:text-blue-300"
-                                    : "text-white group-hover:text-blue-200"
+                                    ? "text-purple-400 group-hover:text-purple-300"
+                                    : "text-white group-hover:text-purple-200"
                                 } transition-colors duration-300`}
                               >
                                 {player.summonerName}
                               </div>
-                              <div className="text-xs text-slate-400">{player.mainChampion ? `${player.mainChampion} Main` : ""}</div>
+                              <div className="text-xs text-zinc-400">{player.mainChampion ? `${player.mainChampion} Main` : ""}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -292,7 +293,7 @@ export default function GlassyLeaderboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="font-semibold text-blue-400 group-hover:text-blue-300 transition-colors duration-300">
+                          <div className="font-semibold text-purple-400 group-hover:text-purple-300 transition-colors duration-300">
                             {player.lp}
                           </div>
                         </TableCell>
@@ -302,10 +303,10 @@ export default function GlassyLeaderboard() {
                               <div
                                 className={`h-full ${
                                   player.winrate > 60
-                                    ? "bg-gradient-to-r from-blue-500 to-purple-500"
+                                    ? "bg-gradient-to-r from-purple-500 to-violet-400"
                                     : player.winrate > 50
-                                      ? "bg-blue-500"
-                                      : "bg-purple-500"
+                                      ? "bg-purple-500"
+                                      : "bg-violet-700"
                                 }`}
                                 style={{ width: `${player.winrate}%` }}
                               ></div>
@@ -325,7 +326,7 @@ export default function GlassyLeaderboard() {
                               {player.winStreak} Win Streak
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="border-white/10 text-slate-400">
+                            <Badge variant="outline" className="border-purple-500/15 text-zinc-400">
                               No Streak
                             </Badge>
                           )}
@@ -341,20 +342,23 @@ export default function GlassyLeaderboard() {
       </div>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 bg-black/20 mt-12">
+      <footer className="relative z-10 border-t border-purple-500/10 bg-black/20 mt-12">
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} League Stats Tracker. Not affiliated with Riot Games.
+            <p className="text-sm text-zinc-500">
+              © {new Date().getFullYear()} LoLytics. Not affiliated with Riot Games.
             </p>
             <div className="flex items-center gap-6">
-              {["Terms", "Privacy", "Contact"].map((link) => (
+              {[
+                { label: "Terms", href: "/terms-of-service" },
+                { label: "Privacy", href: "/privacy-policy" },
+              ].map((link) => (
                 <a
-                  key={link}
-                  href="#"
-                  className="text-sm text-slate-400 hover:text-blue-400 transition-colors duration-300"
+                  key={link.label}
+                  href={link.href}
+                  className="text-sm text-zinc-500 hover:text-purple-400 transition-colors duration-300"
                 >
-                  {link}
+                  {link.label}
                 </a>
               ))}
             </div>

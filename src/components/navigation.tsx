@@ -181,17 +181,17 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
   }
 
   return (
-    <nav className="bg-gradient-to-r from-slate-950/95 to-purple-950/95 backdrop-blur-xl sticky top-0 z-50 border-b border-white/10 shadow-lg shadow-black/20">
+    <nav className="bg-black/90 backdrop-blur-xl sticky top-0 z-50 border-b border-purple-500/15 shadow-lg shadow-purple-950/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link href="/" className="flex items-center gap-2 group">
                 <div className="relative">
-                  <div className="absolute -inset-1 bg-blue-500/30 rounded-full blur-sm group-hover:bg-blue-500/40 transition-all duration-300"></div>
-                  <Sparkles className="h-6 w-6 text-blue-400 group-hover:text-blue-300 transition-colors" />
+                  <div className="absolute -inset-1 bg-purple-500/30 rounded-full blur-sm group-hover:bg-purple-500/40 transition-all duration-300"></div>
+                  <Sparkles className="h-6 w-6 text-purple-400 group-hover:text-purple-300 transition-colors" />
                 </div>
-                <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 text-xl tracking-tight group-hover:from-blue-300 group-hover:to-purple-300 transition-all duration-300">
+                <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-violet-300 text-xl tracking-tight group-hover:from-purple-300 group-hover:to-violet-200 transition-all duration-300">
                   LoLytics
                 </span>
               </Link>
@@ -206,11 +206,11 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
                       href={item.href}
                       className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium ${
                         isActive
-                          ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-400 ring-1 ring-blue-400/30"
-                          : "text-slate-300 hover:bg-white/5 hover:text-white"
+                          ? "bg-purple-500/15 text-purple-400 ring-1 ring-purple-400/30"
+                          : "text-zinc-400 hover:bg-purple-500/10 hover:text-white"
                       } transition-all duration-200 ease-in-out`}
                     >
-                      <span className={isActive ? "text-blue-400" : "text-slate-400"}>{item.icon}</span>
+                      <span className={isActive ? "text-purple-400" : "text-zinc-400"}>{item.icon}</span>
                       {item.name}
                     </Link>
                   )
@@ -218,10 +218,10 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
                 {/* Search bar for /leaderboards, desktop only */}
                 {pathname === "/leaderboards" && (
                   <div className="ml-6 flex items-center relative max-w-xs">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
                     <Input
                       placeholder="Search summoner..."
-                      className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20"
+                      className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-purple-400/50 focus:ring-purple-400/20"
                       value={searchValue}
                       onChange={(e) => onSearchChange?.(e.target.value)}
                     />
@@ -236,8 +236,8 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
             {!isLoading &&
               (user ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-400/50 transition-all duration-200">
-                    <Avatar className="h-7 w-7 border-2 border-blue-400/70 ring-2 ring-slate-950">
+                  <DropdownMenuTrigger className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 hover:border-purple-400/50 transition-all duration-200">
+                    <Avatar className="h-7 w-7 border-2 border-purple-400/70 ring-2 ring-black">
                       {user?.profileIconId ? (
                         <div className="w-full h-full">
                           <ProfileIcon
@@ -249,7 +249,7 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
                           />
                         </div>
                       ) : (
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-white">
+                        <AvatarFallback className="bg-purple-500/15 text-white">
                           {getInitials(getDisplayName())}
                         </AvatarFallback>
                       )}
@@ -257,13 +257,13 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
                     <span className="text-sm text-white">{getDisplayName()}</span>
                     <ChevronDown className="h-4 w-4 text-slate-400" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-slate-900 border border-white/10">
+                  <DropdownMenuContent align="end" className="w-56 bg-zinc-950 border border-purple-500/20">
                     <DropdownMenuItem className="text-white hover:bg-white/5 focus:bg-white/5">
-                      <User className="mr-2 h-4 w-4 text-blue-400" />
+                      <User className="mr-2 h-4 w-4 text-purple-400" />
                       <span>Profile</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-white hover:bg-white/5 focus:bg-white/5">
-                      <Settings className="mr-2 h-4 w-4 text-blue-400" />
+                      <Settings className="mr-2 h-4 w-4 text-purple-400" />
                       <span>Settings</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-white/10" />
@@ -278,7 +278,7 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
               ) : (
                 <a
                   href={getAuthUrl()}
-                  className="flex items-center gap-2 px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-sm font-medium transition-all duration-300 shadow-lg shadow-blue-500/20"
+                  className="flex items-center gap-2 px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-all duration-300 shadow-lg shadow-purple-500/20"
                 >
                   <Shield className="h-4 w-4" />
                   Sign in with Riot
@@ -290,7 +290,7 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
           <div className="md:hidden">
             <button
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-slate-300 hover:text-white hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400"
+              className="inline-flex items-center justify-center p-2 rounded-md text-slate-300 hover:text-white hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-400"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               <span className="sr-only">Open main menu</span>
@@ -306,7 +306,7 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-gradient-to-b from-slate-950/95 to-purple-950/95 backdrop-blur-xl">
+        <div className="md:hidden bg-black/95 backdrop-blur-xl">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navigation.map((item) => {
               const isActive = pathname === item.href
@@ -316,12 +316,12 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
                   href={item.href}
                   className={`flex items-center gap-2 px-3 py-2 rounded-md text-base font-medium ${
                     isActive
-                      ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-400 ring-1 ring-blue-400/30"
-                      : "text-slate-300 hover:bg-white/5 hover:text-white"
+                      ? "bg-purple-500/15 text-purple-400 ring-1 ring-purple-400/30"
+                      : "text-zinc-400 hover:bg-purple-500/10 hover:text-white"
                   } transition-all duration-200 ease-in-out`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  <span className={isActive ? "text-blue-400" : "text-slate-400"}>{item.icon}</span>
+                  <span className={isActive ? "text-purple-400" : "text-zinc-400"}>{item.icon}</span>
                   {item.name}
                 </Link>
               )
@@ -332,7 +332,7 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
               (user ? (
                 <div className="space-y-1">
                   <div className="flex items-center px-4">
-                    <Avatar className="h-10 w-10 border-2 border-blue-400/70 ring-2 ring-slate-950">
+                    <Avatar className="h-10 w-10 border-2 border-purple-400/70 ring-2 ring-black">
                       {user?.profileIconId ? (
                         <div className="w-full h-full">
                           <ProfileIcon
@@ -344,7 +344,7 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
                           />
                         </div>
                       ) : (
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-white">
+                        <AvatarFallback className="bg-purple-500/15 text-white">
                           {getInitials(getDisplayName())}
                         </AvatarFallback>
                       )}
@@ -356,21 +356,21 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
                   <div className="mt-3 space-y-1">
                     <Link
                       href="/profile"
-                      className="block px-4 py-2 text-base font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                      className="block px-4 py-2 text-base font-medium text-zinc-400 hover:bg-purple-500/10 hover:text-white"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-blue-400" />
+                        <User className="h-4 w-4 text-purple-400" />
                         <span>Profile</span>
                       </div>
                     </Link>
                     <Link
                       href="/settings"
-                      className="block px-4 py-2 text-base font-medium text-slate-300 hover:bg-white/5 hover:text-white"
+                      className="block px-4 py-2 text-base font-medium text-zinc-400 hover:bg-purple-500/10 hover:text-white"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <div className="flex items-center gap-2">
-                        <Settings className="h-4 w-4 text-blue-400" />
+                        <Settings className="h-4 w-4 text-purple-400" />
                         <span>Settings</span>
                       </div>
                     </Link>
@@ -390,7 +390,7 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
                 <div className="px-4 py-2">
                   <a
                     href={getAuthUrl()}
-                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white text-sm font-medium transition-all duration-300 shadow-lg shadow-blue-500/20"
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-md bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-all duration-300 shadow-lg shadow-purple-500/20"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Shield className="h-4 w-4" />
@@ -406,10 +406,10 @@ export default function Navigation({ searchValue, onSearchChange }: NavigationPr
       {pathname === "/leaderboards" && (
         <div className="md:hidden px-4 pb-2">
           <div className="flex items-center relative max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-purple-400" />
             <Input
               placeholder="Search summoner..."
-              className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-blue-400/50 focus:ring-blue-400/20"
+              className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-purple-400/50 focus:ring-purple-400/20"
               value={searchValue}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />

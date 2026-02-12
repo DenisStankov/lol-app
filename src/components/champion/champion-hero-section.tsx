@@ -26,18 +26,18 @@ export default function ChampionHeroSection({ champion }: ChampionHeroSectionPro
   if (!champion) {
     return (
       <section className="relative min-h-[70vh] flex items-center">
-        <div className="absolute inset-0 bg-slate-900 animate-pulse" />
+        <div className="absolute inset-0 bg-[#09090b] animate-pulse" />
         <div className="container relative z-10 mx-auto px-4 py-16">
           <div className="max-w-4xl">
             <div className="flex items-center space-x-4 mb-4">
-              <div className="w-8 h-8 rounded-full bg-slate-800 animate-pulse" />
-              <div className="w-24 h-6 rounded bg-slate-800 animate-pulse" />
-              <div className="w-px h-6 bg-slate-700" />
-              <div className="w-32 h-6 rounded bg-slate-800 animate-pulse" />
+              <div className="w-8 h-8 rounded-full bg-zinc-800 animate-pulse" />
+              <div className="w-24 h-6 rounded bg-zinc-800 animate-pulse" />
+              <div className="w-px h-6 bg-purple-500/20" />
+              <div className="w-32 h-6 rounded bg-zinc-800 animate-pulse" />
             </div>
-            <div className="w-64 h-12 rounded bg-slate-800 animate-pulse mb-4" />
-            <div className="w-48 h-8 rounded bg-slate-800 animate-pulse mb-8" />
-            <div className="w-full h-24 rounded bg-slate-800 animate-pulse" />
+            <div className="w-64 h-12 rounded bg-zinc-800 animate-pulse mb-4" />
+            <div className="w-48 h-8 rounded bg-zinc-800 animate-pulse mb-8" />
+            <div className="w-full h-24 rounded bg-zinc-800 animate-pulse" />
           </div>
         </div>
       </section>
@@ -55,7 +55,7 @@ export default function ChampionHeroSection({ champion }: ChampionHeroSectionPro
           className="object-cover object-center"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950/70 via-slate-950/50 to-slate-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#09090b]/70 via-[#09090b]/50 to-[#09090b]" />
       </div>
 
       {/* Particles Effect */}
@@ -72,10 +72,10 @@ export default function ChampionHeroSection({ champion }: ChampionHeroSectionPro
             transition={{ duration: 0.5 }}
           >
             <div className="flex items-center space-x-4 mb-4">
-              <RoleIcon className="w-8 h-8 text-yellow-400" />
-              <span className="text-lg text-slate-300">{champion.tags?.join(' • ') || "Unknown Role"}</span>
-              <div className="w-px h-6 bg-slate-700" />
-              <span className="text-lg text-slate-300">
+              <RoleIcon className="w-8 h-8 text-purple-400" />
+              <span className="text-lg text-zinc-400">{champion.tags?.join(' • ') || "Unknown Role"}</span>
+              <div className="w-px h-6 bg-purple-500/20" />
+              <span className="text-lg text-zinc-400">
                 Difficulty: {champion.info?.difficulty || "Unknown"}
               </span>
             </div>
@@ -97,13 +97,13 @@ export default function ChampionHeroSection({ champion }: ChampionHeroSectionPro
                 <h1 className="text-5xl md:text-7xl font-bold text-slate-100 mb-4">
                   {champion.name || "Unknown Champion"}
                 </h1>
-                <p className="text-2xl md:text-3xl text-yellow-400 font-medium mb-8">
+                <p className="text-2xl md:text-3xl text-purple-400 font-medium mb-8">
                   {champion.title || "The Unknown"}
                 </p>
 
                 {/* Lore Box */}
-                <div className="relative max-w-2xl transition-all duration-500 ease-in-out overflow-hidden bg-slate-900/70 rounded-lg p-6" style={{height: showLore ? 'auto' : '6rem'}}>
-                  <p className="text-lg text-slate-300 leading-relaxed">
+                <div className="relative max-w-2xl transition-all duration-500 ease-in-out overflow-hidden bg-[#09090b]/70 rounded-lg p-6" style={{height: showLore ? 'auto' : '6rem'}}>
+                  <p className="text-lg text-zinc-400 leading-relaxed">
                     {champion.lore || "No lore available for this champion."}
                   </p>
                   {!showLore && (
@@ -114,7 +114,7 @@ export default function ChampionHeroSection({ champion }: ChampionHeroSectionPro
                 {champion.lore && (
                   <button
                     onClick={() => setShowLore(!showLore)}
-                    className="mt-2 text-yellow-400 hover:text-yellow-300 transition-colors underline font-medium self-start"
+                    className="mt-2 text-purple-400 hover:text-purple-300 transition-colors underline font-medium self-start"
                   >
                     {showLore ? "Show Less" : "Read More"}
                   </button>

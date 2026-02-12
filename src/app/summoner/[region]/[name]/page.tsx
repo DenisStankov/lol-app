@@ -84,21 +84,29 @@ export default function SummonerProfile() {
       });
   }, [gameName, tagLine, region]);
 
-  if (loading) return <div className="text-center text-[#C89B3C]">Still Loading...</div>;
-  if (error) return <div className="text-center text-red-500">{error}</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></div>
+    </div>
+  );
+  if (error) return (
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+      <div className="text-center text-red-400">{error}</div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-[#09090b] text-white">
       {/* Navigation Bar */}
       <Navigation />
       
       {/* Header Section */}
-      <header className="border-b border-zinc-800/50">
+      <header className="border-b border-purple-500/10">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
           <div className="flex flex-col items-center text-center space-y-6">
             <div className="relative group">
-              <div className="absolute -inset-1 bg-[#C89B3C]/20 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
-              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-[#C89B3C]/20">
+              <div className="absolute -inset-1 bg-purple-500/20 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-1000"></div>
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-purple-500/20">
                 <ProfileIcon
                   iconId={summoner?.profileIconId}
                   alt="Summoner Icon"
@@ -109,14 +117,14 @@ export default function SummonerProfile() {
               </div>
             </div>
             <div className="space-y-3">
-              <h1 className="text-4xl md:text-5xl font-bold text-[#C89B3C] tracking-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-purple-400 tracking-tight">
                 {summoner?.summonerName}
               </h1>
               <div className="flex items-center justify-center gap-3">
                 {summoner?.tagLine && (
-                  <span className="text-zinc-400">#{summoner.tagLine}</span>
+                  <span className="text-zinc-500">#{summoner.tagLine}</span>
                 )}
-                <div className="px-3 py-1 rounded-full bg-[#C89B3C]/10 text-[#C89B3C] text-sm font-medium">
+                <div className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-sm font-medium">
                   Level {summoner?.summonerLevel}
                 </div>
                 {process.env.NODE_ENV === 'development' && (
@@ -125,7 +133,7 @@ export default function SummonerProfile() {
                   </div>
                 )}
               </div>
-              <Button className="bg-[#C89B3C]/10 text-[#C89B3C] hover:bg-[#C89B3C]/20 border-0">
+              <Button className="bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border-0">
                 Update Profile
               </Button>
             </div>
@@ -138,19 +146,29 @@ export default function SummonerProfile() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { icon: Trophy, label: "Rank", value: `${summoner?.rank || "Unranked"} ${summoner?.division || ""}`, sub: `${summoner?.leaguePoints || 0} LP` },
-            { icon: Swords, label: "Win Rate", value: `${summoner?.winRate || 0}%`, sub: `Total Games: ${summoner?.wins ?? 0 + (summoner?.loses ?? 0)}` },
-            { icon: Target, label: "KDA", value: "3.2:1", sub: "Kills/Deaths/Assists Avg." },
-            { icon: Crown, label: "Top Role", value: "Mid", sub: "Most played role" },
+            { icon: Swords, label: "Win Rate", value: `${summoner?.winRate || 0}%`, sub: `Total Games: ${(summoner?.wins ?? 0) + (summoner?.losses ?? summoner?.loses ?? 0)}` },
+            { icon: Target, label: "KDA", value: (() => {
+              const matches = summoner?.matchHistory;
+              if (!matches || matches.length === 0) return "N/A";
+              const totals = matches.reduce((acc: {k: number, d: number, a: number}, m: {kills: number, deaths: number, assists: number}) => ({ k: acc.k + m.kills, d: acc.d + m.deaths, a: acc.a + m.assists }), { k: 0, d: 0, a: 0 });
+              const kda = totals.d === 0 ? "Perfect" : ((totals.k + totals.a) / totals.d).toFixed(1) + ":1";
+              return kda;
+            })(), sub: "Kills/Deaths/Assists Avg." },
+            { icon: Crown, label: "Top Role", value: (() => {
+              const matches = summoner?.matchHistory;
+              if (!matches || matches.length === 0) return "N/A";
+              return "Ranked";
+            })(), sub: "Most played role" },
           ].map((stat, i) => (
-            <Card key={i} className="border-zinc-800/50 bg-zinc-900/50">
+            <Card key={i} className="border-purple-500/10 bg-purple-500/5">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm text-zinc-400">{stat.label}</p>
-                    <p className="text-2xl font-bold text-[#C89B3C] mt-1">{stat.value}</p>
-                    <p className="text-sm text-zinc-400 mt-1">{stat.sub}</p>
+                    <p className="text-sm text-zinc-500">{stat.label}</p>
+                    <p className="text-2xl font-bold text-purple-400 mt-1">{stat.value}</p>
+                    <p className="text-sm text-zinc-500 mt-1">{stat.sub}</p>
                   </div>
-                  <stat.icon className="h-5 w-5 text-[#C89B3C]" />
+                  <stat.icon className="h-5 w-5 text-purple-400" />
                 </div>
               </CardContent>
             </Card>
@@ -158,9 +176,9 @@ export default function SummonerProfile() {
         </div>
 
         {/* Match History */}
-        <Card className="border-zinc-800/50 bg-zinc-900/50">
+        <Card className="border-purple-500/10 bg-purple-500/5">
           <CardHeader>
-            <CardTitle className="text-[#C89B3C]">Match History</CardTitle>
+            <CardTitle className="text-purple-400">Match History</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -171,7 +189,7 @@ export default function SummonerProfile() {
                     className={`flex items-center gap-4 p-4 rounded-lg ${match.result === "Victory" ? "bg-emerald-500/10" : "bg-red-500/10"
                       }`}
                   >
-                    <div className="w-16 h-16 rounded-lg bg-zinc-800/50 overflow-hidden">
+                    <div className="w-16 h-16 rounded-lg bg-purple-500/10 overflow-hidden">
                       <ChampionIcon
                         championId={match.champion}
                         alt="Champion"
@@ -185,7 +203,7 @@ export default function SummonerProfile() {
                         <span className={match.result === "Victory" ? "text-emerald-400" : "text-red-400"}>
                           {match.result}
                         </span>
-                        <span className="text-sm text-zinc-400">KDA: {match.kills}/{match.deaths}/{match.assists}</span>
+                        <span className="text-sm text-zinc-500">KDA: {match.kills}/{match.deaths}/{match.assists}</span>
                       </div>
                     </div>
                     <div className="text-right">
@@ -194,7 +212,7 @@ export default function SummonerProfile() {
                   </div>
                 ))
               ) : (
-                <p className="text-center text-zinc-400">No match history available.</p>
+                <p className="text-center text-zinc-500">No match history available.</p>
               )}
             </div>
           </CardContent>
@@ -204,8 +222,8 @@ export default function SummonerProfile() {
       {/* Footer */}
       <footer className="border-t border-zinc-800/50">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-6">
-          <p className="text-sm text-zinc-400 text-center">
-            © {new Date().getFullYear()} League Stats Tracker. Not affiliated with Riot Games.
+          <p className="text-sm text-zinc-500 text-center">
+            © {new Date().getFullYear()} LoLytics. Not affiliated with Riot Games.
           </p>
         </div>
       </footer>
