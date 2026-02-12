@@ -1,6 +1,5 @@
 import axios from 'axios'
 
-const RIOT_API_KEY = process.env.RIOT_API_KEY;
 const DDRAGON_BASE_URL = 'https://ddragon.leagueoflegends.com';
 const FALLBACK_VERSION = '13.24.1'; // Fallback to a known version
 
@@ -54,22 +53,7 @@ export async function fetchChampionData(rank = 'PLATINUM', region = 'global') {
             splash: `${DDRAGON_BASE_URL}/cdn/img/champion/splash/${champKey}_0.jpg`,
             loading: `${DDRAGON_BASE_URL}/cdn/img/champion/loading/${champKey}_0.jpg`
           },
-          roles: {
-            // Mock role data - replace with real API data
-            ...(champDetail.tags.includes('Fighter') && {
-              TOP: mockRoleStats(),
-              JUNGLE: mockRoleStats()
-            }),
-            ...(champDetail.tags.includes('Mage') && {
-              MIDDLE: mockRoleStats()
-            }),
-            ...(champDetail.tags.includes('Marksman') && {
-              BOTTOM: mockRoleStats()
-            }),
-            ...(champDetail.tags.includes('Support') && {
-              UTILITY: mockRoleStats()
-            })
-          },
+          roles: generateRolesForTags(champDetail.tags || []),
           difficulty: getDifficultyLabel(champDetail.info.difficulty),
           damageType: getDamageType(champDetail),
           range: champDetail.stats.attackrange > 300 ? 'Ranged' : 'Melee'
@@ -88,6 +72,41 @@ export async function fetchChampionData(rank = 'PLATINUM', region = 'global') {
     console.error('Error fetching champion data:', error);
     throw error;
   }
+}
+
+// Generate role assignments based on champion tags
+function generateRolesForTags(tags: string[]): Record<string, ReturnType<typeof mockRoleStats>> {
+  const roles: Record<string, ReturnType<typeof mockRoleStats>> = {};
+
+  if (tags.includes('Fighter')) {
+    roles.TOP = mockRoleStats();
+    roles.JUNGLE = mockRoleStats();
+  }
+  if (tags.includes('Tank')) {
+    if (!roles.TOP) roles.TOP = mockRoleStats();
+    roles.UTILITY = mockRoleStats();
+  }
+  if (tags.includes('Mage')) {
+    roles.MIDDLE = mockRoleStats();
+    if (!roles.UTILITY) roles.UTILITY = mockRoleStats();
+  }
+  if (tags.includes('Assassin')) {
+    if (!roles.MIDDLE) roles.MIDDLE = mockRoleStats();
+    if (!roles.JUNGLE) roles.JUNGLE = mockRoleStats();
+  }
+  if (tags.includes('Marksman')) {
+    roles.BOTTOM = mockRoleStats();
+  }
+  if (tags.includes('Support')) {
+    roles.UTILITY = mockRoleStats();
+  }
+
+  // Fallback: ensure every champion has at least one role
+  if (Object.keys(roles).length === 0) {
+    roles.MIDDLE = mockRoleStats();
+  }
+
+  return roles;
 }
 
 // Helper function to generate mock role stats
@@ -118,11 +137,14 @@ function getDifficultyLabel(difficulty: number): string {
 }
 
 function getDamageType(champDetail: any): string {
-  const { attackdamage, attackdamageperlevel, spelldamage, spelldamageperlevel } = champDetail.stats;
-  if (attackdamage + attackdamageperlevel > spelldamage + spelldamageperlevel) {
-    return 'Physical';
-  }
-  return 'Magic';
+  const tags: string[] = champDetail.tags || [];
+  // Mages deal primarily magic damage
+  if (tags.includes('Mage')) return 'Magic';
+  // Marksmen and Fighters deal primarily physical damage
+  if (tags.includes('Marksman') || tags.includes('Fighter') || tags.includes('Assassin')) return 'Physical';
+  // Tanks can be either; check if they have high AP scaling via info.magic
+  if (champDetail.info?.magic > champDetail.info?.attack) return 'Magic';
+  return 'Physical';
 }
 
 function getTierFromWinRate(winRate: number): string {

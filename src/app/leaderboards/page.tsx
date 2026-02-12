@@ -17,7 +17,6 @@ const regions = [
   { code: "EUW", name: "Europe West", flag: "/eu-flag.png" },
   { code: "EUNE", name: "Europe Nordic & East", flag: "/europe-flag.png" },
   { code: "KR", name: "Korea", flag: "/south-korea-flag.png" },
-  { code: "CN", name: "China", flag: "/china-flag.png" },
   { code: "BR", name: "Brazil", flag: "/brazil-flag.png" },
   { code: "JP", name: "Japan", flag: "/japan-flag.png" },
   { code: "OCE", name: "Oceania", flag: "/australia-flag.png" },

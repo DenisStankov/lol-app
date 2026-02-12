@@ -25,23 +25,23 @@ export async function GET() {
       });
     }
     
-    // Test the API by requesting summoner data for a known account
+    // Test the API by requesting the challenger league (a stable endpoint)
     try {
       const response = await axios.get(
-        'https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/Riot%20Phreak',
+        'https://na1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5',
         {
           headers: {
             'X-Riot-Token': apiKey
           }
         }
       );
-      
+
       return NextResponse.json({
         success: true,
         message: "API key works correctly!",
-        summoner: {
-          name: response.data.name,
-          level: response.data.summonerLevel
+        league: {
+          tier: response.data.tier,
+          totalPlayers: response.data.entries?.length || 0,
         }
       });
     } catch (error: unknown) {
@@ -49,10 +49,10 @@ export async function GET() {
       console.error("API request failed:", axiosError.message);
       console.error("Status:", axiosError.response?.status);
       console.error("Data:", axiosError.response?.data);
-      
+
       return NextResponse.json({
         success: false,
-        error: axiosError.response?.status === 403 ? "API key unauthorized" : 
+        error: axiosError.response?.status === 403 ? "API key unauthorized" :
                axiosError.response?.status === 429 ? "Rate limit exceeded" :
                "API request failed",
         status: axiosError.response?.status,

@@ -8,9 +8,9 @@ export async function GET() {
     const versions = await versionRes.json();
     const latestVersion = versions[0];
     const [major, minor] = latestVersion.split('.');
-    const year = parseInt(major) + 10;
-    const displayVersion = `${year}.${minor}`;
-    const url = `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${displayVersion}-notes/`;
+    const displayVersion = `${major}.${minor}`;
+    // Patch notes URLs use dashes between major and minor: patch-14-10-notes
+    const url = `https://www.leagueoflegends.com/en-us/news/game-updates/patch-${major}-${minor}-notes/`;
 
     return NextResponse.json({
       version: latestVersion,

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import axios from 'axios';
 
-// List of versions to try in order of preference
-const VERSIONS = ['13.24.1', '13.23.1', '13.22.1', '13.10.1', '12.23.1'];
+// Fallback versions to try if latest version fetch fails
+const FALLBACK_VERSIONS = ['14.8.1', '14.7.1', '13.24.1', '13.23.1'];
 
 // Default champions that are known to exist in all versions
 const DEFAULT_CHAMPIONS = ['Aatrox', 'Annie', 'Ashe', 'Garen', 'Ryze'];
@@ -10,9 +10,20 @@ const DEFAULT_CHAMPIONS = ['Aatrox', 'Annie', 'Ashe', 'Garen', 'Ryze'];
 export async function GET(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const championId = searchParams.get('championId') || 'Aatrox'; // Default to Aatrox if none provided
-  
+
+  // Build version list starting with latest
+  const versions = [...FALLBACK_VERSIONS];
+  try {
+    const versionsResponse = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');
+    if (versionsResponse.data?.[0] && !versions.includes(versionsResponse.data[0])) {
+      versions.unshift(versionsResponse.data[0]);
+    }
+  } catch {
+    // Continue with fallback versions
+  }
+
   // Try fetching from different versions until one works
-  for (const version of VERSIONS) {
+  for (const version of versions) {
     try {
       const response = await axios.get(
         `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${championId}.png`, 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const REGION_TO_PLATFORM = {
+const REGION_TO_PLATFORM: Record<string, string> = {
   NA: 'na1',
   EUW: 'euw1',
   EUNE: 'eun1',
@@ -12,13 +12,17 @@ const REGION_TO_PLATFORM = {
   RU: 'ru',
   LAN: 'la1',
   LAS: 'la2',
-  CN: 'oc1', // China not supported by Riot API
+  PH: 'ph2',
+  SG: 'sg2',
+  TH: 'th2',
+  TW: 'tw2',
+  VN: 'vn2',
 }
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const region = (searchParams.get('region') || 'KR').toUpperCase()
-  const platform = REGION_TO_PLATFORM[region] || 'kr'
+  const platform = REGION_TO_PLATFORM[region as keyof typeof REGION_TO_PLATFORM] || 'kr'
   const RIOT_API_KEY = process.env.RIOT_API_KEY || process.env.NEXT_PUBLIC_RIOT_API_KEY
 
   if (!RIOT_API_KEY) {
